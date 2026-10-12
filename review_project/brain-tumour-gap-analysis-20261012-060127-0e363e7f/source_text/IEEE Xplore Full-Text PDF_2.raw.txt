@@ -1,0 +1,1099 @@
+3678 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 42, NO. 12, DECEMBER 2023
+Learning Unified Hyper-Network for Multi-Modal
+MR Image Synthesis and Tumor Segmentation
+With Missing Modalities
+Heran Yang , Jian Sun , Member, IEEE, and Zongben Xu
+Abstract—Accurate segmentation of brain tumors is of
+critical importance in clinical assessment and treatment
+planning, which requires multiple MR modalities provid-
+ing complementary information. However, due to practical
+limits, one or more modalities may be missing in real sce-
+narios. To tackle this problem, existing methods need to
+train multiple networks or a unified but fixed network for
+various possible missing modality cases, which leads to
+high computational burdens or sub-optimal performance.
+In this paper, we propose a unified and adaptive multi-
+modal MR image synthesis method, and further apply it
+to tumor segmentation with missing modalities. Based on
+the decomposition of multi-modal MR images into com-
+mon and modality-specific features, we design a shared
+hyper-encoder for embedding each available modality into
+the feature space, a graph-attention-based fusion block to
+aggregate the features of available modalities to the fused
+features, and a shared hyper-decoder for image recon-
+struction. We also propose an adversarial common feature
+constraint to enforce the fused features to be in a com-
+mon space. As for missing modality segmentation, we first
+conduct the feature-level and image-level completion using
+our synthesis method and then segment the tumors based
+on the completed MR images together with the extracted
+common features. Moreover, we design a hypernet-based
+modulation module to adaptively utilize the real and syn-
+thetic modalities. Experimental results suggest that our
+method can not only synthesize reasonable multi-modal MR
+images, but also achieve state-of-the-art performance on
+brain tumor segmentation with missing modalities.
+Index Terms—Multi-modal MR images, missing modality
+synthesis, tumor segmentation with missing modalities.
+I. INTRODUCTION
+MALIGNANT brain tumors have become an aggressive
+and dangerous disease that leads to death worldwide.
+Accurate segmentation of brain tumors is of great importance
+for quantitative assessment of tumor progression and surgery
+treatment planning. Magnetic Resonance (MR) imaging is
+a commonly-used imaging technique with good soft-tissue
+Manuscript received 20 March 2023; revised 8 June 2023; accepted
+31 July 2023. Date of publication 4 August 2023; date of current version
+30 November 2023. This work was supported in part by the National Key
+Research and Development Program under Grant 2022YFA1004201;
+and in part by NSFC under Grant 62206216, Grant 12125104, Grant
+12090021, and Grant U20B2075. (Corresponding author: Jian Sun.)
+The authors are with the School of Mathematics and Statistics,
+Xi’an Jiaotong University, Xi’an, Shaanxi 710049, China (e-mail:
+hryang@xjtu.edu.cn; jiansun@xjtu.edu.cn; zbxu@xjtu.edu.cn).
+Digital Object Identifier 10.1109/TMI.2023.3301934
+contrast to visualize the brain tissue, and the captured multiple
+contrasts (refer to as modalities in this paper) can provide
+complementary information for measuring the tumor-induced
+tissue changes. The multiple modalities in MR imaging
+include T1-weighted (T1), contrast enhanced T1-weighted
+(T1c), T2-weighted (T2), Fluid Attenuation Inversion Recov-
+ery (FLAIR) images, etc. For example, T2 and FLAIR images
+highlight the differences between tumor and normal regions,
+while T1c image emphasizes tumor core boundary [1]. Due
+to practical limits, e.g., various scanning protocols, motion
+artifacts, etc., one or more modalities may be missing or
+unusable.
+To tackle this problem, some image synthesis methods [1],
+[2] have been proposed to impute the missing modalities
+based on the available modality images of one subject, and
+then the completed data can be used for segmentation. More-
+over, some segmentation methods [3], [4] segment the brain
+tumors directly from incomplete multi-modal MR images by
+learning modality-invariant image representations. However,
+as there are various possible missing modality cases, these
+methods generally need to train multiple networks or a unified
+but fixed network for these missing cases, leading to high
+computational burdens or sub-optimal performance for each
+case.
+In this work, we propose a unified and adaptive multi-modal
+MR image synthesis network, dubbed hyper-GAE, and apply
+it to tumor segmentation with missing modalities. Our hyper-
+GAE consists of a shared encoder for embedding each input
+modality into the feature space, a fusion block for feature
+aggregation, and a shared decoder for reconstructing output
+images. Our method is based on the decomposition of multi-
+modal MR images of a subject into the common features and
+modality-specific features, respectively modeling the common
+anatomical structures of subject and the imaging parameters
+of scanner. Specifically, we first define modality-specific infor-
+mation as one-hot code indicating MR modality, and construct
+two modality modulators as hypernetwork [5] (i.e., a small
+network to tune the weights for a larger network) to respec-
+tively modulate the encoder and decoder adaptive to input
+and output modalities. We also design a graph-attention-based
+fusion block to adaptively interact and fuse the extracted
+features based on input modalities, and propose an adversarial
+common feature constraint to constrain these features only
+contain the modality-common information.
+1558-254X © 2023 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See https://www.ieee.org/publications/rights/index.html for more information.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+YANG et al.: LEARNING UNIFIED HYPER-NETWORK FOR MULTI-MODAL MR IMAGE SYNTHESIS AND TUMOR SEGMENTATION 3679
+As for the tumor segmentation with missing modal-
+ity(ies), instead of directly using completed MR images for
+segmentation, we utilize the image completion as a reg-
+ularization constraint, and take the completed MR images
+together with extracted common features (for missing modality
+completion) as the inputs of segmentation network. Moreover,
+we propose a hypernet-based modulation (HBM) module to
+adaptively use the input real and synthesized modalities, which
+is a plug-in block and tunes full-modality tumor segmen-
+tation network adaptive to the input modality combination.
+In this work, we plug the HBM module into the two-stage
+cascaded U-Net (TC-UNet) [6] and construct the cascaded
+hyper-segmentors (i.e., a segmentor tuned by a modulator) as
+our segmentation network.
+We applied our method to multi-modal brain MR image
+synthesis and segmentation. Experimental results show that
+our method can not only impute reasonable multi-modal MR
+images, but also achieve state-of-the-art performance on brain
+tumor segmentation with missing modalities. We also conduct
+the ablation study and verify the effectiveness of our designed
+modules. Additional experiments evaluate the performance of
+different segmentation strategies. The results show that our
+proposed segmentation strategy of using both feature-level and
+image-level completed information improves the performance,
+compared with the strategies only using either of them.
+A preliminary version of this work was published in [7].
+This journal version presents the following extensions. (1) We
+extend the methodology from one-to-one to many-to-many
+image synthesis setting, and design a graph-attention-based
+fusion block and an adversarial common feature constraint.
+The network is improved from 2D to 3D. (2) We extend the
+synthesis method to multi-modal brain tumor segmentation
+with missing modality(ies), and design a segmentation strategy
+and a hypernet-based modulation module. (3) We conducted
+comprehensive experiments on both multi-modal MR image
+synthesis and tumor segmentation with missing modalities, and
+evaluated the influence of different segmentation strategies.
+A. Related Work
+1) Missing MR Modality Synthesis: Synthesizing missing
+modalities from the available ones has attracted increasing
+interests in recent researches, which can be classified into the
+following three categories. The one-to-one synthesis methods
+synthesize one modality from another modality [7], [8], [9],
+[10], [11], [12], [13]. For example, Dar et al. [9] proposed
+a conditional generative adversarial network (GAN) to syn-
+thesize T2w image from a T1w image. However, when there
+are two or more existing modalities, these methods can not
+make full use of all available modality information. To over-
+come this limitation, some many-to-one synthesis methods
+estimate the missing modality by combining information from
+all available modalities [2], [14], [15], [16]. For instance,
+Lee et al. [2] proposed a collaborative GAN for missing
+modality synthesis. Generally, these methods train specific
+network for each case of missing modality, and they need
+to train multiple networks for multi-modal image completion
+with different missing modality cases. Some many-to-many
+synthesis methods leverage the available modalities to impute
+all missing modalities by a single model [1], [17], [18], [19].
+For example, Sharma et al. [18] proposed a multi-input multi-
+output GAN for generating missing modalities, where the
+missing inputs are imputed with zero. However, these methods
+use a fixed network for image synthesis in various possible
+missing modality cases, which might be insufficient to handle
+the complexity of diverse missing modality cases. In fact, for
+N MR modalities, there would be 2N − 2 possible missing
+modality cases in total, which omits the two cases that all N
+modalities are scanned or missing.
+In this work, we propose a unified and adaptive many-
+to-many synthesis method. Compared with many-to-one meth-
+ods, our method only needs to train a unified network for
+imputing multi-modal MR images at arbitrary missing modal-
+ity cases. Compared with many-to-many methods, our method
+utilizes a unified and adaptive network with learned parameters
+adaptive to different missing modality cases.
+2) Brain Tumor Segmentation: Accurately segmenting brain
+tumors from multi-modal MR images is useful for preoperative
+treatment planning. Various brain tumor segmentation methods
+were proposed [20], [21]. However, it is often hard to fully
+collect all high-quality MR modalities, and there are researches
+focusing on brain tumor segmentation with missing modalities
+in recent years. Some feature-based methods directly segment
+brain tumors from incomplete multi-modal MR images by
+extracting modality-invariant image representations, and an
+extra image reconstruction path is usually used as the regular-
+ization [3], [4], [22], [23], [24], [25], [26], [27]. For example,
+Yang et al. [27] proposed a dual disentanglement network to
+decompose modality-specific and tumor-specific features for
+segmentation. Some synthesis-based methods first synthesize
+the missing modalities to construct the complete multi-modal
+data, which is further used for segmenting the tumors [1], [19].
+For example, Shen et al. [1] proposed a multi-domain image
+completion method, and then extended it for missing modality
+segmentation. In addition, some knowledge distillation meth-
+ods train the independent model for specific missing case via
+the knowledge distilled from full modalities [28], [29], [30].
+For example, Azad et al. [30] proposed a co-training network
+with a content and style-matching mechanism to distill the
+informative features from full modalities. However, these
+methods need to train a specific pair of student and teacher
+networks for each missing case (e.g., requiring 2N − 2 pairs
+of networks for N modalities), which is highly computational
+inefficient.
+In this work, we propose a novel multi-modal MR image
+synthesis method, and then extend it to a tumor segmentation
+method with missing modalities. Our segmentation method
+utilizes image completion as an extra constraint, and takes both
+completed multi-modal MR images and the extracted common
+features as the inputs of segmentation network, compared with
+synthesis-based and feature-based methods only using either
+image-level or feature-level completed information.
+II. PROBLEM FORMULATION
+We aim at constructing a multi-modal MR image synthesis
+model, and extend it to a tumor segmentation model with
+missing modalities. For T1, T1c, T2 and FLAIR modalities
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+3680 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 42, NO. 12, DECEMBER 2023
+Fig. 1. Illustration of our proposed multi-modal MR image synthesis network (left), and the detailed architectures of our designed hyper-encoder
+(right top) and hyper-decoder (right bottom). The inputs and dotted lines/nodes in gray represent that these components are missing for this case.
+(denoted as M = {mi }N
+i=1, N = 4), we denote I = {Imi }N
+i=1
+as the multi-modal MR images of one subject, where Imi ∈
+RH×W×D is MR scan of modality mi . We represent each
+modality mi by a one-hot-like modality code ci , with the
+value of 1 representing corresponding modality in a given list
+of multiple modalities. Let y ∈ {0, 1}H×W×D×K denote seg-
+mentation label, with 1 for foreground and 0 for background.
+K denotes the number of semantic categories. A segmentation
+model with complete multi-modal MRI data can be defined as
+ŷ = S F(I)
+
+= S F(Im1 , Im2 , · · · , ImN )
+
+, (1)
+where ŷ denotes the estimated segmentation label. S and F
+represent the segmentation and feature extraction operators.
+When there exists missing modality(ies), one solution is to
+impute the missing image (e.g., Imi ) by estimating a synthe-
+sized ˆ
+Imi based on available modalities (i.e., Ma = {m j ∈
+M|Im j is available}). We define a modality-availability vector
+va ∈ {0, 1}N representing the available modality information,
+with the value of 1 and 0 corresponding to available and
+missing modalities respectively. After image synthesis process,
+we can obtain a completed multi-modal MRI data (i.e., Î =
+(· · · , Imi−1 , ˆ
+Imi , Imi+1 , · · · )). Then, for a subject with incom-
+plete multi-modal MRI data, our segmentation model employs
+both the image-level (i.e., the completed MR images Î) and
+feature-level (i.e., extracted common features F(IMa ) from
+incomplete data Ma) information, formulated as
+ŷ = S F(IMa ), Î
+
+. (2)
+Considering missing modality(ies), there are 2N −1 possible
+cases if at least one modality is scanned, and it is impractical to
+train a specific model for each missing modality case. In this
+work, we propose a multi-modal MR synthesis method for
+adaptively synthesizing arbitrary missing modality(ies) by a
+unified network, and further apply it to tumor segmentation
+with missing modalities. The reminder of this paper is orga-
+nized as follows. Sections III and IV present our proposed
+multi-modal MR image synthesis method and its application to
+missing modality segmentation. Section V presents the exper-
+imental results, and conclusions are presented in Section VI.
+III. UNIFIED MULTI-MODAL MR IMAGE SYNTHESIS
+Multiple MR imaging modalities provide complementary
+diagnostic information. Our synthesis method is based on the
+decomposition of multi-modal MR images of a subject into the
+common features and modality-specific features. Specifically,
+we implicitly model the common features using a common
+feature space, and define the modality-specific information
+using modality code (i.e., one-hot code indicating MR modal-
+ity). The encoding process in hyper-encoder computes the
+common features (i.e., extracted common features) of an input
+modal image based on this image and its modality-specific
+features (i.e., input modality code), while the decoding process
+in hyper-decoder estimates the target modal image based on
+its common and modality-specific features, i.e., the extracted
+common features and target modality code.
+General Pipeline for Multi-Modal MR Image Synthesis:
+As in left sub-figure of Fig. 1, given a group of existing
+modalities of one subject, we first use a shared hyper-encoder
+to individually extract deep features from each input modality,
+and then these features are interacted and aggregated to be
+fused features by a graph-attention-based fusion block. An
+adversarial common feature constraint is designed to constrain
+the fused features extracted from different input modality
+groups within a common feature space modeling the common
+anatomical structures. Finally, these common features are fed
+into a shared hyper-decoder to reconstruct the output modali-
+ties. By this strategy, our network for multi-modal MR image
+synthesis can adaptively synthesize the missing modality(ies)
+based on the available modalities using a unified network.
+In the remainder of this section, we introduce the designs
+of hyper-encoder and hyper-decoder, graph-attention-based
+fusion block, adversarial common feature constraint, and the
+training loss for multi-modal MR image synthesis.
+A. Hyper-Encoder and Hyper-Decoder
+We utilize a shared pair of hyper-encoder E and hyper-
+decoder D to extract deep features from each available modal-
+ity and reconstruct the multi-modal MR images respectively.
+To do this, each modality is represented by a modality code,
+which is used to adaptively tune the encoding and decoding
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+YANG et al.: LEARNING UNIFIED HYPER-NETWORK FOR MULTI-MODAL MR IMAGE SYNTHESIS AND TUMOR SEGMENTATION 3681
+processes. Specifically, our hyper-encoder/hyper-decoder is
+respectively an encoder/decoder with the parameters modu-
+lated by a modality modulator with the modality code as input.
+In this way, we design a unified encoder-decoder framework
+flexibly adaptive to input and output modalities, instead of
+training individual encoder and decoder for each missing case.
+1) Architecture of Hyper-en(de)Coder: As shown in right
+sub-figures of Fig. 1, our hyper-encoder E and hyper-decoder
+D respectively consist of two subnets, i.e., a backbone
+encoder/decoder and a modality modulator. The encoder
+extracts deep features from input modality, while the decoder
+estimates target modal image from deep features. The back-
+bone encoder and decoder are respectively paired with a
+modality modulator, achieving modality-adaptive tuning of the
+parameters of encoder and decoder. The modality modulator
+is a multilayer perceptron (MLP) with the modality code
+as input, and each layer in modulator is successively corre-
+sponded to an instance normalization (IN) layer in backbone
+encoder/decoder and tunes its parameters. That is, the output of
+each layer in modality modulator is fed into the corresponding
+IN layer in encoder/decoder and works as this layer’s affine
+parameters γ and β. Suppose that µ(x) and σ(x) are the mean
+and standard deviation of input features x, the output of this
+IN layer, which is tuned by the modulator, can be written as
+x̃ = γ x−µ(x)
+σ(x) + β.
+2) Backbone of Hyper-en(de)Coder: We utilize [31] with
+several modifications to extend to 3D network. Specifically, the
+encoder contains two stride-2 3D convolutional layers and six
+residual blocks to extract features, while the decoder consists
+of six residual blocks and two stride-2 deconvolutional layers
+to reconstruct images. The modality modulators tune instance
+normalization layers in backbone encoder and decoder. Please
+refer to the right sub-figures in Fig. 1 for more details.
+B. Graph-Attention-Based Fusion Block
+The graph-attention-based fusion block U adaptively inter-
+acts and fuses multi-modal features extracted from different
+input modalities by hyper-encoder E. Specifically, each graph
+node corresponds to the features of each modality, and node
+number is dynamically adapted to the number of available
+modalities. The graph edges model the connection between
+each pair of available modalities. Each node borrows the
+complementary information from the other nodes via an
+attention-based message passing operation modulated by the
+modality code and modality-availability vector, and then these
+updated node features are aggregated by average fusion.
+Modality-Modulated Message Passing: Given a graph G
+with N0 nodes (i.e., N0 available modalities Ma), as in Fig. 2,
+the i-th node features fi ∈ Rd are the deep features extracted
+from modality mi per voxel. For each pair of modalities
+mi , m j ∈ Ma, we define the message passing from modality
+m j to mi as the production of node features f j and an attention
+weight wi j . This weight wi j aims at learning to attend on the
+complementary node features and can be computed as
+wi j = 9([ f ′
+i , f ′
+j , va]; θw), (3)
+where f ′
+i ∈ Rd+N is deep features fi expanded with modality
+code ci , i.e., f ′
+i = [ fi , ci ], and [·, ·] denotes the concatenation
+Fig. 2. Illustration of our graph-attention-based fusion block. The dotted
+lines/nodes in gray represent that these components are missing.
+of two vectors. va ∈ {0, 1}N is the modality-availability
+vector representing the available modality information. 9 is a
+function with parameters θw aiming to estimate the attention
+weight between each pair of modalities in G, and we design
+it as a two-layer MLP with d units and tanh function in
+the final layer. We further collect the messages of modality
+mi borrowed from all available modalities Ma, and then the
+updated features ˆ
+fi of modality mi can be defined as
+ˆ
+fi = fi +
+1
+N0
+X
+m j ∈Ma
+wi j f j . (4)
+Finally, we aggregate these features into the fused features
+f by average fusion, i.e., f = 1
+N0
+P
+mi ∈Ma
+ˆ
+fi . These fused
+features would be utilized to reconstruct the target modal
+images by hyper-decoder D, as shown in Fig. 1.
+C. Adversarial Common Feature Constraint
+We propose an adversarial common feature (ACF) constraint
+to enforce the extracted fused features (by hyper-encoder E
+and graph-attention-based fusion block U) to be in a common
+space shared by different missing modality cases for each
+subject, implicitly modeling the modality-common anatomical
+structures of the subject. To do this, we introduce an extra
+classifier C for predicting each modality is available or not
+when extracting the fused features, and our ACF constraint
+would adversarially force the hyper-encoder E and fusion
+block U producing the fused features that can not be correctly
+classified by classifier C, i.e., within a common feature space.
+The classifier C consists of a gradient reversal layer (GRL)
+[32] and four 1 × 1 × 1 convolutional layers to voxel-wisely
+predict the modality probabilities. With the fused features (by
+E and U) as input, the classifier C predicts a N-length vector
+per voxel, and each element in this vector represents the prob-
+ability that the corresponding input modality is available or not
+when extracting these fused features. The GRL in C is a layer
+acting as an identity transform during forward propagation
+but flipping the gradient sign during backpropagation, which
+achieves the adversarial training between C and E, U. Our
+ACF constraint is defined over the fused features FM and
+FMa respectively extracted from the full modalities M and
+available modalities Ma, and constrains them to be correctly
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+3682 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 42, NO. 12, DECEMBER 2023
+Fig. 3. Illustration of our segmentation method based on hyper-GAE (left), and our hyper-segmentors S1 (right top) and S2 (right bottom).
+classified by the classifier C, which can be defined as
+LAC F (E, U, C) = LBC E (C(FM), 1)
++ LBC E (C(FMa ), va), (5)
+where LBC E denote the binary cross entropy loss. 1 and va
+are the all-one vector and modality-availability vector. Due to
+the GRL in C, this constraint adversarially enforces classifier
+C is not able to distinguish the modalities of these fuse
+features, and thus forces hyper-encoder E and fusion block U
+to produce the fused features within a common feature space.
+D. Training Loss for MR Image Synthesis
+Our training loss for multi-modal MR image synthesis
+includes the reconstruction loss and adversarial common fea-
+ture (ACF) constraint. As our ACF constraint was presented
+in Section III-C, the reconstruction loss is introduced below.
+1) Reconstruction Loss: A reconstruction loss is to enforce
+the synthetic multi-modal MR images { ˆ
+Imi }N
+i=1 to be identical
+to the ground-truth images {Imi }N
+i=1, and it is defined as
+LR(E, U, D) =
+1
+N
+N
+X
+i=1
+∥ ˆ
+Imi − Imi ∥1, (6)
+where ∥ · ∥1 denotes the L1 norm.
+2) Total Training Loss: The total training loss is defined as
+Lsyn(E, U, D, C) = LR + λ1LAC F , (7)
+where λ1 controls the relative importance of the loss terms.
+IV. MISSING-MODALITY MR IMAGE SEGMENTATION
+Our multi-modal MR image synthesis method in Section III
+can be applied to tumor segmentation with missing modalities.
+In our approach, we not only utilize image completion task as
+a regularization and the completed MR images as inputs of
+segmentation, but also employ the extracted common features
+during completion as extra inputs for segmentation.
+General Pipeline for MR Image Segmentation With Missing
+Modalities: As shown in left sub-figure of Fig. 3, we utilize
+our hyper-GAE to extract the fused common features (by
+E and U) and reconstruct multi-modal MR images (by D),
+and then both the features and completed multi-modal MR
+images (consisting of available and reconstructed images) are
+Fig. 4. Illustration of different segmentation strategies, including three
+possible strategies in (a)-(c) and our proposed strategy in (d).
+fed into the segmentation network to estimate tumor labels.
+As there are two types of input images, i.e., real or synthetic,
+we design a novel hypernet-based modulation (HBM) module
+to adaptively utilize these images, which can be plugged
+in full-modality tumor segmentation network and tune its
+parameters adaptive to the input real and synthetic modality
+combinations. In this work, we plug our HBM module into the
+two-stage cascaded U-Net (TC-UNet) [6] as the segmentation
+network, resulting in the two-stage cascaded hyper-segmentors
+(i.e., a backbone segmentor modulated by a modulator).
+Comparison With Variants of Segmentation Strategies: In
+Fig. 4, we show the possible different segmentation strate-
+gies with missing modalities. Figures 4(a) and (b) show the
+strategies that extract features and segment from incomplete
+modalities respectively without and with image completion
+task as a constraint. In Fig. 4(c), the strategy completes the
+multi-modal images first and then segments using the com-
+pleted images. Compared with these strategies, our proposed
+method, as in Fig. 4(d), employs the image completion as an
+extra constraint and utilizes both the extracted features and
+completed images for segmentation. We experimentally verify
+the effectiveness of our proposed strategy in Section V-E.
+Next, we introduce the designs of cascaded hyper-segmentors
+and training loss.
+A. Cascaded Hyper-Segmentors
+We propose the cascaded hyper-segmentors as the segmen-
+tation network in our segmentation framework, as shown in
+the left sub-figure of Fig. 3. Specifically, we design a novel
+hypernet-based modulation (HBM) module, which adds an
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+YANG et al.: LEARNING UNIFIED HYPER-NETWORK FOR MULTI-MODAL MR IMAGE SYNTHESIS AND TUMOR SEGMENTATION 3683
+extra modulator (i.e., a small MLP) to a tumor segmentation
+network (dubbed backbone segmentor) for modulating its
+parameters. The cascaded hyper-segmentors are constructed
+by plugging the HBM module into the TC-UNet.
+1) Architecture of Hyper-Segmentors: Our cascaded hyper-
+segmentors, based on segmentors in [6], contain two succes-
+sive hyper-segmentors S1 and S2, each of which is a backbone
+segmentor with parameters modulated by a modulator, as in
+right sub-figures of Fig. 3. The first hyper-segmentor S1
+(i.e., a backbone U-Net modulated by a modulator) is used
+to predict a coarse segmentation map ŷ(c)
+∈ [0, 1]H×W×D×K :
+ŷ(c)
+= S1(FMa , Î, va), (8)
+where FMa is the common features extracted from available
+modalities Ma, and Î ∈ RH×W×D×N is completed multi-
+modal images. Features FMa are fed into backbone segmentor
+via embedding by a convolutional layer and concatenated with
+deep features at same resolution level in encoding process.
+va is modality-availability vector and fed into the modulator.
+Then, both common features FMa and the concatenation of
+completed images Î and estimated coarse label ŷ(c)
+are fed into
+the second hyper-segmentor S2 for predicting a more accurate
+segmentation map. As shown in right bottom sub-figure of
+Fig. 3, the backbone segmentor in S2 is a modified U-Net
+containing two decoding paths, the structures of which are the
+same except for one using deconvolution and the other using
+trilinear interpolation. The estimated fine segmentation maps
+ŷ( fd )
+and ŷ( fti )
+(from two decoding paths) are written as
+ŷ( fd )
+, ŷ( fti )
+= S2(FMa , [Î; ŷ(c)
+], va). (9)
+As in [6], ŷ( fti )
+is used only during training for regularization,
+and ŷ( fd )
+is utilized to produce the final segmentation with a
+threshold of 0.5 during testing. Please refer to [6] for more
+details on backbone segmentors.
+2) Hypernet-Based Modulation Module: This paragraph
+presents the architecture of modulators in hyper-segmentors
+S1 and S2. Our HBM module, as a plug-in block, is built on
+top of a backbone segmentor, and adds an extra modulator to
+the segmentor, as shown in right sub-figures of Fig. 3. The
+modulator is a MLP with modality-availability vector va as
+input, and each layer in modulator links to a specific layer in
+backbone segmentor and tunes its parameters. Specifically, two
+modulators in hyper-segmentors S1 and S2 respectively consist
+of 8 and 11 fully connected (FC) layers, which successively
+modify the convolutional layer for embedding common fea-
+tures and the last convolutional layers at each resolution level
+in two backbone U-Net of S1 and S2 (i.e., modifying 8 layers
+for S1 and 11 layers for S2). Note that the modulator in S2 has
+a “Y” shape, with three brunches respectively corresponding to
+an encoding path and two decoding paths in backbone U-Net
+of S2. The first half of this modulator contains 5 FC layers
+tuning the encoding path, and then it is bifurcated into two
+brunches, each of which contains 3 FC layers and tunes a
+decoding path. The filter scaling strategy [33] is used for
+parameter modulation. That is, for a convolutional layer with d
+filters {κi }d
+i=1 in backbone segmentor, the corresponding layer
+in modulator contains d hidden nodes outputting d scalars
+{αi }d
+i=1, and modifies each filter κi as κ′
+i = αi κi , i.e., the
+scalar multiplication between αi and κi .
+B. Training Loss for MR Image Segmentation
+Our training loss for segmentation includes adversarial com-
+mon feature constraint, reconstruction loss, and segmentation
+loss. The former two terms were introduced in Sections III-C
+and III-D, and the segmentation loss is introduced below.
+1) Segmentation Loss: As introduced in Section IV-A, our
+method produces three different segmentation maps, includ-
+ing ŷ(c)
+of hyper-segmentor S1 and ŷ( fd )
+, ŷ( fti )
+of hyper-
+segmentor S2. Therefore, the segmentation loss is defined
+between the ground-truth label y and these three estimated
+segmentation maps respectively, which can be defined as
+LS(E, U, D, S1, S2) =
+1
+3K
+K
+X
+k=1
+LSD(ŷ(c)
+k , yk)
++LSD(ŷ
+( fd )
+k , yk) + LSD(ŷ
+( fi )
+k , yk)
+
+,
+(10)
+where LSD is the soft Dice loss [34]. K denotes the number
+of semantic categories, which is equal to 3 in this work. yk ∈
+{0, 1}H×W×D denotes the ground-truth label of k-th category.
+2) Total Training Loss: The total training loss for brain tumor
+segmentation with missing modalities can be defined as
+Lseg(E, U, D, C, S1, S2) = LS + λ1LAC F + λ2LR, (11)
+where the weights λ1 and λ2 control the relative importance
+of the loss terms. The network parameters are learned by an
+end-to-end training procedure by minimizing the loss Lseg.
+V. EXPERIMENTS
+In this section, we evaluate our proposed method on the
+multi-modal MR image synthesis and brain tumor segmenta-
+tion with missing modalities. In particular, we compare our
+method with the other state-of-the-art synthesis and segmen-
+tation methods, and evaluate the impacts of the segmentation
+strategy and our hypernet-based modulation module on perfor-
+mance. A paired two-sided Wilcoxon signed-rank test without
+false discovery rate correction is conducted to compare the per-
+formance, and we report the p-values where the performance
+difference is statistically significant (p < .05).
+A. Dataset
+1) BraTS 2019 Dataset: The MICCAI 2019 Multimodal
+Brain Tumor Segmentation Challenge (BraTS 2019) dataset
+is used to evaluate our method. The samples in this dataset
+are ample multi-institutional routine clinically-acquired pre-
+operative multi-modal MR scans of subjects with glioblastoma
+or lower grade glioma. Each subject contains four modality
+images (i.e., T1, T1c, T2 and FLAIR), and ground-truth
+tumor labels annotated by experts. Annotations comprise the
+enhancing tumor (ET), peritumoral edema (ED), necrotic and
+non-enhancing tumor core (NCR/NET), which are grouped
+into three sub-regions for evaluation in this challenge: (1) the
+whole tumor (WT), containing all tumor tissues; (2) the tumor
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+3684 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 42, NO. 12, DECEMBER 2023
+core (TC), consisting of ET and NCR/NET; (3) the enhancing
+tumor (ET).
+This dataset includes 335 training subjects, 125 validation
+subjects, and 166 test subjects, and the tumor labels of training
+subjects are provided. The experiments are performed over
+335 training subjects, which are randomly divided into a
+training set of 218 subjects, a validation set of 6 subjects for
+model selection, and a test set of 111 subjects for evaluation.
+2) BraTS 2018 Dataset: To compare with more state-of-the-
+art segmentation methods, we also test our method on MICCAI
+2018 Brain Tumor Segmentation (BraTS 2018) dataset. This
+dataset contains 285 training subjects with ground-truth labels,
+which are split into 199, 29 and 57 subjects for training,
+validation and test using the same split list as in [3], and we
+conduct 3-fold cross validation to evaluate the performance.
+3) Pre-Processing: The data has been pre-processed by
+organizers, i.e., co-registered to the same anatomical template,
+interpolated to the same resolution (1mm3) and skull-stripped.
+Additionally, we conduct extra pre-processing steps, including
+N4 correction [35], normalizing white matter peak by fuzzy
+C-means [36], and cutting out black background area outside
+brain (as in [3]). The maximal intensities of four modalities
+are 4000, 6000, 10000 and 7000 (arbitrary units), all of
+which were uniformly linearly normalized to [−1, 1]. The pre-
+processed dataset is utilized for all the compared methods.
+4) Evaluation Metrics: To evaluate the synthesis perfor-
+mance, we use the mean absolute error (MAE), peak signal-
+to-noise ratio (PSNR), and structural similarity (SSIM) [37]
+between ground-truth MR volume and the synthetic one. For
+N = 4 modalities, there are C1
+4 + C2
+4 + C3
+4 = 14 missing
+modality cases in total. For each missing case, we impute all
+missing modalities based on the available ones, and the final
+accuracies for this case are averaged over all these synthetic
+volumes and all test subjects. As for evaluating segmentation
+performance, for each input modality combination out of all
+15 possible cases, we compute the 3D Dice scores and 95%
+Hausdorff distance (HD95) [38] between the ground-truth and
+estimated segmentation labels respectively of whole tumor
+(WT), tumor core (TC), and enhancing tumor (ET). The final
+segmentation accuracies for each missing case are defined as
+the averaged Dice and HD95 scores over all subjects in the
+test set.
+B. Implementation Details
+Our implementation is based on TensorFlow, and all exper-
+iments are performed on a GeForce RTX 3090 GPU (24GB).
+The networks are optimized in 1200 epochs using an Adam
+optimizer solver [39] with a learning rate of 0.0002 and a batch
+size of 2. The weights λ1 and λ2 are set to 0.001 and 0.8 empir-
+ically. No learning rate decay or weight decay strategy is
+utilized during training. Both our synthesis and segmentation
+models are trained in an end-to-end manner. During training,
+the input volumes are randomly cropped to 72×72×72 voxels,
+which are then augmented with random flipping and intensity
+shifts as in [6]. At test phase, following [24], we feed the
+72×72×72 patches sliding on test volumes with 50% overlaps
+into the networks, and we additionally flip these patches in
+8 directions for segmentation network. The final estimation is
+obtained by fusing the predictions of these patches. As in [24],
+when the number of voxels predicted as ET is too small
+(i.e., less than 300), we employ a post-processing step and
+replace the enhancing tumor with necrosis to reduce the false
+alarm of ET, which is conducted for all compared methods for
+fairness.
+In practice, our synthesis method in Section III requires
+about 8 GB of GPU memory for training with 6.49M trainable
+parameters and 338.80G FLOPs (estimated using Tensorflow),
+and each step of parameter update takes about 0.54s. At test
+phase, it takes about 4.2s to synthesize all four MR modality
+volumes of one subject. Besides, our segmentation method in
+Section IV requires about 16 GB of GPU memory for training
+with 32.49M parameters and 675.81G FLOPs, and each update
+takes about 1.1s. At test phase, it takes about 51.5s for our
+method with 8-direction flips to segment the brain tumors for
+a subject in each missing modality case. Codes are available
+at https://github.com/HeranYang/hyper-GAE.
+C. Multi-Modal MR Image Synthesis
+We conduct comparisons between our method and the other
+state-of-the-art synthesis methods on the BraTS 2019 dataset,
+including the hypernet-based generative adversarial network
+(HyperGAN) [7], collaborative generative adversarial network
+(CollaGAN) [2], and multi-modal generative adversarial net-
+work (MM-GAN) [18]. HyperGAN designs a pair of encoder
+and decoder for unpaired multi-contrast MR image translation.
+CollaGAN generates one modality based on the remaining
+modalities by a single generator and discriminator. MM-GAN
+utilizes a multi-input, multi-output network to synthesize
+the missing modalities. As HyperGAN and CollaGAN are
+respectively one-to-one and many-to-one methods, we are only
+able to report the accuracies in 4 out of 14 missing cases.
+In addition, as these two methods are unsupervised, we modify
+them into the supervised versions by replacing the adversarial
+loss by a L1 reconstruction loss for fairness of comparison.
+The results of HyperGAN, CollaGAN and MM-GAN are
+generated by the published codes1,2,.3 To verify the effec-
+tiveness of each module in our method, two ablated versions,
+i.e., our method without adversarial common feature constraint
+(“ours (w/o ACF)”) and our method without graph-attention-
+based fusion block and adversarial common feature constraint
+(“ours (w/o GF&ACF)”), are also included in comparison.
+Table I reports the accuracies of different synthesis methods.
+The results show that our method (“Ours”) works better
+than the methods of HyperGAN, CollaGAN and MM-GAN
+on synthesizing multi-modal MR images in averaged MAE,
+PSNR and SSIM (p < .001). Specifically, our method
+achieves the best MAE scores in 11 out of 14 cases, and
+the highest PSNR and SSIM scores in 10 out of 14 cases.
+In addition, our baseline (“ours (w/o GF&ACF)”) performs
+better than compared methods (p < .001) and produces
+0.0090/34.25/0.921 in averaged MAE, PSNR and SSIM,
+justifying the effectiveness of our proposed synthesis frame-
+1https://github.com/HeranYang/Hyper-GAN
+2https://github.com/jongcye/CollaGAN_MRI
+3https://github.com/trane293/mm-gan
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+YANG et al.: LEARNING UNIFIED HYPER-NETWORK FOR MULTI-MODAL MR IMAGE SYNTHESIS AND TUMOR SEGMENTATION 3685
+TABLE I
+MULTI-MODAL MR IMAGE SYNTHESIS ACCURACIES OF DIFFERENT METHODS IN DIFFERENT MISSING CASES ON BRATS 2019 DATASET
+Fig. 5. Visual comparison of multi-modal MR image synthesis results
+by different methods in different missing cases on BraTS 2019 dataset.
+The empty image denotes the method is not applicable to this case.
+work. Moreover, an extra graph-attention-based fusion block
+(“ours (w/o ACF)”) further improves the results (p < .001)
+and obtains 0.0087/34.53/0.925. Our whole model performs
+best (p < .001) and achieves 0.0085/34.78/0.927. These
+results indicate the effectiveness of our graph-attention-based
+fusion block and adversarial common feature constraint.
+Figure 5 shows the imputed MR images in four different
+missing cases. The synthetic MR images by our method not
+only have better contrast but also maintain the tumor regions
+better than compared methods.
+Synthesis Performance Analysis: As shown in Table I, our
+method works consistently well on multi-modal MR image
+synthesis in different missing modality cases. The compared
+GAN-based method MM-GAN achieves 0.0054/38.38/0.953 in
+MAE, PSNR and SSIM for imputing T1c image based
+on the other three modalities, but obtains unsatisfactory
+results of 0.0173/29.08/0.901 for imputing T2, compared with
+0.0074/34.92/0.930 and 0.0079/35.18/0.941 of ours. Moreover,
+our method achieves 0.0095/33.89/0.914 in MAE, PSNR and
+SSIM (averaged over 4 missing cases) when only one modality
+exists, and the results are improved to 0.0084/34.93/0.931 and
+0.0078/35.46/0.936 (averaged over 6 and 4 cases) when two
+and three modalities are available. The effectiveness of our
+method maybe because it is based on the hyper-encoder/hyper-
+decoder adaptive to different missing modality cases, and also
+models the common feature space of multiple modalities.
+D. Missing-Modality MR Image Segmentation
+We compare different methods for brain tumor segmen-
+tation with missing modalities on the BraTS 2019 dataset,
+including the UNet-based hetero-modal variational encoder-
+decoder (U-HVED) [3], robust multi-modal segmentation
+method (RobustSeg) [24], as well as the MM-GAN [18].
+U-HVED uses multi-modal variational auto-encoders to embed
+all modalities into a shared representation for segmentation.
+RobustSeg designs a multi-modal segmentation network with
+feature disentanglement and gated fusion. MM-GAN imputes
+the missing modalities and then utilizes a segmentation net-
+work to segment the completed images, which is a TC-UNet
+in this experiment.
+The results of U-HVED, RobustSeg and MM-GAN are
+generated by the published codes3,4,.5 As our proposed
+hypernet-based modulation (HBM) module in Section IV-A
+can extend full-modality tumor segmentation network to
+missing-modality version, we also compare with a modified
+TC-UNet using HBM module (“TC-UNet (w/ HBM)”) to
+verify the effectiveness of our completion and segmentation
+framework. Two ablated versions of our method (i.e., “ours
+(w/o ACF)” and “ours (w/o GF&ACF)”) are also included in
+this comparison.
+Table II reports the test accuracies on BraTS 2019 dataset.
+The results show that our method (“Ours”) works better than
+4https://github.com/ReubenDo/U-HVED
+5https://github.com/cchen-cc/Robust-Msegn
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+3686 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 42, NO. 12, DECEMBER 2023
+TABLE II
+BRAIN TUMOR SEGMENTATION ACCURACIES OF DIFFERENT METHODS IN DIFFERENT MISSING MODALITY CASES ON BRATS 2019 DATASET
+the methods of U-HVED, RobustSeg, and MM-GAN on all
+three tumor classes in terms of averaged Dice and HD95 scores
+over 15 missing cases (p < .001). Specifically, our method
+performs best on Dice/HD95 scores in 15/15 out of 15 missing
+cases for whole tumor (WT), 14/15 out of 15 cases for tumor
+core (TC), and 14/14 out of 15 cases for enhancing tumor
+(ET). Interestingly, even our baseline (“ours (w/o GF&ACF)”)
+performs better than compared methods in average Dice and
+HD95 scores (p < .001), and obtains 86.29/79.19/67.06 (Dice)
+and 8.37/8.13/6.48 (HD95) in WT/TC/ET, justifying the effec-
+tiveness of our segmentation framework. Starting from this
+baseline, an extra graph-attention-based fusion block (“ours
+(w/o ACF)”) improves the accuracies to 86.54/80.10/66.91
+(Dice) and 7.42/7.76/6.45 (HD95) (p < .001, except the Dice
+scores on ET), and the average accuracies are further improved
+to 86.90/81.24/67.31 (Dice) and 7.79/7.74/6.39 (HD95) (p <
+.05, except the HD95 scores on WT) when adversarial com-
+mon feature constraint is also used (i.e., “Ours”). These results
+indicate the effectiveness of each module in our method.
+In Table II, the modified TC-UNet with our HBM module
+(i.e., “TC-UNet (w/ HBM)”) outperforms compared methods
+on all three tumor classes in averaged Dice and HD95 scores
+(p < .001). However, our baseline also works better than
+this modified TC-UNet, which could be regarded our baseline
+without using hyper-GAE, verifying the effectiveness of our
+proposed segmentation strategy in Fig. 4(d). Figure 6 shows
+the brain tumor segmentation results using different methods
+in four different missing cases, and our method produces more
+accurate brain tumor segmentations than compared methods.
+Results on BraTS 2018 dataset. For a thorough compari-
+son, we also compare our method with more state-of-the-art
+methods using 3-fold cross validation on BraTS 2018 dataset,
+including U-HVED [3], RobustSeg [24], MCA-Net [25],
+FMC-Net [26], RFNet [4], and SMU-Net [30]. Table III
+reports the results on 171 subjects in three test sets, and the
+accuracies of compared methods are taken from their papers,
+which were obtained by using the same cross validation as
+ours. The results show that our method works better than
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+YANG et al.: LEARNING UNIFIED HYPER-NETWORK FOR MULTI-MODAL MR IMAGE SYNTHESIS AND TUMOR SEGMENTATION 3687
+TABLE III
+BRAIN TUMOR SEGMENTATION ACCURACIES OF DIFFERENT METHODS IN DIFFERENT MISSING MODALITY CASES ON BRATS 2018 DATASET
+Fig. 6. Visual comparison of brain tumor segmentation results using
+different methods in different missing cases on BraTS 2019 dataset.
+compared methods on all three tumor classes in averaged Dice
+scores. Compared with the current SoTA method, i.e., SMU-
+Net, our method improves the average Dice scores by 1.00%,
+1.84% and 3.35% for the WT, TC and ET respectively. More-
+over, our method achieves the highest accuracies in 11 out of
+15 cases for WT, 6 out of 15 cases for TC, and 10 out of
+15 cases for ET.
+E. Impact of Segmentation Strategy
+We evaluate the performance of our method using different
+segmentation strategies, as introduced in Section IV and Fig. 4,
+on BraTS 2019 dataset. We compare our whole method (refer
+to “Ours”, as shown in Fig. 4(d)) with three ablated versions,
+including our method without using image reconstruction path
+(refer to “Ours (w/o Rec&Img)”, as in Fig. 4(a)), our method
+without using completed multi-modal images (refer to “Ours
+(w/o Img)”, as in Fig. 4(b)), and our method without using
+common features (refer to “Ours (w/o Feat)”, as in Fig. 4(c)).
+TABLE IV
+IMPACT OF SEGMENTATION STRATEGY AND HYPERNET-BASED
+MODULATION MODULE
+All the other modules proposed in Sections III and IV (except
+the segmentation strategy) are utilized in all ablated versions.
+Table IV reports the averaged Dice and HD95 scores
+over 15 missing modality cases. The results show that, all
+three ablated versions outperform the methods of MM-GAN,
+U-HVED and RobustSeg in Table II (p < .001), which jus-
+tifies the effectiveness of the other modules we designed
+in Sections III and IV. However, our method (“Ours”) still
+performs better than three ablated versions in all metrics
+(p < .05) except the comparable TC and ET scores of our
+method without using common features (“ours (w/o Feat)”).
+These results indicate the superiority of our proposed strategy
+of combining feature-level and image-level completed infor-
+mation for segmentation (i.e., “Ours”), compared with the
+segmentation strategies only using either of them (i.e., three
+ablated versions).
+F. Impact of Hypernet-Based Modulation Module
+This experiment compares with our method without using
+hypernet-based modulation (HBM) module in the segmenta-
+tion network (i.e., “Ours (w/o HBM)”). The test accuracies
+are reported in Table IV. The results show that our method
+using a standard TC-UNet as the segmentation network (“Ours
+(w/o HBM)”) works well and outperforms the methods of
+MM-GAN, U-HVED and RobustSeg in Table II in all met-
+rics (p < .001), indicating that our hyper-GAE can conduct
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+3688 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 42, NO. 12, DECEMBER 2023
+relatively accurate missing-modality completion in feature and
+image levels for tumor segmentation. However, our method
+using a modified TC-UNet with HBM module (i.e., the back-
+bone TC-UNet is tuned by a modulator) as the segmentation
+network (“Ours”) still works better than that using a standard
+TC-UNet on all three tumor regions in averaged Dice and
+HD95 scores (p < .001, except the Dice scores on TC),
+demonstrating the effectiveness of our proposed HBM module.
+VI. CONCLUSION
+In this work, we propose a unified and adaptive multi-
+modal MR image synthesis network, and apply it to tumor
+segmentation with missing modalities. We design a unified
+network consisting of a hyper-encoder, a graph-attention-
+based fusion block and a hyper-decoder accomplishing the
+flexible missing modality completion, and propose an adver-
+sarial common feature constraint to enforce the common
+feature space. To apply our method to tumor segmentation
+with missing modalities, we utilize both the feature-level
+and image-level completed information for segmentation, and
+propose a hypernet-based modulation module to adaptively uti-
+lize the synthesized and real modalities. Experimental results
+demonstrated that our method can achieve state-of-the-art
+performance on both multi-modal MR image synthesis and
+brain tumor segmentation with missing modalities. We also
+conducted the ablation study and investigated the impact of
+different segmentation strategies on performance.
+Although our approach qualitatively and quantitatively out-
+performs all the other competing methods, we note that there
+are still several failure cases of our method. For multi-modal
+MR image synthesis, our method failed on 2 out of 111 test
+subjects (e.g., PSNR < 25), which contain residual skull
+regions and strong artifacts in some modalities. For missing-
+modality MR image segmentation, our proposed method failed
+in several missing modality cases on 4 out of 111 test
+subjects (e.g., Dice < 0.05). This is probably because some
+modalities in these subjects have poor contrast over tumor
+and normal tissues, resulting in unsatisfactory tumor segmen-
+tation results when only these modalities are available. One
+possible solution to these failure cases might be introducing
+uncertainty qualification to predict the reliability of synthesis
+and segmentation results. For future work, as our method is a
+general framework for missing-modality MR image synthesis
+and segmentation, it would be interesting to apply it to other
+multi-modal MR image datasets. In addition, we are also
+interested in attempting other attention modeling in fusion
+block and extending our methodology to the multi-institutional
+setting [40] for further improving the performance.
+REFERENCES
+[1] L. Shen et al., “Multi-domain image completion for random missing
+input data,” IEEE Trans. Med. Imag., vol. 40, no. 4, pp. 1113–1122,
+Apr. 2021.
+[2] D. Lee, W.-J. Moon, and J. C. Ye, “Assessing the importance of magnetic
+resonance contrasts using collaborative generative adversarial networks,”
+Nature Mach. Intell., vol. 2, no. 1, pp. 34–42, Jan. 2020.
+[3] R. Dorent, S. Joutard, M. Modat, S. Ourselin, and T. Vercauteren,
+“Hetero-modal variational encoder–decoder for joint modality com-
+pletion and segmentation,” in Medical Image Computing and Com-
+puter Assisted Intervention—MICCAI. Shenzhen, China: Springer, 2019,
+pp. 74–82.
+[4] Y. Ding, X. Yu, and Y. Yang, “RFNet: Region-aware fusion network for
+incomplete multi-modal brain tumor segmentation,” in Proc. IEEE/CVF
+Int. Conf. Comput. Vis. (ICCV), Oct. 2021, pp. 3955–3964.
+[5] D. Ha, A. M. Dai, and Q. V. Le, “Hypernetworks,” in Proc. ICLR, 2017,
+pp. 1–11.
+[6] Z. Jiang, C. Ding, M. Liu, and D. Tao, “Two-stage cascaded U-Net: 1st
+place solution to BraTS challenge 2019 segmentation task,” in Proc. Int.
+MICCAI Brainlesion Workshop, 2019, pp. 231–241.
+[7] H. Yang, J. Sun, L. Yang, and Z. Xu, “A unified hyper-GAN model
+for unpaired multi-contrast MR image translation,” in Medical Image
+Computing and Computer Assisted Intervention—MICCAI. Strasbourg,
+France: Springer, 2021, pp. 127–137.
+[8] A. Jog, A. Carass, S. Roy, D. L. Pham, and J. L. Prince, “Random forest
+regression for magnetic resonance image synthesis,” Med. Image Anal.,
+vol. 35, pp. 475–488, Jan. 2017.
+[9] S. U. Dar, M. Yurt, L. Karacan, A. Erdem, E. Erdem, and T. Çukur,
+“Image synthesis in multi-contrast MRI with conditional generative
+adversarial networks,” IEEE Trans. Med. Imag., vol. 38, no. 10,
+pp. 2375–2388, Oct. 2019.
+[10] T. D. Bui, M. Nguyen, N. Le, and K. Luu, “Flow-based deformation
+guidance for unpaired multi-contrast MRI image-to-image translation,”
+in Medical Image Computing and Computer Assisted Intervention—
+MICCAI. Lima, Peru: Springer, 2020, pp. 728–737.
+[11] Y. Huang, F. Zheng, R. Cong, W. Huang, M. R. Scott, and L. Shao,
+“MCMT-GAN: Multi-task coherent modality transferable GAN for
+3D brain image synthesis,” IEEE Trans. Image Process., vol. 29,
+pp. 8187–8198, 2020.
+[12] B. Yu, L. Zhou, L. Wang, Y. Shi, J. Fripp, and P. Bourgeat, “Sample-
+adaptive GANs: Linking global and local mappings for cross-modality
+MR image synthesis,” IEEE Trans. Med. Imag., vol. 39, no. 7,
+pp. 2339–2350, Jul. 2020.
+[13] M. Sohail, M. N. Riaz, J. Wu, C. Long, and S. Li, “Unpaired multi-
+contrast MR image synthesis using generative adversarial networks,”
+in Simulation and Synthesis in Medical Imaging. Shenzhen, China:
+Springer, 2019, pp. 22–31.
+[14] H. Li et al., “DiamondGAN: Unified multi-modal generative adversarial
+networks for MRI sequences synthesis,” in Medical Image Comput-
+ing and Computer Assisted Intervention—MICCAI. Shenzhen, China:
+Springer, 2019, pp. 795–803.
+[15] T. Zhou, H. Fu, G. Chen, J. Shen, and L. Shao, “Hi-Net: Hybrid-fusion
+network for multi-modal MR image synthesis,” IEEE Trans. Med. Imag.,
+vol. 39, no. 9, pp. 2772–2781, Sep. 2020.
+[16] M. Yurt, S. U. Dar, A. Erdem, E. Erdem, K. K. Oguz, and
+T. Çukur, “MustGAN: Multi-stream generative adversarial networks
+for MR image synthesis,” Med. Image Anal., vol. 70, May 2021,
+Art. no. 101944.
+[17] A. Chartsias, T. Joyce, M. V. Giuffrida, and S. A. Tsaftaris, “Multimodal
+MR synthesis via modality-invariant latent representation,” IEEE Trans.
+Med. Imag., vol. 37, no. 3, pp. 803–814, Mar. 2018.
+[18] A. Sharma and G. Hamarneh, “Missing MRI pulse sequence synthesis
+using multi-modal generative adversarial network,” IEEE Trans. Med.
+Imag., vol. 39, no. 4, pp. 1170–1183, Apr. 2020.
+[19] M. Hamghalam, A. F. Frangi, B. Lei, and A. L. Simpson, “Modality
+completion via Gaussian process prior variational autoencoders for
+multi-modal glioma segmentation,” in Medical Image Computing and
+Computer Assisted Intervention—MICCAI. Strasbourg, France: Springer,
+2021, pp. 442–452.
+[20] X. Zhao, Y. Wu, G. Song, Z. Li, Y. Zhang, and Y. Fan, “A deep learning
+model integrating FCNNs and CRFs for brain tumor segmentation,”
+Med. Image Anal., vol. 43, pp. 98–111, Jan. 2018.
+[21] F. Isensee, P. F. Jaeger, S. A. A. Kohl, J. Petersen, and K. H. Maier-Hein,
+“NnU-Net: A self-configuring method for deep learning-based biomed-
+ical image segmentation,” Nature Methods, vol. 18, no. 2, pp. 203–211,
+Feb. 2021.
+[22] M. Havaei, N. Guizard, N. Chapados, and Y. Bengio, “HeMIS: Hetero-
+modal image segmentation,” in Medical Image Computing and Com-
+puter Assisted Intervention—MICCAI. Athens, Greece: Springer, 2016,
+pp. 469–477.
+[23] Y. Shen and M. Gao, “Brain tumor segmentation on MRI with missing
+modalities,” in Information Processing in Medical Imaging. Hong Kong:
+Springer, 2019, pp. 417–428.
+[24] C. Chen, Q. Dou, Y. Jin, H. Chen, J. Qin, and P.-A. Heng,
+“Robust multimodal brain tumor segmentation via feature disentan-
+glement and gated fusion,” in Medical Image Computing and Com-
+puter Assisted Intervention—MICCAI. Shenzhen, China: Springer, 2019,
+pp. 447–456.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+YANG et al.: LEARNING UNIFIED HYPER-NETWORK FOR MULTI-MODAL MR IMAGE SYNTHESIS AND TUMOR SEGMENTATION 3689
+[25] T. Zhou, S. Canu, P. Vera, and S. Ruan, “Brain tumor segmentation with
+missing modalities via latent multi-source correlation representation,”
+in Medical Image Computing and Computer Assisted Intervention—
+MICCAI. Lima, Peru: Springer, 2020, pp. 533–541.
+[26] T. Zhou, S. Canu, P. Vera, and S. Ruan, “Feature-enhanced generation
+and multi-modality fusion based deep neural network for brain tumor
+segmentation with missing MR modalities,” Neurocomputing, vol. 466,
+pp. 102–112, Nov. 2021.
+[27] Q. Yang, X. Guo, Z. Chen, P. Y. M. Woo, and Y. Yuan, “D2-Net: Dual
+disentanglement network for brain tumor segmentation with missing
+modalities,” IEEE Trans. Med. Imag., vol. 41, no. 10, pp. 2953–2964,
+Oct. 2022.
+[28] Y. Zhang et al., “Modality-aware mutual learning for multi-modal med-
+ical image segmentation,” in Medical Image Computing and Computer
+Assisted Intervention—MICCAI. Strasbourg, France: Springer, 2021,
+pp. 589–599.
+[29] Y. Wang et al., “ACN: Adversarial co-training network for brain tumor
+segmentation with missing modalities,” in Medical Image Comput-
+ing and Computer Assisted Intervention—MICCAI. Strasbourg, France:
+Springer, 2021, pp. 410–420.
+[30] R. Azad, N. Khosravi, and D. Merhof, “SMU-Net: Style matching U-Net
+for brain tumor segmentation with missing modalities,” in MIDL. Zürich,
+Switzerland: PMLR, 2022, pp. 48–62.
+[31] J.-Y. Zhu, T. Park, P. Isola, and A. A. Efros, “Unpaired image-to-image
+translation using cycle-consistent adversarial networks,” in Proc. IEEE
+Int. Conf. Comput. Vis. (ICCV), Oct. 2017, pp. 2242–2251.
+[32] Y. Ganin and V. Lempitsky, “Unsupervised domain adaptation by
+backpropagation,” in Proc. ICML, 2015, pp. 1180–1189.
+[33] Y. Alharbi, N. Smith, and P. Wonka, “Latent filter scaling
+for multimodal unsupervised image-to-image translation,” in Proc.
+IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2019,
+pp. 1458–1466.
+[34] F. Milletari, N. Navab, and S.-A. Ahmadi, “V-Net: Fully convolutional
+neural networks for volumetric medical image segmentation,” in Proc.
+4th Int. Conf. 3D Vis. (3DV), Oct. 2016, pp. 565–571.
+[35] N. J. Tustison et al., “N4ITK: Improved N3 bias correction,” IEEE Trans.
+Med. Imag., vol. 29, no. 6, pp. 1310–1320, Jun. 2010.
+[36] J. C. Reinhold, B. E. Dewey, A. Carass, and J. L. Prince, “Evaluating
+the impact of intensity normalization on MR image synthesis,” Proc.
+SPIE, vol. 10949, pp. 890–898, Mar. 2019.
+[37] Z. Wang, A. C. Bovik, H. R. Sheikh, and E. P. Simoncelli,
+“Image quality assessment: From error visibility to structural sim-
+ilarity,” IEEE Trans. Image Process., vol. 13, no. 4, pp. 600–612,
+Apr. 2004.
+[38] D. P. Huttenlocher, G. A. Klanderman, and W. J. Rucklidge, “Comparing
+images using the Hausdorff distance,” IEEE Trans. Pattern Anal. Mach.
+Intell., vol. 15, no. 9, pp. 850–863, 1993.
+[39] D. P. Kingma and J. Ba, “Adam: A method for stochastic optimization,”
+in Proc. ICLR, 2015, pp. 1–15.
+[40] L. Zuo et al., “Information-based disentangled representation learn-
+ing for unsupervised MR harmonization,” in Proc. IPMI, 2021,
+pp. 346–359.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:49 UTC from IEEE Xplore. Restrictions apply.
+

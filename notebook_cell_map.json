@@ -1,0 +1,702 @@
+[
+  {
+    "name": "dependencies",
+    "cell": 3,
+    "cell_id": "2188dfc2d889"
+  },
+  {
+    "name": "central_imports",
+    "cell": 4,
+    "cell_id": "5f1b5fe9b820"
+  },
+  {
+    "name": "config.constants_16",
+    "cell": 6,
+    "cell_id": "476b9b36e8b9"
+  },
+  {
+    "name": "config.constants_17",
+    "cell": 7,
+    "cell_id": "0e6bcc0b6411"
+  },
+  {
+    "name": "config.constants_18",
+    "cell": 8,
+    "cell_id": "eb67df478454"
+  },
+  {
+    "name": "config.constants_19",
+    "cell": 9,
+    "cell_id": "504620792205"
+  },
+  {
+    "name": "config.constants_20",
+    "cell": 10,
+    "cell_id": "b1bf847ce58c"
+  },
+  {
+    "name": "config.constants_21",
+    "cell": 11,
+    "cell_id": "8e50347126ed"
+  },
+  {
+    "name": "config.RunConfig",
+    "cell": 13,
+    "cell_id": "1bcd57dbc066"
+  },
+  {
+    "name": "config.configuration",
+    "cell": 15,
+    "cell_id": "d70762b902c6"
+  },
+  {
+    "name": "config.experiment_registry",
+    "cell": 17,
+    "cell_id": "1088ecd7f321"
+  },
+  {
+    "name": "config.seed_everything",
+    "cell": 18,
+    "cell_id": "590603ed8bbe"
+  },
+  {
+    "name": "config.safe_json",
+    "cell": 20,
+    "cell_id": "c6095ce91cc1"
+  },
+  {
+    "name": "config.write_json",
+    "cell": 22,
+    "cell_id": "1792f051598a"
+  },
+  {
+    "name": "config.file_hash",
+    "cell": 23,
+    "cell_id": "140f597276aa"
+  },
+  {
+    "name": "config.environment_record",
+    "cell": 25,
+    "cell_id": "f22e72d42a76"
+  },
+  {
+    "name": "configuration",
+    "cell": 26,
+    "cell_id": "b7d64a922100"
+  },
+  {
+    "name": "gpu_detection",
+    "cell": 27,
+    "cell_id": "82f30356f153"
+  },
+  {
+    "name": "output_and_resume",
+    "cell": 28,
+    "cell_id": "8ad4f3c8587b"
+  },
+  {
+    "name": "environment_storage",
+    "cell": 29,
+    "cell_id": "b87f7a090a36"
+  },
+  {
+    "name": "initialize_metadata",
+    "cell": 30,
+    "cell_id": "f951810d0343"
+  },
+  {
+    "name": "data.discover_dataset_root",
+    "cell": 33,
+    "cell_id": "36c83c11c47d"
+  },
+  {
+    "name": "data.discover_subjects",
+    "cell": 35,
+    "cell_id": "9e9bbb68dc74"
+  },
+  {
+    "name": "data.remap_labels",
+    "cell": 37,
+    "cell_id": "9f4641321811"
+  },
+  {
+    "name": "data.load_subject",
+    "cell": 39,
+    "cell_id": "559c856482da"
+  },
+  {
+    "name": "data.inventory_geometry",
+    "cell": 41,
+    "cell_id": "ce847111de08"
+  },
+  {
+    "name": "data.make_split",
+    "cell": 43,
+    "cell_id": "6128fd041848"
+  },
+  {
+    "name": "data.assert_split",
+    "cell": 44,
+    "cell_id": "53a06fcf03c8"
+  },
+  {
+    "name": "data.normalize_foreground",
+    "cell": 46,
+    "cell_id": "a815cb97fd94"
+  },
+  {
+    "name": "data.image_crop",
+    "cell": 48,
+    "cell_id": "8ea6901d98e5"
+  },
+  {
+    "name": "data.prepare_subject",
+    "cell": 50,
+    "cell_id": "fd9793cb9b31"
+  },
+  {
+    "name": "data.SubjectStore",
+    "cell": 52,
+    "cell_id": "9df6e333c768"
+  },
+  {
+    "name": "data.sample_availability",
+    "cell": 53,
+    "cell_id": "553e88ef7379"
+  },
+  {
+    "name": "data.extract_patch",
+    "cell": 55,
+    "cell_id": "292a824ac560"
+  },
+  {
+    "name": "data.corrupt_image",
+    "cell": 57,
+    "cell_id": "3bbd62b0c9ec"
+  },
+  {
+    "name": "data.training_augmentation",
+    "cell": 59,
+    "cell_id": "64a78a64dae5"
+  },
+  {
+    "name": "data.PatchDataset",
+    "cell": 61,
+    "cell_id": "7def8bd4a269"
+  },
+  {
+    "name": "data.make_loader",
+    "cell": 62,
+    "cell_id": "ac0d413094ac"
+  },
+  {
+    "name": "data.SyntheticStore",
+    "cell": 64,
+    "cell_id": "61d51dd92200"
+  },
+  {
+    "name": "visuals.plot_subject",
+    "cell": 67,
+    "cell_id": "a5894cad66b0"
+  },
+  {
+    "name": "visuals.plot_corrections",
+    "cell": 69,
+    "cell_id": "0393a6ce336c"
+  },
+  {
+    "name": "dataset_path",
+    "cell": 70,
+    "cell_id": "b8a59035023f"
+  },
+  {
+    "name": "subject_inventory",
+    "cell": 71,
+    "cell_id": "9cfb6a1ecefb"
+  },
+  {
+    "name": "geometry_label_audit",
+    "cell": 72,
+    "cell_id": "37442f042bcf"
+  },
+  {
+    "name": "subject_split",
+    "cell": 73,
+    "cell_id": "646bc9d7e7ce"
+  },
+  {
+    "name": "preprocessing_example",
+    "cell": 74,
+    "cell_id": "913eba5c0896"
+  },
+  {
+    "name": "dataset_evidence",
+    "cell": 75,
+    "cell_id": "dcabb677674f"
+  },
+  {
+    "name": "dataloader_shape_check",
+    "cell": 76,
+    "cell_id": "c989ffc2add1"
+  },
+  {
+    "name": "model.availability_maps",
+    "cell": 79,
+    "cell_id": "4ca794badcce"
+  },
+  {
+    "name": "model.gaussian_kernel",
+    "cell": 81,
+    "cell_id": "c4c6003d5dec"
+  },
+  {
+    "name": "model.gaussian_blur",
+    "cell": 83,
+    "cell_id": "da2723450794"
+  },
+  {
+    "name": "model.GaussianSplit",
+    "cell": 85,
+    "cell_id": "90685b302eaf"
+  },
+  {
+    "name": "model.HaarSplit",
+    "cell": 87,
+    "cell_id": "09c8ed26b042"
+  },
+  {
+    "name": "model.ResidualBlock",
+    "cell": 89,
+    "cell_id": "94e8222cf609"
+  },
+  {
+    "name": "model.run_block",
+    "cell": 91,
+    "cell_id": "298d64f994b6"
+  },
+  {
+    "name": "model.ResidualUNet",
+    "cell": 93,
+    "cell_id": "f1a1b4838855"
+  },
+  {
+    "name": "model.modality_identity",
+    "cell": 95,
+    "cell_id": "3e635099aea8"
+  },
+  {
+    "name": "model.DetailCorrection",
+    "cell": 97,
+    "cell_id": "29bf1c315ce0"
+  },
+  {
+    "name": "model.SpatialUtilityGate",
+    "cell": 99,
+    "cell_id": "31f8ffd2e6c2"
+  },
+  {
+    "name": "model.fuse_logits",
+    "cell": 101,
+    "cell_id": "59dfaf6d48d1"
+  },
+  {
+    "name": "model.DetailTrustNet",
+    "cell": 103,
+    "cell_id": "2b59e4e05bb4"
+  },
+  {
+    "name": "model.build_model",
+    "cell": 105,
+    "cell_id": "875ecc722ba2"
+  },
+  {
+    "name": "model.parameter_counts",
+    "cell": 106,
+    "cell_id": "a061ac8abbf3"
+  },
+  {
+    "name": "reference_model_shapes",
+    "cell": 107,
+    "cell_id": "cc04134607a5"
+  },
+  {
+    "name": "losses.region_probabilities",
+    "cell": 109,
+    "cell_id": "bdc4d7733bfe"
+  },
+  {
+    "name": "losses.region_labels",
+    "cell": 111,
+    "cell_id": "396e8c51e88e"
+  },
+  {
+    "name": "losses.segmentation_loss",
+    "cell": 113,
+    "cell_id": "6794d06dbda1"
+  },
+  {
+    "name": "losses.utility_targets",
+    "cell": 115,
+    "cell_id": "29941a51681d"
+  },
+  {
+    "name": "losses.balanced_gate_bce",
+    "cell": 117,
+    "cell_id": "15c23e7b97b6"
+  },
+  {
+    "name": "losses.resolution_occupancy_loss",
+    "cell": 119,
+    "cell_id": "e454dd40d4cd"
+  },
+  {
+    "name": "losses.stage_objective",
+    "cell": 121,
+    "cell_id": "54a7122ff1ea"
+  },
+  {
+    "name": "metrics.binary_metrics",
+    "cell": 124,
+    "cell_id": "e62988da2240"
+  },
+  {
+    "name": "metrics.lesion_metrics",
+    "cell": 126,
+    "cell_id": "e5639ab32e84"
+  },
+  {
+    "name": "metrics.subject_metrics",
+    "cell": 127,
+    "cell_id": "595c7332f0ac"
+  },
+  {
+    "name": "metrics.aggregate_metrics",
+    "cell": 129,
+    "cell_id": "0bc5b4a4f6a2"
+  },
+  {
+    "name": "metrics.stability_bound",
+    "cell": 131,
+    "cell_id": "67b462834271"
+  },
+  {
+    "name": "metrics.verify_stability_enumeration",
+    "cell": 133,
+    "cell_id": "fd8788c8ba1a"
+  },
+  {
+    "name": "metrics.paired_patient_comparison",
+    "cell": 135,
+    "cell_id": "ff8110f35b04"
+  },
+  {
+    "name": "evaluation.synchronized_time",
+    "cell": 137,
+    "cell_id": "d13e7f6a3dd6"
+  },
+  {
+    "name": "evaluation.autocast_context",
+    "cell": 138,
+    "cell_id": "09a633fe540a"
+  },
+  {
+    "name": "evaluation.window_starts",
+    "cell": 139,
+    "cell_id": "928f55742b36"
+  },
+  {
+    "name": "evaluation.sliding_window",
+    "cell": 141,
+    "cell_id": "d96b2d9cf786"
+  },
+  {
+    "name": "evaluation.evaluation_conditions",
+    "cell": 143,
+    "cell_id": "eb80d5ba5a7e"
+  },
+  {
+    "name": "evaluation.apply_condition",
+    "cell": 145,
+    "cell_id": "1e4f4ea165a7"
+  },
+  {
+    "name": "evaluation.descriptive_values",
+    "cell": 146,
+    "cell_id": "641b25b0403d"
+  },
+  {
+    "name": "evaluation.safe_spearman",
+    "cell": 147,
+    "cell_id": "5db626939331"
+  },
+  {
+    "name": "evaluation.contribution_analysis",
+    "cell": 149,
+    "cell_id": "8e0caaabd45c"
+  },
+  {
+    "name": "evaluation.evaluate_condition",
+    "cell": 151,
+    "cell_id": "168a18e32036"
+  },
+  {
+    "name": "evaluation.validation_score",
+    "cell": 152,
+    "cell_id": "415dbaeb650e"
+  },
+  {
+    "name": "training.SessionBudgetReached",
+    "cell": 155,
+    "cell_id": "001d3c707483"
+  },
+  {
+    "name": "training.configure_stage",
+    "cell": 156,
+    "cell_id": "ac4987a5ef95"
+  },
+  {
+    "name": "training.make_optimizer",
+    "cell": 157,
+    "cell_id": "b54fde7c52eb"
+  },
+  {
+    "name": "training.random_states",
+    "cell": 158,
+    "cell_id": "d04b96483197"
+  },
+  {
+    "name": "training.restore_random_states",
+    "cell": 159,
+    "cell_id": "810152fb83a5"
+  },
+  {
+    "name": "training.save_checkpoint",
+    "cell": 161,
+    "cell_id": "21562aa6b6c6"
+  },
+  {
+    "name": "training.load_checkpoint",
+    "cell": 162,
+    "cell_id": "7352c27ef688"
+  },
+  {
+    "name": "training.train_update",
+    "cell": 164,
+    "cell_id": "165cac439e60"
+  },
+  {
+    "name": "training.training_fingerprint",
+    "cell": 165,
+    "cell_id": "bf86bcd7a957"
+  },
+  {
+    "name": "training.run_training_stage",
+    "cell": 167,
+    "cell_id": "cac57d49668c"
+  },
+  {
+    "name": "training.train_stage_a",
+    "cell": 168,
+    "cell_id": "d63ac6859a5f"
+  },
+  {
+    "name": "training.train_stage_b",
+    "cell": 169,
+    "cell_id": "07b882d81660"
+  },
+  {
+    "name": "training.train_stage_c",
+    "cell": 170,
+    "cell_id": "8d6a94489b13"
+  },
+  {
+    "name": "training.profile_training_stages",
+    "cell": 172,
+    "cell_id": "738b99df2f03"
+  },
+  {
+    "name": "experiments.copy_candidate_weights",
+    "cell": 175,
+    "cell_id": "7a5c0dcfd240"
+  },
+  {
+    "name": "experiments.train_candidate",
+    "cell": 177,
+    "cell_id": "1bcb922ef0a7"
+  },
+  {
+    "name": "experiments.evaluate_experiment",
+    "cell": 179,
+    "cell_id": "d361b97e73bd"
+  },
+  {
+    "name": "experiments.run_experiment_sweep",
+    "cell": 181,
+    "cell_id": "202f6df49b33"
+  },
+  {
+    "name": "experiments.export_best_detailtrust",
+    "cell": 183,
+    "cell_id": "9d6230f87922"
+  },
+  {
+    "name": "reporting.constants_9",
+    "cell": 185,
+    "cell_id": "f5ed92a78644"
+  },
+  {
+    "name": "reporting.constants_14",
+    "cell": 186,
+    "cell_id": "71730bc38591"
+  },
+  {
+    "name": "reporting.implementation_decisions",
+    "cell": 187,
+    "cell_id": "ded9778641e4"
+  },
+  {
+    "name": "reporting.write_csv",
+    "cell": 189,
+    "cell_id": "4a5222dd8c30"
+  },
+  {
+    "name": "reporting.collect_results",
+    "cell": 190,
+    "cell_id": "439affcc59ab"
+  },
+  {
+    "name": "reporting.generate_plots",
+    "cell": 192,
+    "cell_id": "0909893655ee"
+  },
+  {
+    "name": "reporting.build_report",
+    "cell": 193,
+    "cell_id": "0592019ca4b3"
+  },
+  {
+    "name": "reporting.export_report",
+    "cell": 194,
+    "cell_id": "c69400757b2e"
+  },
+  {
+    "name": "reporting.verify_artifacts",
+    "cell": 195,
+    "cell_id": "fb3b37745037"
+  },
+  {
+    "name": "checks.check_labels_and_splits",
+    "cell": 197,
+    "cell_id": "1c45994d5798"
+  },
+  {
+    "name": "checks.check_gaussian_and_haar",
+    "cell": 198,
+    "cell_id": "c343ac74724b"
+  },
+  {
+    "name": "checks.check_availability_and_anchor",
+    "cell": 199,
+    "cell_id": "eba07ae80d3d"
+  },
+  {
+    "name": "checks.check_fusion_and_stability",
+    "cell": 200,
+    "cell_id": "ce4efcc51133"
+  },
+  {
+    "name": "checks.check_utility_sign_and_detachment",
+    "cell": 201,
+    "cell_id": "c190ec1dcd0a"
+  },
+  {
+    "name": "checks.check_model_and_gradients",
+    "cell": 202,
+    "cell_id": "4629c417b787"
+  },
+  {
+    "name": "checks.check_frozen_stage_and_roundtrip",
+    "cell": 203,
+    "cell_id": "e71b59ac5462"
+  },
+  {
+    "name": "checks.check_patch_stream_and_metrics",
+    "cell": 204,
+    "cell_id": "20515b35e5e0"
+  },
+  {
+    "name": "checks.check_sliding_identity_and_leakage",
+    "cell": 205,
+    "cell_id": "2c9aed44f476"
+  },
+  {
+    "name": "checks.check_json_and_registry",
+    "cell": 206,
+    "cell_id": "fceb07b16d8f"
+  },
+  {
+    "name": "checks.check_nifti_adapter",
+    "cell": 208,
+    "cell_id": "a56aa7a1c64c"
+  },
+  {
+    "name": "checks.run_unit_checks",
+    "cell": 209,
+    "cell_id": "5978d514b6ac"
+  },
+  {
+    "name": "checks.tiny_overfit_check",
+    "cell": 211,
+    "cell_id": "bb029b57816a"
+  },
+  {
+    "name": "execute_unit_checks",
+    "cell": 212,
+    "cell_id": "bab4aa849b05"
+  },
+  {
+    "name": "tiny_overfit_execution",
+    "cell": 213,
+    "cell_id": "0ba445273261"
+  },
+  {
+    "name": "gpu_profile_execution",
+    "cell": 214,
+    "cell_id": "4703f73715ff"
+  },
+  {
+    "name": "run_experiments",
+    "cell": 216,
+    "cell_id": "4f9c77d351eb"
+  },
+  {
+    "name": "best_checkpoint_export",
+    "cell": 217,
+    "cell_id": "2b19ff101cde"
+  },
+  {
+    "name": "example_contribution_figure",
+    "cell": 218,
+    "cell_id": "a7eab5c453ad"
+  },
+  {
+    "name": "report_export",
+    "cell": 219,
+    "cell_id": "a8e6ba3512d1"
+  },
+  {
+    "name": "save_runtime_readme",
+    "cell": 220,
+    "cell_id": "fd63d03e5bc1"
+  },
+  {
+    "name": "verify_artifacts",
+    "cell": 221,
+    "cell_id": "bd7e1a3dc676"
+  },
+  {
+    "name": "read_report_example",
+    "cell": 222,
+    "cell_id": "5cc2548c5af9"
+  }
+]

@@ -1,0 +1,1102 @@
+2594 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 6, JUNE 2025
+A Foundation Model for Lesion Segmentation on
+Brain MRI With Mixture of Modality Experts
+Xinru Zhang , Ni Ou , Berke Doga Basaran, Marco Visentin, Mengyun Qiao , Renyang Gu,
+Paul M. Matthews , Yaou Liu, Chuyang Ye , and Wenjia Bai , Senior Member, IEEE
+Abstract—Brain lesion segmentation is crucial for neuro-
+logical disease research and diagnosis. As different types of
+lesions exhibit distinct characteristics on different imaging
+modalities, segmentation methods are typically developed
+in a task-specific manner, where each segmentation model
+is tailored to a specific lesion type and modality. However,
+the use of task-specific models requires predetermination
+of the lesion type and imaging modality, which compli-
+cates their deployment in real-world scenarios. In this work,
+we propose a universal foundation model for brain lesion
+segmentation on magnetic resonance imaging (MRI), which
+can automatically segment different types of brain lesions
+given input of various MRI modalities. We develop a novel
+Mixture of Modality Experts (MoME) framework with multiple
+expert networks attending to different imaging modalities.
+A hierarchical gating network is proposed to combine the
+expert predictions and foster expertise collaboration. More-
+over, to avoid the degeneration of each expert network,
+we introduce a curriculum learning strategy during training
+to preserve the specialisation of each expert. In addition to
+MoME, to handle the combination of multiple input modali-
+Received 12 December 2024; accepted 6 February 2025. Date of
+publication 11 February 2025; date of current version 3 June 2025.
+The work of Chuyang Ye was supported in part by Beijing Municipal
+Natural Science Foundation under Grant 7242273, in part by the Xiaomi
+Young Scholars Program, and in part by the Fundamental Research
+Funds for the Central Universities under Grant 2024CX06040. The
+work of Wenjia Bai was supported in part by the Engineering and
+Physical Sciences Research Council (EP/W01842X/1) and NIHR Impe-
+rial Biomedical Research Centre. (Corresponding authors: Wenjia Bai;
+Chuyang Ye; Yaou Liu.)
+Xinru Zhang is with the School of Integrated Circuits and Electron-
+ics, Beijing Institute of Technology, Beijing 100811, China, and also
+with the Department of Brain Sciences, Imperial College London,
+SW7 2AZ London, U.K. (e-mail: xz2223@ic.ac.uk).
+Ni Ou is with the School of Automation, Beijing Institute of Technology,
+Beijing 100811, China (e-mail: 3120205431@bit.edu.cn).
+Berke Doga Basaran and Marco Visentin are with the Department of
+Computing, Imperial College London, SW7 2AZ London, U.K. (e-mail:
+berke.basaran19@imperial.ac.uk; marco.visentin20@imperial.ac.uk).
+Mengyun Qiao is with the Department of Brain Sciences, Imperial Col-
+lege London, SW7 2AZ London, U.K. (e-mail: m.qiao21@imperial.ac.uk).
+Renyang Gu is with the Department of Bioengineering, Imperial College
+London, SW7 2AZ London, U.K. (e-mail: r.gu@imperial.ac.uk).
+Paul M. Matthews is with the Department of Brain Sciences and
+the U.K. Dementia Research Institute, Imperial College London,
+SW7 2AZ London, U.K. (e-mail: p.matthews@imperial.ac.uk).
+Yaou Liu is with Beijing Tiantan Hospital, Capital Medical University,
+Beijing 100038, China (e-mail: liuyaou@bjtth.org).
+Chuyang Ye is with the School of Integrated Circuits and Electronics,
+Beijing Institute of Technology, Beijing 100811, China (e-mail:
+chuyang.ye@bit.edu.cn).
+Wenjia Bai is with the Department of Computing and the Department
+of Brain Sciences, Imperial College London, SW7 2AZ London, U.K.
+(e-mail: w.bai@imperial.ac.uk).
+Digital Object Identifier 10.1109/TMI.2025.3540809
+ties, we propose MoME+, which uses a soft dispatch network
+for input modality routing. We evaluated the proposed
+method on nine brain lesion datasets, encompassing five
+imaging modalities and eight lesion types. The results show
+that our model outperforms state-of-the-art universal mod-
+els for brain lesion segmentation and achieves promising
+generalisation performance onto unseen datasets.
+Index Terms—Foundation model, mixture of experts,
+brain imaging, brain lesion segmentation.
+I. INTRODUCTION
+BRAIN lesion segmentation plays an essential role in
+neurological research and diagnosis by offering a quan-
+titative description of pathologies [1], [2]. Deep learning has
+greatly advanced the progress of brain lesion segmentation
+in recent years [3], [4], [5], [6], [7], [8]. Since brain lesions
+tend to manifest with different characteristics due to various
+patient-dependent pathological alterations, the segmentation of
+different types of brain lesions requires the use of different
+magnetic resonance imaging (MRI) modalities [9], [10], [11],
+such as T1-weighted (T1w), T2-weighted (T2w), T1 contrast-
+enhanced (T1ce), FLAIR, diffusion weighted imaging (DWI),
+etc. They are either used standalone or as a combination [12],
+[13], [14], which increases the complexity of segmentation
+model development. In the traditional paradigm (Fig. 1a), task-
+specific models are developed, where each model segments
+brain lesions on a specific modality or modality combi-
+nation [2], [15]. In addition, for different types of brain
+lesions, such as stroke lesions, white-matter hyperintensities
+(WMH), glioma, etc., different task-specific models need to
+be developed. At the deployment stage, among all these task-
+specific models, clinicians are compelled to manually choose
+the optimal model for each patient MRI scan. This process
+hinders the practical deployment of artificial intelligence (AI)
+models. Contrary to this traditional paradigm, we propose a
+novel task-agnostic universal foundational model (Fig. 1b),
+which is capable of automatically segmenting various types
+of brain lesions regardless of the input MRI modality. The
+model can also be extended to handle heterogeneous inputs
+with multiple modalities.
+Foundation models have gained popularity in medical image
+segmentation, thanks to the success of the Segment Anything
+Model (SAM) [16] and its variants [17], [18], [19], [20],
+as well as other innovative foundation models specifically
+developed for medical imaging [21], [22], [23], [24]. Earlier
+1558-254X © 2025 IEEE. All rights reserved, including rights for text and data mining, and training of artificial intelligence
+and similar technologies. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See https://www.ieee.org/publications/rights/index.html for more information.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:19 UTC from IEEE Xplore. Restrictions apply.
+ZHANG et al.: FOUNDATION MODEL FOR LESION SEGMENTATION ON BRAIN MRI WITH MoME 2595
+Fig. 1. Different paradigms for brain lesion segmentation and an overview of the proposed framework: a) the traditional paradigm that trains multiple
+task-specific models; b) the foundation model paradigm that trains a single universal model for multiple tasks; c) the proposed mixture of modality
+experts (MoME) model. In MoME, the input image passes through each modality expert to generate individual expert output. The gating network
+takes the image and the expert feature maps as input. It then generates voxel-wise weighting maps, which aggregate the expert outputs to obtain
+the final segmentation map.
+works aim to develop a universal model across all modalities,
+organs, and tasks. However, due to the complexity of medical
+imaging data and tasks, the segmentation accuracy of such a
+universal model is often limited [25]. Thus, foundation models
+focusing on narrower scopes are explored, which are designed
+for a particular modality or a particular organ/task [25].
+For example, several models are proposed specifically for
+computed tomography (CT) image segmentation [22], [26],
+[27], showing promising results for anatomical structure and
+large tumour segmentation. Despite the progress, most existing
+foundation models may not be directly applicable to brain
+lesion segmentation [17], [23]. Most noticeably, universal
+brain lesion segmentation requires the capability of han-
+dling the diversity of input imaging modalities, which is not
+addressed by many of the existing foundation models.
+In this study, inspired by Mixture of Experts (MoE) [28],
+[29], [30], we propose a Mixture of Modality Experts (MoME)
+foundational model for brain lesion segmentation on MRI,
+illustrated in Fig. 1c. Our main contributions are summarised
+as follows:
+• MoME is developed to be task-agnostic and capable of
+handling diverse imaging modalities and accommodating
+various types of brain lesions. Each expert specialises in
+processing certain image modalities.
+• To explore collaboration among the experts, a hierarchical
+gating network is designed to combine expert predictions
+and facilitate collaborative expertise exploration layer by
+layer. Additionally, to keep the specialisability of each
+expert, an anti-degeneration strategy based on curriculum
+learning is developed.
+• We conducted comprehensive experiments on nine brain
+imaging datasets comprising a total number of 6,585
+annotated 3D images, with five MRI modalities and eight
+lesion types. The results show that MoME outperforms
+competing foundation models in multiple aspects and
+provides improved generalisation onto unseen datasets.
+A preliminary version of this work has been published in
+MICCAI 2024 [31], focusing on using a single image as input.
+Here, we have substantially extended the conference version.
+The MoME model has been extended to MoME+ to handle
+combined multiple modalities as input. To this end, we develop
+a novel dispatch network with a soft assignment strategy and
+prior constraints, and employ random dropout of modalities
+during training to mimic the heterogeneous input. When a
+maximum of N modalities are available, a single unified
+MoME+ achieves segmentation performance comparable to
+that of 2N − 1 dedicated nnU-Nets for different modal-
+ity combinations. Additionally, we include new experimental
+results for handling missing modalities, investigate strategies
+of decoder sharing for multiple experts to improve model
+efficiency, as well as extend the illustration and discussion.
+The proposed MoME and MoME+ models demonstrate
+promising segmentation performance that is agnostic against
+modalities and modality combinations. Since only a single
+universal model is needed, it eases model management and
+deployment, making it applicable to a broader range of
+scenarios. The code of MoME and MoME+ is available at
+https://github.com/ZhangxinruBIT/MoME.
+II. RELATED WORK
+A. Brain Lesion Segmentation and Medical Imaging
+Foundation Models
+The task of brain lesion segmentation differs significantly
+from natural image segmentation or other anatomical structure
+segmentation tasks. Unlike anatomical structure segmentation,
+brain lesion segmentation deals with a broader variations of
+data distributions, in terms of different lesion types, varying
+spatial locations, scattering of multiple lesions, and irregular
+shapes [1], [32], which poses substantial challenges for devel-
+oping segmentation foundation models.
+Reference [23] proposed a universal medical image seg-
+mentation model, Hermes, which allows modality information
+and target segmented objects to be embedded as context
+priors into the model. However, brain lesion types and their
+locations are often patient-specific, which are difficult to be
+embedded as context priors. SAM-inspired models such as
+SAM-Med3D [17] and MedSAM [19] have demonstrated the
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:19 UTC from IEEE Xplore. Restrictions apply.
+2596 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 6, JUNE 2025
+potential of foundational segmentation models for 3D medical
+image segmentation. These models require input prompts in
+the format of click points or bounding boxes. While prompt
+generation is relatively easy for a single large tumour that
+appears as a central cluster in the brain, e.g., glioma, it can
+be more challenging to define for other types of lesions,
+e.g., stroke lesions that manifest as small and challenging-to-
+detect anomalies (see Fig. 1a) [2]. Additionally, white matter
+hyperintensity (WMH) are often widely dispersed [5], [33] and
+scattered across the brain at multiple locations (see Fig. 1a),
+which can be easily missed by point-based or bounding box-
+based prompts. Neuralizer [4] proposed a different paradigm
+for developing medical imaging foundational models by lever-
+aging a context set. After the model pre-training stage, the
+model generalises to a new task by learning transferable
+features from a context set that contains paired images and
+segmentation masks, similar to few-shot learning. Neuralizer
+is mainly evaluated on 2D coronal slices instead of 3D
+volumes, possibly due to the computational resource limitation
+in learning from a 3D context set.
+B. Mixture of Experts
+The mixture of experts (MoE) approach is widely acknowl-
+edged for its efficacy in scaling up foundation models and
+improving their performance [34], [35], [36], particularly in
+handling larger models and datasets with strong generali-
+sation capabilities [37], [38], [39]. MoE involves creating
+multiple distinct experts tasked with learning both shared
+and task-specific knowledge, while employing a gating func-
+tion to regulate the contribution of each expert. MoE has
+been explored for applications in natural language processing
+(NLP) [40], [41], multi-modal learning [30], [42], and com-
+puter vision [28], [43], [44], [45]. In computer vision, MoE
+has been demonstrated effective in image classification [28],
+[43] and segmentation tasks [28], [44]. In the field of med-
+ical image analysis, Patcher [28] regarded the feature maps
+extracted from different resolution levels as expert outputs and
+introduced a MoE decoder to integrate multi-level global-to-
+fine features. Here, we propose that the definition of experts
+in the MoE model could be carefully tailored to specific
+tasks and data domains. Brain lesion segmentation involves
+multiple imaging modalities. Several studies have shown that
+utilising the modality information benefits the segmentation
+performance [46], [47]. There is potential to leverage the
+characteristics of each modality to define the expert for each
+modality under the MoE framework.
+C. Heterogeneous Input With Missing Modalities
+In the field of medical imaging, the input data are inherently
+heterogeneous [48], with various imaging modalities or com-
+bination of modalities. A common issue that requires attention
+is the modality missing problem, where one or several of
+the multiple imaging modalities are missing [12], [13], [14],
+[46], [47], [49]. To address this issue, strategies such as
+synthesizing missing modalities using a generative model [50]
+or learning a modality-invariant feature space [46], [51], [52]
+have been explored. If N imaging modalities are needed for a
+segmentation task and some modalities are missing, the total
+number of combinations of remaining available modalities is
+2N − 1. Consequently, numerous input-specific segmentation
+models need to be trained, dedicated to each modality combi-
+nation [14], [53]. Wang et al. proposed non-dedicated training,
+which results in N models and reduces the model complex-
+ity [12]. The non-dedicated training approach, while requiring
+fewer models for training, may compromise performance to
+some extent compared to dedicated training [12]. In this work,
+we explore a different approach, which is to develop a single
+foundation model capable of handling different modality com-
+binations. Such a foundation model would offer convenience
+and ease for model development and deployment.
+III. METHODS
+A. Method Overview
+The architecture of MoME features two major components,
+namely the expert networks and the gating network. Each
+expert network is specialised in a specific domain of imaging
+modality. The gating network acts as a decision-maker, ensem-
+bling the expert network outputs and dynamically adjusting the
+ensemble weights with hierarchical guidance. While training
+the segmentation model, an anti-degeneration strategy based
+on curriculum learning is employed, which enables the model
+training to gradually transition from specialising the role of
+each expert to determining the entire model through collab-
+oration. We develop our method for two types of input data,
+only a single but any modality as input (MoME, Sec. III-B)
+and a combination of multiple modalities as input (MoME+,
+Sec. III-C).
+B. MoME for Single Input Image
+1) Expert Specialisation: Suppose there are N imaging
+modalities {Mi }N
+i=1 of interest, where Mi represents the
+i-th modality. We aim to develop a modality-agnostic model
+that can perform segmentation for any single input image,
+regardless of its imaging modality. We focus on the five most
+widely used brain MRI modalities, including T1w, T2w, T1ce,
+FLAIR, and DWI, and thus N = 5. To address the problem of
+modality diversity, in MoME, N expert networks {Ei }N
+i=1 are
+developed, where Ei denotes the i-th expert. Each expert Ei
+is expected to specialise in a specific modality Mi . The single
+input image will go through all expert networks, with their out-
+puts ensembled by the gating network to form the final output.
+Without losing generality, we assume that each expert network
+follows a multi-resolution encoder-decoder architecture, which
+is common for medical image segmentation such as in U-
+Net [54]. Note that the experts here are built for 3D brain
+image segmentation, distinguishing them from sparse MoE
+architectures for 2D natural images where a higher number
+of experts can be afforded [55], [56].
+2) Hierarchical Gating Network: Following the specialisation
+of expert networks, we propose a gating network G that
+facilitates the collaboration and conducts voxel-wise weighted
+ensemble among the expert outputs. Note that different
+imaging modalities can be correlated while providing com-
+plementary information. For example, FLAIR appears similar
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:19 UTC from IEEE Xplore. Restrictions apply.
+ZHANG et al.: FOUNDATION MODEL FOR LESION SEGMENTATION ON BRAIN MRI WITH MoME 2597
+to T2w but with fluid being attenuated; for an input T2w
+image, the outputs of the FLAIR expert and T2w expert may
+provide complementary information that both contribute to
+lesion segmentation. Thus, to enhance collaboration between
+experts, the gating network fuses the multi-resolution outputs
+from multiple experts instead of selecting one of them.
+Mathematically, given an input image X, each expert Ei
+generates outputs at multiple resolution levels on the decoder
+side, denoted by Ei (X) = {el
+i }L
+l=1, where el
+i is the output of
+Ei at the l-th resolution level and L indicates the number
+of resolution levels. The gating network G generates a set
+of hierarchical voxel-wise weight maps at different resolution
+levels for each expert, denoted by {gl
+i }L
+l=1. Combining the
+expert networks and the gating network, the final output O
+is formulated as
+O =
+n
+ol
+oL
+l=1
+with ol
+=
+N
+X
+i=1
+el
+i ⊙ gl
+i , (1)
+where ol is the aggregated output of all experts at the l-th
+resolution level and ⊙ represents voxel-wise multiplication.
+The segmentation at the l-th level is obtained by applying the
+softmax operator to ol. During training, deep supervision [54],
+[57] is employed to guide the segmentation at multiple resolu-
+tion levels. At the inference stage, only the highest resolution
+level determines the final segmentation result [54], [57].
+3) Curriculum Learning to Alleviate Expert Degeneration:
+Although intuitively it is possible to jointly train the experts
+and gating network, this may lead to expert degeneration,
+where each expert no longer focuses on a specific modality
+and their activation becomes imbalanced [34], [58], reducing
+the capability of the whole model to handle diverse modalities.
+To address this issue, we propose a curriculum learning
+strategy for model training, which gradually transitions from
+specialising each individual expert to tuning the whole model
+to encourage expert collaboration and refinement.
+The curriculum learning is achieved with a dynamic loss
+Lcl that comprises the specialisation loss Li for each modality
+expert Ei and the collaboration loss LMoME. During training,
+Lcl is gradually transitioned from Li to LMoME, enabling
+dynamic attention, which is controlled by the weight fepoch:
+Lcl = fepoch ·
+N
+X
+i=1
+1X∈Mi
+· Li + (1 − fepoch) · LMoME. (2)
+Here, 1X∈Mi
+is an indicator function that is one when
+the input image X belongs to the modality Mi and zero
+otherwise, and fepoch is a dynamic weight that evolves with
+the epoch iteration. fepoch is designed as fepoch = (1 −
+epochcurrent/epochtotal)2, where epochcurrent and epochtotal are
+the current epoch and total number of epochs, respectively.
+In this way, during the early training stage, fepoch is greater,
+which emphasises the loss Li for the expert Ei that matches
+the modality of the input image X. During the later training
+stage, fepoch decreases and LMoME becomes gradually more
+emphasised.
+Li is designed with deep supervision at each resolution level
+as
+Li =
+L
+X
+l=1
+kl
+· L(σ(el
+i ), dl
+(Y)), (3)
+where kl is a weight for the l-th level, σ(·) is the softmax
+activation, dl(·) is a down-sampling operator that matches
+the resolution of the ground truth annotation Y with the
+expert network prediction at the l-th level, and L(·, ·) is the
+combination of the soft Dice loss and cross-entropy loss [54].
+LMoME is formulated with the collaboration between experts
+as
+LMoME =
+L
+X
+l=1
+kl
+· L(σ(ol
+), dl
+(Y)), (4)
+which encourages the ensembled output ol from multiple
+experts to be close to the ground truth segmentation Y.
+C. MoME+: Extended MoME for Multiple Input Images
+The previously described MoME model accepts a single
+input image, regardless of its modality. The single input image
+goes through multiple experts and their predictions are ensem-
+bled. Here we extend its capability to handle multi-modality
+input images, which are common in brain lesion segmentation,
+and the number of modalities and their combinations can
+vary. We refer to this extended model as MoME+ hereinafter.
+In MoME+, we still have N expert networks, with N denoting
+the maximum number of modalities. There are multiple input
+images, the number of which can be smaller than N due
+to missing modalities. To address the mismatch between
+the number of available input images and the number of
+expert networks, and to leverage information from available
+modalities to infer channels for missing modalities, we develop
+an additional dispatch network D, which generates a N × N
+dispatch matrix, and then dispatches the input images to the
+N expert networks.
+We denote the modality availability information as c =
+(c1, c2, . . . , cN ), where ci = 1 indicates that the correspond-
+ing modality Mi is available and ci = 0 indicates that
+it is not. The dispatch network D is a trainable network,
+which takes c as input and predicts a dispatch matrix D ∈
+RN×N . The multi-modality input images are denoted as e
+X =
+(X1, X2, . . . , XN )⊤, where Xi denotes an image of modality
+Mi when ci = 1 and is a zero matrix otherwise. Using
+the dispatch matrix D and by applying some constraints,
+we dispatch N input images e
+X (including missing modalities)
+to N output images S = (S1, S2, . . . , SN )⊤ by
+S = D⋆
+· e
+X. (5)
+Here, D⋆ is a constrained dispatch matrix based on the original
+dispatch matrix D. Each element D⋆
+i, j in the matrix D⋆ denotes
+the weight of the input image Xj contributing to the output
+image Si .
+We enforce constraints on D to ensure that: 1) self-dispatch
+based on the available input modality and 2) avoidance of
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:19 UTC from IEEE Xplore. Restrictions apply.
+2598 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 6, JUNE 2025
+Fig. 2. Illustration of the soft dispatch strategy for MoME+ to handle heterogeneous multi-modality inputs in brain lesion segmentation. The modality
+availability information c is fed into the dispatch network, which generates a constrained dispatch matrix D⋆. This matrix determines the weights for
+combining the input images e
+X and generating multi-channel images S, termed as soft dispatch outputs. S serves as the input to the expert networks
+and c is treated as prior information embedded into the bottleneck of the gating network. The subsequent workflow aligns with the original MoME
+framework.
+routing issues associated with a missing modality. This results
+in the constrained matrix D⋆, formulated as
+D⋆
+i, j =
+
+
+
+
+
+δi, j if ci = 1,
+0 if cj = 0,
+Di, j else
+(6)
+Here, δi, j is the Kronecker delta. When ci = 1, D⋆ enforces
+self-dispatch, and Si = Xi ; when cj = 0, a missing modality
+Xj should not contribute to Si ; else (i.e., ci = 0 & cj = 1) ,
+an available modality Xj contributes to Si based on the learned
+dispatch weight Di, j , which is a soft value between 0 and 1.
+An illustration of the dispatch process, using an example of
+N = 4 and c = (1, 0, 0, 1), can be found in Fig. 2. After
+the dispatch, there are no longer zero matrices in the output
+images S. S now becomes the inputs to the expert networks,
+with each image Si being fed to the corresponding expert Ei .
+When training the MoME+ model including the dispatch
+network D, we randomly drop modalities, with each modality
+having an equal probability of being available or missing,
+resulting in 2N − 1 modality combinations. In this way, the
+dispatch network D learns to leverage the available modalities
+and perform a weighted combination of them to compensate
+for the missing modalities [55]. Similar to MoME, MoME+
+uses the gating network to ensemble the expert outputs and the
+curriculum learning strategy, as described in Sec. III-B2 and
+Sec. III-B3. A difference is that the loss function Eq. (2) no
+longer involves only a single input image but multiple input
+images. The loss function L+
+cl is re-defined as
+L+
+cl = fepoch ·
+1
+∥c∥1
+·
+N
+X
+i=1
+1ci =1 · Li + (1 − fepoch) · LMoME.
+(7)
+Additionally, the modality available information c is treated
+as prior information embedded into the bottleneck of the gating
+network. Specifically, before embedding, we expand c into a
+one-hot tensor of shape RN×d3
+, where d3 matches the shape
+of the 3D feature map at the bottleneck layer of the gating
+network.
+D. Implementation Details
+We implement each expert network and the gating network
+using the nnU-Net architecture [54], which is a strong segmen-
+tation backbone as shown in [22] and [54]. Additionally, all
+networks employ deep supervision [54]. The dispatch network
+for the multi-input MoME+ model utilises three layers of fully
+connected layers to achieve its lightweight task, where the
+numbers of channels are 4, 8, and 16 sequentially, and the
+activation functions are all ReLU [59]. As each expert network
+is expected to specialise in one imaging modality, the expert
+networks are first trained separately using a combined soft
+Dice and cross-entropy loss function to acquire the modality
+knowledge. Subsequently, the gating network is trained with
+the expert networks being fine-tuned using the curriculum
+learning loss in Eq. (2) for single modality input and Eq. (7)
+for heterogeneous multi-modality input respectively. All the
+hyperparameters (including {kl}L
+l=1) follow the default setting
+in nnU-Net [54], except that 1) a lower learning rate of 1e−3
+is set for the dynamic curriculum learning loss [38] and 2) the
+number of training epochs is set to 800, a sufficient number
+for convergence.
+IV. RESULTS
+A. Dataset and Task Description
+We curated six publicly available brain lesion segmenta-
+tion datasets (MSSEG [60], OASIS [61], ISLES2022 [62],
+BraTS2021 [63], WMH2017 [33], and ATLAS2.0 [64])
+and three in-house datasets (Tumour1,1 Tumour21, and
+WMHsMix2), amounting to a total number of 6,585 3D images
+with brain lesion annotations. The dataset detail is reported in
+Table I. All images were rigidly registered to the MNI152
+template using ANTs [65]. Brain masks were applied to the
+images for skull removal. Cropping was performed so that the
+1Provided by Beijing Tiantan Hospital with ethical approval reference
+number: KY2022-078-04. Written informed consent was obtained from each
+participant according to the Declaration of Helsinki.
+2Provided by Beijing Tiantan Hospital with ethical approval reference
+number: KY2021-028-03. Written informed consent was obtained from each
+participant according to the Declaration of Helsinki.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:19 UTC from IEEE Xplore. Restrictions apply.
+ZHANG et al.: FOUNDATION MODEL FOR LESION SEGMENTATION ON BRAIN MRI WITH MoME 2599
+TABLE I
+AN OVERVIEW OF THE PUBLIC AND IN-HOUSE DATASETS USED FOR BRAIN LESION SEGMENTATION. NOTE THAT THE
+NUMBER OF AVAILABLE MODALITIES AND THEIR COMBINATIONS VARY ACROSS DATASETS
+size of all images was standardised to 160 ×196×160 with a
+voxel spacing of 1×1×1 mm3. Each of the six public datasets
+was split into training and test sets, as detailed in Table I.
+The MoME model was trained on the combined training sets
+from all six public datasets. It was then evaluated on the test
+sets from the public datasets (seen datasets) and the three
+in-house datasets (unseen datasets), which were never used
+for training and allowed the assessment of the generalisation
+of MoME. For assessing the extended multi-input MoME+
+model, we used the BraTS2021 dataset, which contains T1w,
+T1ce, T2w, and FLAIR modalities, and simulated different
+scenarios of missing modalities. Specifically, for the four
+modalities, each can either be available or unavailable, with
+the constraint that at least one modality must be present. This
+results in a total of 24 − 1 possible combinations, and their
+details are presented in Table VII.
+B. Competing Task-Specific and Foundation Models
+MoME was compared with the following task-specific and
+foundation models for single modality input settings.
+Task-specific nnU-Nets: The nine datasets cover a variety
+of brain lesions and modalities. We regard the segmentation of
+each modality for each dataset as a distinct task [24], resulting
+in a total number of 17 tasks (14 tasks for seen datasets and
+3 tasks for unseen datasets). Thus, 17 supervised task-specific
+nnU-Net models were trained.
+nnU-Net: A single nnU-Net [54] was trained with the
+combined training sets from all public datasets. It can be
+viewed as a baseline foundation model.
+Multi-Talent [22]: Multi-Talent demonstrates superior
+performance in handling conflicting class definitions for
+multi-dataset training and shows promising lesion segmenta-
+tion results. We trained it with the combined training sets.
+Hermes [23]: Hermes is a foundation model that injects
+context prior knowledge (e.g. anatomical region and imaging
+modality) into the segmentation network to address the chal-
+lenges of data and modality diversities. We adapted Hermes for
+our task and incorporated the imaging modality information as
+prior knowledge. Hermes was also trained with the combined
+training sets.
+nnU-Net ResEnc [66]: nnU-Net ResEnc employs a residual
+encoder U-Net within the nnU-Net framework. It is opti-
+mised for various hardware configurations, including nnU-Net
+ResEnc M, L, and XL. As [66] highlights the importance of
+scalability for larger datasets, we chose the advanced nnU-Net
+ResEnc XL and trained with the combined training sets.
+SAM-Med3D [17]: This is a SAM-based [16] model trained
+on a large-scale 3D medical image dataset. We fine-tuned
+SAM-Med3D with the combined training sets and provided
+a 10-point prompt [17] during the inference.
+For heterogeneous multi-modality input, the competing
+foundational models cannot be applied. We compared the
+MoME+ model with 2N −1 dedicated nnU-Nets, each trained
+for one combination of modalities. For the BraTS2021 dataset,
+N = 4 modalities were involved.
+All models were trained for 800 epochs on Nvidia
+A100 GPUs. We used the default hyperparameters for the
+transformer-based SAM-Med3D. All the other models were
+based on nnU-Net and used its default hyperparameters.
+C. Performance of MoME on Seen Datasets
+Table II compares the average Dice score and Hausdorff
+distance (HD) (mm) of MoME with the competing models
+and reports the overall GPU memory usage and GPU hours for
+training each model. To mitigate the bias caused by the varying
+numbers of images in different test sets, we report the Dice
+score with different levels of averaging: across the 14 seen
+tasks (task-level), across 6 seen datasets (dataset-level), and
+across 1,230 test images (image-level). MoME achieves better
+performance compared to other foundation models in terms
+of both Dice score and HD, for example, achieving 2% to
+4% higher Dice score than nnU-Net, Multi-Talent, Hermes,
+and nnU-Net ResEnc XL. It outperforms SAM-Med3D by a
+large margin of 7% to 15%. This is possibly because SAM-
+Med3D requires point prompts to indicate a foreground region,
+which may not be suitable for brain lesion segmentation,
+where lesions can be numerous, small, and scattered across the
+brain, such as the WMH lesions [5], [33]. The performance of
+MoME is comparable to task-specific nnU-Nets. However, the
+latter requires the training of 14 separate models, and its total
+amount of GPU memory consumption is about three times that
+of MoME.
+A more detailed analysis of the results is shown in Fig. 3.
+Fig. 3a presents a comprehensive comparison between the
+foundation models from eight perspectives, reporting the
+average Dice score for five different modalities and three
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:19 UTC from IEEE Xplore. Restrictions apply.
+2600 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 6, JUNE 2025
+TABLE II
+AVERAGE DICE SCORE AND HAUSDORFF DISTANCE (mm) OF MOME AND THE COMPETING METHODS ON SEEN DATASETS.
+THE BEST RESULTS AMONG THE FOUNDATION MODELS ARE HIGHLIGHTED IN BOLD. THE GPU MEMORY USAGE
+AND GPU HOURS FOR MODEL TRAINING ARE ALSO REPORTED
+Fig. 3. More detailed analysis of the MoME result on seen datasets. a) A bar chart that compares the average Dice score of foundation models from
+the perspectives of different modalities and lesion types. b) t-SNE plots of latent spaces for the single nnU-Net (trained on all imaging modalities)
+and MoME, where each dot represents a brain image.
+different lesion types. For seven out of the eight perspectives,
+MoME outperforms the other foundation models. Among the
+modalities, the Dice metric is lowest for T1w images, likely
+because detecting lesions is more challenging on T1w, where
+lesions do not manifest as clearly as on FLAIR and T2w.
+Fig. 3b analyses the latent features obtained at the bottleneck
+of the gating network in MoME and the single nnU-Net
+using t-SNE plots [67]. It shows that MoME achieves a more
+discriminative clustering for images of different modalities and
+lesion types compared to the single nnU-Net, which may be
+relevant to its improved performance.
+D. Generalisation of MoME to Unseen Datasets
+Table IV reports the segmentation performance on the three
+unseen in-house datasets for evaluating model generalisability.
+Multi-Talent is not included as it cannot be directly applied to
+unseen datasets. Again, MoME outperforms other competing
+foundation models. On two unseen datasets (Tumour1 and
+Tumour2), it even exceeds the task-specific nnU-Nets, which
+can be considered the upper-bound benchmark as they had
+access to the training data from the unseen datasets. On the
+other unseen dataset (WMHsMix), MoME still performs rel-
+atively well and achieves an average Dice score of 0.7015,
+where the dataset contains diverse WMH lesions of five
+diseases (Table I).
+TABLE III
+AVERAGE DICE SCORE AND HAUSDORFF DISTANCE (Mm) ON THREE
+UNSEEN DATASETS. THE TOP SCORES ARE IN BOLD. ASTERISKS
+INDICATE THAT THE DIFFERENCE BETWEEN THE PROPOSED
+METHOD AND THE COMPETING METHOD IS STATISTICALLY
+SIGNIFICANT (*: p ≤ 0.05, **: p ≤ 0.01, ***: p ≤ 0.001)
+USING A PAIRED STUDENT’S t-TEST
+E. Summary of MoME Results on Both Seen and
+Unseen Datasets
+Table IV reports the detailed results on both seen and
+unseen datasets, highlighting the performance of the proposed
+MoME method across 17 tasks (identified by IDs ranging
+from 1 to 17), nine datasets, three major types of brain lesions,
+and five modalities. The majority of these results not only
+outperforms competing methods but also demonstrates per-
+formance comparable to task-specific nnU-Nets. Importantly,
+MoME seamlessly handles any input modality and lesion type,
+without requiring retraining when new datasets are introduced,
+distinguishing it from task-specific nnU-Nets.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:19 UTC from IEEE Xplore. Restrictions apply.
+ZHANG et al.: FOUNDATION MODEL FOR LESION SEGMENTATION ON BRAIN MRI WITH MoME 2601
+TABLE IV
+DETAILED AVERAGE DICE SCORE OF MoME AND COMPETING METHODS FOR EACH TASK, LESION TYPE, AND MODALITY. THE TOP RESULTS,
+EXCLUDING THE TASK-SPECIFIC nnU-Nets RESULTS, ARE HIGHLIGHTED IN BOLD
+F. Ablation Studies
+Ablation studies were conducted on both seen and unseen
+datasets to verify the contributions of the designs in MoME
+with results presented in Table V. For the modality experts,
+✘/✔ denotes randomly initialised experts versus specialised
+experts based on the imaging modality; for the hierarchical
+gating, ✘/✔ denotes the basic gating without hierarchical
+structure versus our hierarchical gating; and for the curricu-
+lum learning, ✘/✔ denotes the application of Eq. (4) versus
+Eq. (2) during model training. When the three contributions
+are sequentially removed, even though the number of model
+parameters remains constant in this ablation study, the seg-
+mentation performance tends to decrease gradually, confirming
+the benefits of these contributions. This indicates that the
+improvement in MoME is not solely due to the larger model
+size, but also due to the modality-based expert design and the
+training strategy, which better balances expert collaboration
+and specialisation within the MoME framework.
+G. Expert Degeneration
+We investigated the issue of expert degeneration by com-
+paring the expert output, weighted by gating, without and with
+the proposed curriculum learning strategy. Detailed results can
+be found in Fig. 4. In Fig. 4a, without an anti-degeneration
+strategy, T2w and FLAIR experts lose their acquired modality
+knowledge, i.e. the sensitivity to the brain lesion on the corre-
+sponding modalities. In contrast, Fig. 4b shows that with the
+anti-degeneration strategy, expert degeneration is effectively
+avoided. Each expert is activated according to its specialised
+modality or related modalities, as indicated by the blue dashed
+TABLE V
+ABLATION STUDIES OF MoME. THE BEST SCORES ARE IN BOLD
+boxes. In particular, we observe that some modality experts
+exhibit a strong relationship and can be activated in tandem,
+such as T1w and T1ce, which are consistently activated
+together, aligning with our understanding of their relatedness
+in brain imaging. When activated in tandem, these modality
+experts provide complementary information, which, combined
+with the gating aggregation, helps to refine the segmenta-
+tion performance. This comparison underscores the risk of
+expert inactivity and loss of modality-specific expertise in the
+absence of the curriculum learning anti-degeneration strategy.
+Conversely, our proposed approach ensures that experts main-
+tain responsiveness to modality-specific information.
+H. Improving the Model Efficiency
+We conducted additional experiments to explore the
+potential for improving model efficiency through the impact
+of weight sharing among modality experts, with a specific
+focus on the decoder. In our original setup, as shown in
+Fig. 3b, the modality-specific encoder allows each expert
+to capture distinct features unique to each modality, which
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:19 UTC from IEEE Xplore. Restrictions apply.
+2602 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 6, JUNE 2025
+Fig. 4. The output of each modality expert weighted by the gating mechanism achieved a) without or b) with the proposed anti-degeneration
+curriculum learning strategy. The blue dashed boxes show the brain lesion highlighted by the expert outputs.
+TABLE VI
+DICE SCORE AND MODEL EFFICIENCY COMPARISONS FOR THE
+SINGLE nnU-Net, MoME WITH A SHARED DECODER, AND
+THE ORIGINAL MoME. THE HIGHEST DICE SCORE
+ARE MARKED IN BOLD
+we found improved segmentation performance for modality-
+specific characteristics. Based on that, we decided to create
+an alternative configuration where all modality experts share
+the same decoder.
+To evaluate the shared-decoder configuration, we compared
+three models: (1) single nnU-Net, (2) MoME with a shared
+decoder, and (3) the original MoME. Table VI summarises
+these results, comparing segmentation performance on the
+average image level for both seen and unseen datasets, along
+with GPU memory usage and model storage.
+When comparing MoME (shared decoder) to single nnU-
+Net, the improvement in Dice performance highlights the
+benefits of a specialised encoder. Further comparing the
+MoME (shared decoder) to the original MoME, our findings
+reveal that while the shared decoder version achieves compara-
+ble generalisation performance on unseen datasets, it exhibits a
+slight decline in segmentation accuracy on seen datasets. This
+emphasises the importance and advantages of incorporating a
+specialised decoder for further enhancements.
+On the other hand, the MoME (shared decoder) is com-
+putationally more efficient compared to the original MoME,
+in terms of both the GPU memory usage and model storage
+size. GPU memory usage is reduced by 14% and the num-
+ber of parameters required for model storage is reduced by
+approximately 40%, compared to the original MoME.
+I. Extension to Multi-Modality Input
+Table VII presents the average Dice performance of the
+extended MoME+ model for multiple input images with miss-
+ing modalities, compared to 24 −1 dedicated nnU-Nets trained
+with different modality combinations on the BraTS2021
+dataset. Each dedicated nnU-Net was trained with a specific
+modality combination, as detailed in Table VII. The other
+TABLE VII
+AVERAGED DICE SCORE WITH THE STANDARD DEVIATION OF MoME+
+AND 24 − 1 DEDICATED nnU-Nets FOR 3-CLASS SEGMENTATION ON
+THE BRATS2021 DATASET. THE DETAILED INPUT MODALITY
+COMBINATION USED FOR TRAINING EACH DEDICATED
+nnU-Net IS LISTED. • MEANS THE CORRESPONDING
+MODALITY IS AVAILABLE, AND ◦ MEANS IT IS NOT
+foundational models, Hermes, SAM-Med3D, Multi-Talent and
+nnU-Net ResEnc XL, were not included in the experimental
+results since they cannot handle heterogeneous input modal-
+ities. Table VII demonstrates that a single MoME+ model
+achieves performance comparable to 24 − 1 dedicated nnU-
+Nets, with only 0.32% drop in the average Dice score across
+24 − 1 modality combination scenarios. Furthermore, the
+comparable standard deviation relative to the 24 −1 dedicated
+modality-specific nnU-Net models indicates that MoME+
+delivers consistent and reliable performance. But the lat-
+ter requires significantly more model storage and training
+resources. Specifically, in terms of GPU usage for training,
+MoME+ requires 30.56GB, while 24 − 1 modality-specific
+dedicated nnU-Nets demand over 112.5GB. This represents
+a reduction of more than 72.8% in GPU usage compared
+to the dedicated nnU-Nets for handling heterogeneous input
+modalities. In terms of model storage, MoME+ requires
+approximately 1.65GB, while 24 − 1 modality-specific ded-
+icated nnU-Nets require 4.95GB. This indicates a more than
+66.6% reduction in storage.
+V. DISCUSSION
+Foundational models have gained popularity and developed
+rapidly in the natural image domain. However, they do not
+account for the complexity of medical imaging modalities.
+In this paper, MoME and MoME+ have been proposed
+with the aim of creating a task-agnostic model capable of
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:19 UTC from IEEE Xplore. Restrictions apply.
+ZHANG et al.: FOUNDATION MODEL FOR LESION SEGMENTATION ON BRAIN MRI WITH MoME 2603
+handling various modalities and lesion types in clinical brain
+MRI, regardless of the modality or modality combinations.
+The diversity of imaging modalities is unique to the field
+of medical imaging, presenting challenges in developing a
+unified foundational model. However, this complexity also
+offers a unique opportunity to advance foundational model
+development by exploiting the complementary relationships
+between modalities. This motivates us to choose the Mixture
+of Experts (MoE) architecture and regard each modality as an
+expert within this framework.
+MoME demonstrates its clinical potential by serving as
+a unified foundation model for brain lesion segmentation,
+achieving comparable performance to numerous task-specific
+nnU-Nets. This approach enhances user-friendliness for clin-
+icians by eliminating the need to train and manage multiple
+dedicated models tailored to a specific modality and lesion
+type. In practical settings, the variability of patient imag-
+ing modalities and lesion types makes managing numerous
+task-specific models impractical and burdensome within
+a hospital’s neuroimaging department. Adopting a unified
+foundation model like MoME simplifies this complexity,
+thereby improving clinical workflow efficiency. Furthermore,
+we extend MoME from a single input scenario to MoME+ to
+address the multi-input scenario, with potential missing modal-
+ities and heterogeneous combinations of input modalities. This
+is a challenge not typically addressed by existing foundation
+models designed for natural images. Through innovations like
+the soft dispatch network and embedding modality information
+into the gating network, we demonstrate the capability of
+MoME+ to manage diverse inputs with the potential to handle
+more complex scenarios in clinical neuroimaging. Addition-
+ally, although MoME is specifically designed for brain lesion
+segmentation, it is feasible to extend this approach to a
+wider range of applications. For instance, it could be applied
+to organ segmentation tasks or other domains that involve
+multiple modality inputs, where the collaboration between
+modality-based experts may benefit the task performance.
+At the moment, most publicly available and in-house
+datasets annotate only one type of lesion per brain image.
+However, for some patients, more than one lesion types
+can exist in the same brain image, and not all of these
+lesion types are annotated in the current datasets. Improving
+the dataset annotation accuracy could be achieved in future
+work by implementing quality control measures or employing
+advanced data engines [16]. Furthermore, we can generate
+additional training samples using lesion-aware data augmenta-
+tion techniques such as CarveMix [2], [68]. This method can
+generate augmented brain images mixed with multiple types
+of lesions, along with augmented annotations. This will enrich
+the training datasets to encompass more diverse variations of
+brain lesion types, which can further improve the foundation
+model for brain lesion segmentation.
+VI. CONCLUSION
+We have developed a novel universal foundation model
+MoME for brain lesion segmentation on MRI, where a mixture
+of modality experts is incorporated to address the challenge
+of modality diversity. MoME enables collaboration between
+experts with hierarchical gating and mitigates expert degenera-
+tion with a curriculum learning strategy. Additionally, we have
+extended MoME to MoME+ with soft routing dispatch,
+allowing it to handle heterogeneous multi-modality inputs.
+Extensive experimental results on nine public and in-house
+datasets and 17 tasks show that it outperforms competing
+foundation models across different modalities and lesion types.
+It is also more efficient than task-specific models, providing a
+flexible way for model deployment.
+ACKNOWLEDGMENT
+This work was conducted during Xinru Zhang’s visit to
+Imperial College London, with the joint input from the
+corresponding authors.
+REFERENCES
+[1] K. Kamnitsas et al., “Efficient multi-scale 3D CNN with fully connected
+CRF for accurate brain lesion segmentation,” Med. Image Anal., vol. 36,
+pp. 61–78, Feb. 2017.
+[2] X. Zhang et al., “CarveMix: A simple data augmentation method
+for brain lesion segmentation,” NeuroImage, vol. 271, May 2023,
+Art. no. 120041.
+[3] D. A. Wood et al., “Deep learning models for triaging hospital head MRI
+examinations,” Med. Image Anal., vol. 78, May 2022, Art. no. 102391.
+[4] S. Czolbe and A. V. Dalca, “Neuralizer: General NeuroImage analysis
+without re-training,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern
+Recognit. (CVPR), Jun. 2023, pp. 6217–6230.
+[5] B. D. Basaran, W. Zhang, M. Qiao, B. Kainz, P. M. Matthews,
+and W. Bai, “LesionMix: A lesion-level data augmentation method
+for medical image segmentation,” in Proc. MICCAI Workshop Data
+Augmentation, Labelling, Imperfections, Jan. 2023, pp. 73–83.
+[6] D. Konar, S. Bhattacharyya, B. K. Panigrahi, and E. C. Behrman,
+“Qutrit-inspired fully self-supervised shallow quantum learning network
+for brain tumor segmentation,” IEEE Trans. Neural Netw. Learn. Syst.,
+vol. 33, no. 11, pp. 6331–6345, Nov. 2022.
+[7] L. Liu, A. I. Aviles-Rivero, and C.-B. Schönlieb, “Contrastive registra-
+tion for unsupervised medical image segmentation,” IEEE Trans. Neural
+Netw. Learn. Syst., vol. 36, no. 1, pp. 147–159, Jan. 2025.
+[8] E. Jun, S. Jeong, D.-W. Heo, and H.-I. Suk, “Medical transformer:
+Universal encoder for 3-D brain MRI analysis,” IEEE Trans. Neural
+Netw. Learn. Syst., vol. 35, no. 12, pp. 17779–17789, Dec. 2024.
+[9] A. H. Shah et al., “Discriminating radiation necrosis from tumor
+progression in gliomas: A systematic review what is the best imaging
+modality?” J. Neuro-Oncol., vol. 112, no. 2, pp. 141–152, Apr. 2013.
+[10] O. Wu, “Characterizing physiological heterogeneity of infarction risk
+in acute human ischaemic stroke using MRI,” Brain, vol. 129, no. 9,
+pp. 2384–2393, Sep. 2006.
+[11] G. P. Schmidt, B. Wintersperger, A. Graser, A. Baur-Melnyk,
+M. F. Reiser, and S. O. Schoenberg, “High-resolution whole-body mag-
+netic resonance imaging applications at 1.5 and 3 Tesla: A comparative
+study,” Investigative Radiol., vol. 42, no. 6, pp. 449–459, Jun. 2007.
+[12] H. Wang, Y. Chen, C. Ma, J. Avery, L. Hull, and G. Carneiro,
+“Multi-modal learning with missing modality via shared-specific feature
+modelling,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.
+(CVPR), Jun. 2023, pp. 15878–15887.
+[13] T. Zhou, S. Canu, P. Véra, and S. Ruan, “Brain tumor segmentation with
+missing modalities via latent multi-source correlation representation,”
+in Proc. Med. Image Comput. Comput. Assist. Intervent., Jan. 2020,
+pp. 533–541.
+[14] Y. Wang et al., “ACN: Adversarial co-training network for brain tumor
+segmentation with missing modalities,” in Proc. Med. Image Comput.
+Comput. Assist. Intervent., 2021, pp. 410–420.
+[15] V. Sethi et al., “Improved detection of cortical MS lesions with phase-
+sensitive inversion recovery MRI,” J. Neurol., Neurosurg. Psychiatry,
+vol. 83, no. 9, pp. 877–882, Sep. 2012.
+[16] A. Kirillov et al., “Segment anything,” in Proc. Int. Conf. Comput. Vis.,
+2023, pp. 4015–4026.
+[17] H. Wang et al., “SAM-Med3D: Towards general-purpose segmentation
+models for volumetric medical images,” 2023, arXiv:2310.15161.
+[18] S. Gong et al., “3DSAM-adapter: Holistic adaptation of SAM from 2D
+to 3D for promptable tumor segmentation,” 2023, arXiv:2306.13465.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:19 UTC from IEEE Xplore. Restrictions apply.
+2604 IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 6, JUNE 2025
+[19] J. Ma, Y. He, F. Li, L. Han, C. You, and B. Wang, “Segment anything
+in medical images,” Nature Commun., vol. 15, no. 1, p. 654, Jan. 2024.
+[20] Y. Huang et al., “Segment anything model for medical images?” Med.
+Image Anal., vol. 92, Dec. 2023, Art. no. 103061.
+[21] Y. Zhou et al., “A foundation model for generalizable disease detec-
+tion from retinal images,” Nature, vol. 622, no. 7981, pp. 156–163,
+Sep. 2023.
+[22] C. Ulrich, F. Isensee, T. Wald, M. Zenk, M. Baumgartner, and
+K. Maier-Hein, “MultiTalent: A multi-dataset approach to medical
+image segmentation,” in Proc. Med. Image Comput. Comput. Assist.
+Intervent., 2023, pp. 648–658.
+[23] Y. Gao, Z. Li, D. Liu, M. Zhou, S. Zhang, and D. N. Metaxas, “Training
+like a medical resident: Universal medical image segmentation via
+context prior learning,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern
+Recognit., Jun. 2024, pp. 11194–11204.
+[24] V. I. Butoi, J. J. G. Ortiz, T. Ma, M. R. Sabuncu, J. Guttag,
+and A. V. Dalca, “UniverSeg: Universal medical image segmentation,”
+in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV), Oct. 2023,
+pp. 21381–21394.
+[25] S. Zhang and D. Metaxas, “On the challenges and perspectives of
+foundation models for medical image analysis,” Med. Image Anal.,
+vol. 91, Jan. 2024, Art. no. 102996.
+[26] J. Wasserthal et al., “TotalSegmentator: Robust segmentation of 104
+anatomic structures in CT images,” Radiol., Artif. Intell., vol. 5, no. 5,
+Sep. 2023, Art. no. e230024.
+[27] J. Liu et al., “CLIP-driven universal model for organ segmentation and
+tumor detection,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV),
+Oct. 2023, pp. 21095–21107.
+[28] Y. Ou et al., “Patcher: Patch transformers with mixture of experts for
+precise medical image segmentation,” in Proc. Med. Image Comput.
+Comput. Assist. Intervent., 2022, pp. 475–484.
+[29] T. Chen et al., “AdaMV-MoE: Adaptive multi-task vision mixture-of-
+experts,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV), Oct. 2023,
+pp. 17300–17311.
+[30] J. Zhu et al., “Uni-Perceiver-MoE: Learning sparse generalist models
+with conditional MoEs,” in Proc. Adv. Neural Inf. Process. Syst., vol. 35,
+2022, pp. 2664–2678.
+[31] X. Zhang et al., “A foundation model for brain lesion segmentation with
+mixture of modality experts,” in Proc. Med. Image Comput. Comput.
+Assist. Intervent., 2024, pp. 379–389.
+[32] B. H. Menze et al., “A generative probabilistic model and discriminative
+extensions for brain lesion segmentation—With application to tumor and
+stroke,” IEEE Trans. Med. Imag., vol. 35, no. 4, pp. 933–946, Apr. 2016.
+[33] H. J. Kuijf et al., “Standardized assessment of automatic segmentation
+of white matter hyperintensities and results of the WMH segmentation
+challenge,” IEEE Trans. Med. Imag., vol. 38, no. 11, pp. 2556–2568,
+Nov. 2019.
+[34] Z. Chi et al., “On the representation collapse of sparse mixture of
+experts,” in Proc. Adv. Neural Inf. Process. Syst., vol. 35, 2022, pp.
+34600–34613.
+[35] S. E. Yuksel, J. N. Wilson, and P. D. Gader, “Twenty years of mixture
+of experts,” IEEE Trans. Neural Netw. Learn. Syst., vol. 23, no. 8,
+pp. 1177–1193, Aug. 2012.
+[36] D. Dai et al., “StableMoE: Stable routing strategy for mixture of
+experts,” in Proc. 60th Annu. Meeting Assoc. Comput. Linguistics, 2022,
+pp. 7085–7095.
+[37] N. Du et al., “GLaM: Efficient scaling of language models with mixture-
+of-experts,” in Proc. Int. Conf. Mach. Learn., 2022, pp. 5547–5569.
+[38] S. Rajbhandari et al., “DeepSpeed-MoE: Advancing mixture-of-experts
+inference and training to power next-generation AI scale,” in Proc. Int.
+Conf. Mach. Learn., 2022, pp. 18332–18346.
+[39] H. Wang, Z. Jiang, H. Yan, and Z. Wang, “Graph mixture of experts:
+Learning on large-scale graphs with explicit diversity modeling,” in
+Proc. Adv. Neural Inf. Process. Syst., vol. 36, 2024, pp. 50825–50837.
+[40] N. Shazeer et al., “Outrageously large neural networks: The sparsely-
+gated mixture-of-experts layer,” in Proc. Int. Conf. Learn. Represent.,
+2016.
+[41] D. Lepikhin et al., “GShard: Scaling giant models with conditional com-
+putation and automatic sharding,” in Proc. Int. Conf. Learn. Represent.,
+2020.
+[42] W. Wang, H. Bao, D. Li, and F. Wei, “VLMo: Unified vision-language
+pre-training with mixture-of-modality-experts,” in Proc. Adv. Neural Inf.
+Process. Syst., vol. 35, 2022, pp. 32897–32912.
+[43] C. Riquelme et al., “Scaling vision with sparse mixture of experts,” in
+Proc. Adv. Neural Inf. Process. Syst., vol. 34, 2021, pp. 8583–8595.
+[44] S. Pavlitskaya et al., “Using mixture of expert models to gain insights
+into semantic segmentation,” in Proc. IEEE/CVF Conf. Comput. Vis.
+Pattern Recognit. Workshops (CVPRW), Jun. 2020, pp. 1399–1406.
+[45] T. W. Tsai, C. Li, and J. Zhu, “MiCE: Mixture of contrastive experts for
+unsupervised image clustering,” in Proc. Int. Conf. Learn. Represent.,
+2020.
+[46] Y. Zhang et al., “Modality-aware mutual learning for multi-modal
+medical image segmentation,” in Proc. Med. Image Comput. Comput.
+Assist. Intervent., 2021, pp. 589–599.
+[47] C. Chen, Q. Dou, Y. Jin, Q. Liu, and P. A. Heng, “Learning with
+privileged multimodal knowledge for unimodal segmentation,” IEEE
+Trans. Med. Imag., vol. 41, no. 3, pp. 621–632, Mar. 2022.
+[48] L. Qu, N. Balachandar, M. Zhang, and D. Rubin, “Handling data het-
+erogeneity with generative replay in collaborative learning for medical
+imaging,” Med. Image Anal., vol. 78, May 2022, Art. no. 102424.
+[49] Y. Zhang et al., “MmFormer: Multimodal medical transformer for
+incomplete multimodal learning of brain tumor segmentation,” in Proc.
+Med. Image Comput. Comput.-Assist. Intervent., 2022, pp. 107–117.
+[50] M. Orbes-Arteaga et al., “Simultaneous synthesis of FLAIR and seg-
+mentation of white matter hypointensities from T1 MRIs,” in Proc. Med.
+Imag. Deep Learn., 2022.
+[51] M. Havaei, N. Guizard, N. Chapados, and Y. Bengio, “HeMIS: Hetero-
+modal image segmentation,” in Proc. Med. Image Comput. Computer-
+Assisted Intervent., 2016, pp. 469–477.
+[52] R. Dorent, S. Joutard, M. Modat, S. Ourselin, and T. Vercauteren,
+“Hetero-modal variational encoder–decoder for joint modality comple-
+tion and segmentation,” in Proc. Med. Image Comput. Comput. Assist.
+Intervent., Jan. 2019, pp. 74–82.
+[53] M. Hu et al., “Knowledge distillation from multi-modal to mono-modal
+segmentation networks,” in Proc. Med. Image Comput. Comput. Assist.
+Intervent., 2020, pp. 772–781.
+[54] F. Isensee, P. F. Jaeger, S. A. A. Kohl, J. Petersen, and K. H. Maier-Hein,
+“NnU-net: A self-configuring method for deep learning-based biomedi-
+cal image segmentation,” Nature Methods, vol. 18, no. 2, pp. 203–211,
+Feb. 2021.
+[55] J. Puigcerver, C. R. Ruiz, B. Mustafa, and N. Houlsby, “From sparse to
+soft mixtures of experts,” in Proc. Int. Conf. Learn. Represent., 2023.
+[56] Y. Zhang et al., “Robust mixture-of-expert training for convolutional
+neural networks,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV),
+Oct. 2023, pp. 90–101.
+[57] C. Lee, S. Xie, P. W. Gallagher, Z. Zhang, and Z. Tu, “Deeply-supervised
+nets,” in Proc. Artif. Intell. Statist., 2015, pp. 562–570.
+[58] Z. Chen et al., “Mod-squad: Designing mixtures of experts as modular
+multi-task learners,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern
+Recognit. (CVPR), Jun. 2023, pp. 11828–11837.
+[59] A. Krizhevsky, I. Sutskever, and G. E. Hinton, “ImageNet classification
+with deep convolutional neural networks,” in Proc. Adv. Neural Inf.
+Process. Syst., vol. 25, 2012.
+[60] O. Commowick et al., “Objective evaluation of multiple sclerosis lesion
+segmentation using a data management and processing infrastructure,”
+Sci. Rep., vol. 8, no. 1, pp. 13650–13666, Sep. 2018.
+[61] D. S. Marcus, A. F. Fotenos, J. G. Csernansky, J. C. Morris, and
+R. L. Buckner, “Open access series of imaging studies: Longitudinal
+MRI data in nondemented and demented older adults,” J. Cognit.
+Neurosci., vol. 22, no. 12, pp. 2677–2684, Dec. 2010.
+[62] M. R. Hernandez Petzsche et al., “ISLES 2022: A multi-center magnetic
+resonance imaging stroke lesion segmentation dataset,” Sci. Data, vol. 9,
+no. 1, p. 762, Dec. 2022.
+[63] U. Baid et al., “The RSNA-ASNR-MICCAI BraTS 2021 benchmark
+on brain tumor segmentation and radiogenomic classification,” 2021,
+arXiv:2107.02314.
+[64] S.-L. Liew et al., “A large, open source dataset of stroke anatomical
+brain images and manual lesion segmentations,” Sci. Data, vol. 5, no. 1,
+pp. 1–11, Feb. 2018.
+[65] B. B. Avants, N. J. Tustison, G. Song, P. A. Cook, A. Klein, and
+J. C. Gee, “A reproducible evaluation of ANTs similarity metric per-
+formance in brain image registration,” NeuroImage, vol. 54, no. 3,
+pp. 2033–2044, Feb. 2011.
+[66] F. Isensee et al., “NnU-net revisited: A call for rigorous
+validation in 3D medical image segmentation,” in Proc. Int.
+Conf. Med. Image Comput. Comput.-Assist. Intervent., Jan. 2024,
+pp. 488–498.
+[67] L. Van der Maaten and G. Hinton, “Visualizing data using t-SNE,”
+J. Mach. Learn. Res., vol. 9, no. 11, 2008.
+[68] X. Zhang et al., “CarveMix: A simple data augmentation method for
+brain lesion segmentation,” in Proc. Med. Image Comput. Comput.
+Assist. Intervent., 2021, pp. 120041–120056.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:19 UTC from IEEE Xplore. Restrictions apply.
+

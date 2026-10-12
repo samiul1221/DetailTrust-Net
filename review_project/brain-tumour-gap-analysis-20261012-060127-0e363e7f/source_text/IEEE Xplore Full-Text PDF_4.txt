@@ -1,0 +1,1219 @@
+    4536                                  IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 11, NOVEMBER 2025
+
+
+
+
+      Rethinking Brain Tumor Segmentation From the
+              Frequency Domain Perspective
+             Minye Shao , Graduate Student Member, IEEE, Zeyu Wang , Haoran Duan , Member, IEEE,
+             Yawen Huang , Bing Zhai , Shizheng Wang, Yang Long , and Yefeng Zheng , Fellow, IEEE
+
+       Abstract — Precise segmentation of brain tumors, partic-                       demonstrate that HFF-Net achieves an average relative
+    ularly contrast-enhancing regions visible in post-contrast                        improvement of 4.48% (ranging from 2.39% to 7.72%) in the
+    MRI (areas highlighted by contrast agent injection), is cru-                      mean Dice scores across the three major subregions, and
+    cial for accurate clinical diagnosis and treatment planning                       an average relative improvement of 7.33% (ranging from
+    but remains challenging. However, current methods exhibit                         5.96% to 8.64%) in the segmentation of contrast-enhancing
+    notable performance degradation in segmenting these                               tumor regions, while maintaining favorable computational
+    enhancing brain tumor areas, largely due to insufficient                          efficiency and clinical applicability. Our code is available at:
+    consideration of MRI-specific tumor features such as com-                         https://github.com/VinyehShaw/HFF
+    plex textures and directional variations. To address this,
+    we propose the Harmonized Frequency Fusion Network                                  Index Terms— Brain tumor segmentation, frequency
+    (HFF-Net), which rethinks brain tumor segmentation from                           domain, multi-modal feature fusion.
+    a frequency-domain perspective. To comprehensively char-
+    acterize tumor regions, we develop a Frequency Domain
+                                                                                                                 I. I NTRODUCTION
+    Decomposition (FDD) module that separates MRI images
+                                                                                            RAIN tumors, particularly gliomas, are among the dead-
+    into low-frequency components, capturing smooth tumor
+    contours and high-frequency components, highlighting
+    detailed textures and directional edges. To further enhance
+                                                                                      B     liest forms of cancer, with glioblastoma patients having a
+                                                                                      median survival of only 10 to 14 months [1]. Early and accu-
+    sensitivity to tumor boundaries, we introduce an Adap-
+    tive Laplacian Convolution (ALC) module that adaptively                           rate diagnosis is essential for effective treatment planning and
+    emphasizes critical high-frequency details using dynami-                          improved patient outcomes [2]. Magnetic Resonance Imaging
+    cally updated convolution kernels. To effectively fuse tumor                      (MRI) serves as the primary non-invasive tool for detecting
+    features across multiple scales, we design a Frequency                            and characterizing brain tumors, utilizing various sequences
+    Domain Cross-Attention (FDCA) integrating semantic, posi-                         such as T1, T1 with gadolinium enhancement (T1Gd), T2,
+    tional, and slice-specific information. We further validate
+    and interpret frequency-domain improvements through                               and T2 Fluid Attenuated Inversion Recovery (T2-FLAIR).
+    visualization, theoretical reasoning, and experimental anal-                      However, manual delineation of tumor regions in MRI scans is
+    yses. Extensive experiments on four public datasets                               labor-intensive, time-consuming, and subject to inter-observer
+                                                                                      variability [3], highlighting the need for reliable and effi-
+     Received 6 May 2025; accepted 6 June 2025. Date of publi-
+    cation 12 June 2025; date of current version 30 October 2025.                     cient automated segmentation methods. In particular, precise
+    This work was supported in part by the National Natural Science                   segmentation of contrast-enhancing tumor (ET) regions is
+    Foundation of China under Grant 62401097; in part by the Nat-                     clinically critical, as these regions reflect tumor aggressiveness
+    ural Science Foundation of Liaoning Province (Doctoral Research
+    Startup Project) under Grant 2024-BS-028; in part by the Sci-                     and are strongly associated with patient prognosis [5]. Their
+    entific Research Funding Program of Liaoning Provincial Depart-                   size and morphology directly influence treatment strategies,
+    ment of Education under Grant LJKZ0024; and in part by the                        including surgical resection and radiotherapy planning. More-
+    Fundamental Research Funds for the Central Universities, Dalian
+    Minzu University, under Grant 0854-53. Recommended by Associate                   over, longitudinal monitoring of ET regions is essential for
+    Editor H. Roth. (Minye Shao and Zeyu Wang are co-first authors.)                  evaluating treatment response and disease progression [5].
+    (Corresponding authors: Zeyu Wang; Yawen Huang; Shizheng Wang;                       In conventional clinical workflows for brain tumor diagno-
+    Yang Long.)
+     Minye Shao and Yang Long are with the Department of Com-                         sis, texture analysis has been widely applied to quantitatively
+    puter Science, Durham University, DH1 3LE Durham, U.K. (e-mail:                   assess tumor heterogeneity and structural complexity from
+    minye.shao@ieee.org; yang.long@ieee.org).                                         MRI scans. To further enhance the extraction of diagnostic
+     Zeyu Wang is with the College of Computer Science and Engi-
+    neering, Dalian Minzu University, Dalian 116620, China (e-mail:                   information, frequency-domain decomposition methods have
+    20231578@dlnu.edu.cn).                                                            been incorporated into texture analysis studies [6], [7], [8].
+     Haoran Duan is with the Department of Automation, Tsinghua Univer-               These methods can identify subtle texture patterns and sig-
+    sity, Beijing 100190, China (e-mail: haoran.duan@ieee.org).
+     Yawen Huang and Yefeng Zheng are with the Jarvis Research                        nal variations across different spatial scales and frequencies
+    Center, Tencent YouTu Laboratory, Shenzhen 518000, China (e-mail:                 that are typically imperceptible to human observers [9],
+    yawenhuang@tencent.com; yefengzheng@tencent.com).                                 [10]. Such frequency-derived features have been shown to
+     Bing Zhai is with the School of Computing, Northumbria University, NE1
+    8ST Newcastle upon Tyne, U.K. (e-mail: bing.zhai@northumbria.ac.uk).              improve the accuracy and objectivity of tumor grading, sub-
+     Shizheng Wang is with the SunwayAI Research Laboratory, Fuyang                   type classification, and molecular biomarker prediction [11].
+    Normal University, Fuyang 236037, China, and also with the Research               Importantly, prior studies have demonstrated that these fea-
+    and Development Center for Internet of Things, Chinese Academy of
+    Sciences, Beijing 100045, China (e-mail: shizheng.wang@foxmail.com).              tures effectively capture distinctive texture differences between
+     Digital Object Identifier 10.1109/TMI.2025.3579213                               pathological and normal tissues [12], [13], [14], particularly
+
+                   1558-254X © 2025 IEEE. All rights reserved, including rights for text and data mining, and training of artificial intelligence
+                          and similar technologies. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                                                  https://www.ieee.org/publications/rights/index.html
+                                              See University
+Authorized licensed use limited to: Netaji Subhas                                                       for more
+                                                             of Technology New Delhi. Downloaded on October      information.
+                                                                                                            12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    SHAO et al.: RETHINKING BRAIN TUMOR SEGMENTATION FROM THE FREQUENCY DOMAIN PERSPECTIVE                                                                     4537
+
+
+
+
+                                                                                      volumetric coherence and to exploit the rich multi-scale,
+                                                                                      multi-modal information inherent in MRI scans. To effectively
+                                                                                      address the unique challenges of brain tumor segmentation,
+                                                                                      particularly in accurately delineating contrast-enhancing tumor
+                                                                                      (ET) regions from multi-modal 3D MRI data, a more sys-
+                                                                                      tematic integration of frequency-domain features is needed.
+                                                                                      An ideal framework should not only capture complementary
+                                                                                      low- and high-frequency information but also preserve volu-
+                                                                                      metric consistency and adapt to the heterogeneous textural and
+                                                                                      morphological characteristics of tumor regions.
+    Fig. 1. (a) Segmentation of all tumor regions in a complex brain glioma              Motivated by these considerations, we propose HFF-Net,
+    case. (b) Multi-directional HF (Hi ) and LF (L) input (FLAIR) example in          a frequency-aware segmentation framework that rethinks
+    our proposed method in this case. (c) Comparison of the previous work’s           brain tumor analysis from the frequency-domain perspective
+    degraded segmentation performance in contrast-enhancing tumor region
+    with our approach in this case. Red arrows show where our predictions             and explicitly targets accurate delineation of ET regions
+    closely match the ground truth.                                                   in multi-modal 3D MRI. It integrates Dual-Tree Complex
+                                                                                      Wavelet Transform (DTCWT) and Nonsubsampled Con-
+                                                                                      tourlet Transform (NSCT) to extract complementary low-
+    in contrast-enhancing tumor regions where textural variations                     and high-frequency features, enhancing shift invariance, noise
+    are more pronounced [15], [16], [17].                                             robustness, and directional sensitivity [31], [32]. An Adaptive
+       Despite the demonstrated clinical value of frequency-based                     Laplacian Convolution (ALC) module further refines edge
+    texture analysis in brain tumor imaging, most earlier seg-                        and texture representations via dynamic reweighting, while
+    mentation networks remain confined to spatial-domain repre-                       Frequency Domain Cross Attention (FDCA) modules improve
+    sentations, overlooking intrinsic texture and directional cues                    global spatial coherence and multi-scale frequency interaction.
+    that reflect lesion heterogeneity in medical imaging [18].                        Training is jointly driven by label-guided supervision and
+    As a result, they often exhibit reduced feature stability under                   unsupervised dual-branch alignment, implemented via a 3D
+    imaging artifacts, intensity inconsistencies, or subtle textural                  Dynamic Focal Loss (DFL) that harmonizes low- and high-
+    variations, which are frequently encountered in clinical set-                     frequency representations.
+    tings [19]. Such limitations are particularly detrimental to the                     To the best of our knowledge, this is the first study to inte-
+    segmentation of contrast-enhancing brain tumor regions, for                       grate two distinct frequency domain transformation methods
+    which precise boundary delineation is critical for treatment                      for 3D brain tumor segmentation. Our approach harmonizes
+    planning and prognosis assessment [20], [21], [22]. From a                        both high-frequency (HF) and low-frequency (LF) feature
+    modeling perspective, semantic segmentation is essentially a                      attributes through a series of frequency domain techniques to
+    structured feature reconstruction task that learns spatial and                    align with the pathological structures characteristic of tumor
+    semantic correspondence between input images and target                           tissues in MRI images. The key contributions of this study are
+    masks. Its success hinges on the representational quality of                      as follows:
+    early-stage features, particularly their spatial coherence and                       • An ALC layer is proposed to facilitate the selective
+    semantic discriminability. The omission of frequency-domain                             adaptation of multi-directional HF features. Employing a
+    cues thus constrains feature expressiveness and limits the                              Laplace convolution kernel with HF filtering capabilities
+    network’s capacity to delineate fine-grained tumor boundaries                           enhances the model’s perception of tissue edge informa-
+    [23], [24].                                                                             tion and texture patterns from MRI images.
+       Recent research in medical image segmentation have                                • The FDCA is designed for the processing of anisotropic
+    increasingly recognized the advantages of frequency-domain                              volumetric MRI by focusing on multidimensional atten-
+    representations in enhancing feature robustness, capturing                              tion extraction within the frequency domain. This
+    fine-grained textures, and improving boundary delineation.                              module effectively simulates inter-slice variability and
+    Discrete wavelet transforms (DWT) have been incorporated                                can be seamlessly integrated into the encoding process,
+    to preserve multiscale structural details [25], while dual-tree                         enabling comprehensive capture and fusion of multi-scale
+    complex wavelet transforms (DTCWT) have been employed                                   features.
+    for their stability and directional sensitivity under imaging                        • We proposed a novel loss function that incorporates
+    perturbations [26], [27]. Directional multiscale transforms                             3D DFL in its unsupervised part to dynamically adjust
+    such as contourlets have also been explored to better capture                           dual-branch outputs, strategically fostering a harmonized
+    anisotropic texture patterns characteristic of tumor heterogene-                        consolidation of HF and LF features for superior segmen-
+    ity [28]. Nevertheless, much of this progress treats frequency                          tation performance.
+    information as a uniform feature space without fully dis-                            • HHF-Net, a dual-branch network processing and integrat-
+    tinguishing between components that predominantly encode                                ing HF and LF features from distinct frequency domain
+    global morphology and those that capture fine-grained tex-                              decompositions, demonstrates superior performance in
+    tures and directional variations [26], [28], [29]. Furthermore,                         extensive experiments, particularly in mitigating segmen-
+    frequency decompositions are often incorporated in a shal-                              tation degradation in enhancing tumor areas critical for
+    low, slice-wise manner [30], restricting the ability to model                           clinical brain tumor treatment.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    4538                                                                          IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 11, NOVEMBER 2025
+
+
+
+
+                             II. R ELATED W ORKS                                      spatial coherence and fine-grained texture discrimination
+                                                                                      across modalities. Our method draws inspiration from clin-
+    A. Medical Semantic Segmentation                                                  ical texture analysis and explicitly considers the structural
+       Semantic segmentation of medical images is critical in                         complexity and modality complementarity of brain MRI,
+    modern diagnostics, as it aims to precisely delineate anatom-                     addressing these limitations through a frequency-domain dual-
+    ical structures and identify pathological features. Alongside                     branch design. This design fully exploits complementary
+    other downstream tasks such as classification and detection,                      information across modalities while maintaining an end-to-
+    it has witnessed rapid methodological advances, driven by                         end framework that balances segmentation performance and
+    the evolution of deep learning frameworks [33], [34], [35],                       clinical applicability.
+    [36], [37].
+       1) Single-Modality Methods: Recent advancements in                             B. Wavelet and Contourlet-Based Deep Neural Networks
+    single-modality segmentation leverage CNNs and their                                 Frequency-domain transforms have been extensively uti-
+    variants. The seminal UNet architecture [38] and its                              lized across a wide range of computer vision tasks, including
+    successors, nnUNet [39] and UNETR [40], enhance feature                           representation learning [54], [55], [56], [57], image genera-
+    extraction through layered encoder-decoder paths. Attention                       tion [58], [59], and image super-resolution [60], [61]. These
+    mechanisms, as in Attention UNet [41], further refine models’                     techniques offer the ability to disentangle structural infor-
+    abilities to focus on relevant features. ResUNet 3D [42] and                      mation across different spatial scales and frequency bands,
+    paired attention in UNETR++ [43] push boundaries with                             thereby enhancing model capacity in capturing both global
+    detailed spatial focus. Other notable methods include the                         and local patterns.
+    Two-stage Cascaded U-Net [44] and SGEResU-Net [45]                                   In the domain of medical image segmentation, frequency-
+    combining residual learning and group-wise attention for                          domain transforms, particularly wavelet-based techniques,
+    improved brain tumor segmentation.                                                have been widely incorporated into deep neural networks
+       However, these single-modality approaches inherently suf-                      (DNNs) due to their effectiveness in multi-scale feature rep-
+    fer from limited contextual understanding, as they rely on                        resentation and noise reduction. A prevalent strategy involves
+    information from a single imaging sequence. This constraint                       embedding wavelet transforms in specific components of seg-
+    reduces their ability to capture the diverse pathological char-                   mentation networks, such as preprocessing, postprocessing,
+    acteristics of brain tumors across modalities, limiting their                     or replacing downsampling layers [62], [63]. For example,
+    effectiveness in complex clinical scenarios [46].                                 Azimi et al. [64] proposed a wavelet-enhanced FCN to
+       2) Multi-Modality Methods: Multi-modality methods inte-                        mitigate detail loss in small object segmentation. Lu et al.
+    grate data from various imaging techniques to address                             [31] employed the Dual-Tree Complex Wavelet Transform
+    complex diseases comprehensively. The BRATS bench-                                (DTCWT) to improve CNNs’ ability to capture structural
+    mark [2] emphasizes using multimodal data, combining                              textures and suppress noise in medical images. Recent studies
+    MRI, Computed Tomography (CT), and Positron Emission                              further embedded Haar wavelet transforms within U-Net++
+    tomography (PET) scans. TransUNet [47] combines Vision                            architectures to enhance feature extraction for complex pul-
+    Transformer (ViT) [48] with UNet for enhanced feature inte-                       monary nodule segmentation [29].
+    gration. H2 NF-Net [49] leverages multi-modal MR imaging                             Beyond wavelets, the contourlet transform has emerged as
+    for enhanced brain tumor segmentation. SA-LuT-Nets [50]                           a more flexible and powerful alternative. For example, [65]
+    employs sample-adaptive intensity lookup tables to improve                        effectively exploited contourlet decomposition in semantic
+    segmentation performance in multimodal datasets.                                  segmentation, demonstrating its superior ability to capture
+       While most multi-modality methods improve segmentation                         multi-scale and directional structural textures, which are dif-
+    by integrating information from multiple sequences, but they                      ficult to represent by wavelets. Nevertheless, the classical
+    often neglect frequency-specific structural and textural charac-                  contourlet transform still suffers from subsampling-induced
+    teristics. This oversight limits their effectiveness in accurately                spatial aliasing and limited localization accuracy, especially
+    delineating complex regions [51]. Some methods compromise                         in high-frequency regions [66]. To further address these lim-
+    practicality in clinical workflows due to increased training                      itations, the Nonsubsampled Contourlet Transform (NSCT)
+    and deployment complexity. For example, [44] introduces a                         [67] was proposed, which removes the subsampling operations
+    two-stage cascade to address coarse boundary segmentation,                        and adopts nonsubsampled filter banks. This design enhances
+    but its multi-stage complexity limits clinical applicability.                     spatial localization and directional selectivity while better
+       In summary, although existing methods have advanced brain                      preserving fine-grained high-frequency textures, making it
+    tumor segmentation, they inadequately address the intrinsic                       particularly suitable for dense prediction tasks that require
+    textural heterogeneity and directional complexity of tumor                        detailed texture characterization [68]. By providing multi-
+    tissues [52], particularly in contrast-enhancing regions [53].                    directional decomposition without downsampling, NSCT
+    In order to address the challenges of multi-modal feature                         effectively captures anisotropic textures and fine-grained edge
+    heterogeneity and directional texture complexity, we explic-                      information, which is particularly beneficial for segmenting
+    itly design the Frequency Domain Cross Attention (FDCA)                           complex anatomical structures in medical images [69]. In brain
+    and Adaptive Laplacian Convolution (ALC) layer to operate                         MRI segmentation, Reddy et al. [70] integrated NSCT with
+    on early-stage frequency decompositions obtained from the                         active contour models to improve the delineation of weak,
+    Frequency Domain Decomposition (FDD) module, enhancing                            blurred, and irregular tumor boundaries.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    SHAO et al.: RETHINKING BRAIN TUMOR SEGMENTATION FROM THE FREQUENCY DOMAIN PERSPECTIVE                                                                     4539
+
+
+
+
+    Fig. 2. (a) Architecture of our HFF-Net: A multimodal dual-branch network decomposing and integrating multi-directional HF and LF MRI features
+    with three components: ALC, FDCA, and FDD. It uses Lunsup for output consistency between branches and LH,L   sup to align each branch’s main and
+    side outputs with ground truth. (b) Our ALC uses elastic weight consolidation to dynamically update weights, maintaining HF filtering functionality
+    while extracting features from multimodal and multi-directional inputs. (c) FDCA enhances the extraction and processing of anisotropic volumetric
+    features in MRI images through multi-dimensional cross-attention mechanisms in the frequency domain. (d) FDD processes multi-sequence MRI
+    slices by decomposing them into HF and LF inputs using distinct frequency domain transforms. (e) The fusion block integrates the deep HF and LF
+    features from the deep layers during the encoding process.
+
+
+
+       Despite the demonstrated effectiveness of wavelet- and                         not arbitrary but motivated by both prior segmentation studies
+    contourlet-based deep networks, prior methods predominantly                       that successfully embedded these transforms and established
+    adopt a fragmented design, applying a single type of fre-                         clinical practices in brain tumor texture analysis, where fre-
+    quency transform in isolated modules without fully leveraging                     quency decomposition has been proven effective for revealing
+    frequency-domain information across the entire network. This                      subtle pathological patterns. Together, these two transforms
+    limits their ability to jointly capture complementary low-                        enable HFF-Net to comprehensively characterize the structural
+    and high-frequency features essential for precise tumor delin-                    and textural Heterogeneity of brain tumors, particularly in
+    eation [23]. In order to overcome the fragmented use of                           clinically critical contrast-enhancing regions.
+    frequency information in previous methods, we introduce
+    a unified FDD module in HFF-Net, which systematically                                                   III. P ROPOSED M ETHOD
+    integrates two clinically validated frequency-domain trans-
+    forms for comprehensive extraction of complementary low-                          A. Overview
+    and high-frequency features critical to precise brain tumor                         As illustrated in Figure 2 (a), HFF-Net integrates three key
+    segmentation. DTCWT is chosen for its shift invariance and                        modules: Frequency Domain Decomposition (FDD, detailed
+    noise robustness in extracting smooth anatomical contours,                        in III-D), Adaptive Laplacian Convolution (ALC, detailed
+    while NSCT provides superior directional selectivity and local-                   in III-B), and Frequency Domain Cross-Attention (FDCA,
+    ization of fine-grained textures. This specific combination is                    detailed in III-C).
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    4540                                                                          IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 11, NOVEMBER 2025
+
+
+
+
+       Initially, the FDD module decomposes multimodal MRI                            principle of EWC is to protect important weights from being
+    inputs into low-frequency (LF) and multi-directional high-                        overly modified by new tasks during model training by adding
+    frequency (HF) sub-bands, producing frequency-specific fea-                       a regularization term. Specifically, the importance of each
+    tures x L ∈ R M×D×H ×W and x H ∈ R4M×D×H ×W , where M                             weight is usually estimated by calculating the second-order
+    is the number of MRI modalities, and each HF component                            derivative of the loss function, known as the Fisher information
+    comprises four directional sub-bands. To address the modality                     matrix (FIM) [72]. When learning new tasks, the original loss
+    diversity and directional complexity of these HF features,                        function is augmented with this regularization term, allowing
+    the subsequent ALC layer adaptively enhances discriminative                       the model to retain as much memory of previous tasks as
+    responses using Laplacian-initialized convolutions weighted                       possible while it learns new ones. This method effectively
+    by Fisher information. refined HF features and LF features                        mitigates catastrophic forgetting by striking a balance between
+    are then separately processed through dedicated LF and HF                         retaining old knowledge and acquiring new information.
+    encoders consisting of residual-connected layers. At deeper                       Inspired by this, the ALC layer employs a similar strategy
+    encoder layers, the FDCA module employs frequency-domain                          to achieve a balance between maintaining crucial weights
+    attention to integrate LF and HF representations, enhancing                       for HF filtering and updating weights for adaptive learning
+    cross-frequency consistency and modality complementarity for                      of HF feature importance. Initially, the convolutional layer’s
+    subsequent fusion and decoding.                                                   kernel weights k ∈ RCout ×Cin ×Hd ×Wd ×Dd are initialized with a
+       Encoded features are then fused (Figure 2 (e)) and expanded                    discrete Laplace operator, where Cout represents the number
+    via symmetric decoder layers, incorporating skip connections                      of output channels, Cin denotes the number of input channels,
+    between corresponding encoder-decoder layers and interme-                         and the dimensions Hd , Wd , and Dd specify the height,
+    diate side-output predictions to facilitate supervised learning.                  width, and depth of the discrete Laplace operator, respectively.
+    HFF-Net is optimized through joint supervised segmenta-                           A benchmark kernel of identical dimensions is established for
+    tion losses (primary and side outputs) and an unsupervised                        comparison. During training, Lewc is continuously applied to
+    dual-output consistency loss via 3D Dynamic Focal Loss                            the weights in alignment with a benchmark Laplacian kernel
+    (DFL), ensuring robust integration and mutual enhancement                         of identical dimensions. This regularization is specifically
+    between LF and HF branches. The final segmentation result                         designed to guide the update process, ensuring that crucial
+    y ∈ RC×D×H ×W is selected from the optimal primary branch                         weights are not excessively modified, thereby preserving their
+    prediction, where C is the number of segmentation classes                         characteristics in close resemblance to the original discrete
+    (e.g., C = 2 or 4 for brain tumor segmentation).                                  Laplace operator. As the training reaches a certain epoch, the
+                                                                                      importance of each weight within the kernel is assessed using
+    B. Adaptive Laplacian Convolution                                                 the FIM. This process can be expressed as:
+       The Adaptive Laplacian Convolution (ALC) layer, as illus-
+                                                                                                                   N
+    trated in Figure 2 (b), is designed specifically to manage the                                               1 X                    2
+                                                                                                         Fp =        ∇ p L(xi , yi ; θ ) ,                       (1)
+    complexity arising from multi-directional high-frequency (HF)                                                N
+                                                                                                                     i=1
+    sub-bands generated by the Frequency Domain Decomposition
+    (FDD) module. Considering the substantial dimensionality                          where F p represents the FIM for the parameters p of the
+    introduced by multiple MRI modalities, each decomposed into                       convolutional kernel in the ALC layer, N is the total number of
+    four directional sub-bands, manual feature selection becomes                      data batches, ∇ p L(xi , yi ; θ ) represents the gradient of the loss
+    impractical. Hence, the ALC module autonomously selects                           function L with respect to the convolutional kernel parameters
+    and enhances informative directional and modal HF features,                       p in the ALC layer, xi and yi are the input to the model
+    adaptively emphasizing structural details essential for accurate                  and the corresponding ground truth output of the i-th data
+    segmentation. The enhanced HF representations produced by                         batch, respectively, and θ specifically denotes the weights
+    ALC subsequently provide robust inputs for further integration                    of the convolutional kernel in the ALC layer. Then Z-score
+    in the FDCA module.                                                               thresholding is employed to distinguish between important and
+       Inspired by the discrete Laplace operator’s ability to accen-                  less important weights:
+    tuate rapid intensity changes at edges through its sensitivity to
+    local signal variations via second derivative calculations, and                                      Wimp = { p | F p > µ F + k · σ F },                     (2)
+    its isotropic nature that ensures uniform detection of edges
+    and details in all directions [71], we have integrated it into                    where Wimp represents the set of important weights, F p is the
+    our convolution kernel within the ALC layer. This innovative                      Fisher information for each parameter p, µ F is the mean of
+    technical combination enables the model to selectively empha-                     the FIM across all parameters, σ F is the standard deviation
+    size high-frequency features from multimodal anisotropic data,                    of the FIM, and k is a constant factor that scales the standard
+    thereby enhancing the detection and interpretation of complex                     deviation to set the threshold. Subsequently, important weights
+    brain tumor boundaries and texture details, thus further ele-                     are frozen to maintain the kernel’s HF filter capabilities, while
+    vating the accuracy and relevance of segmentation outputs.                        less critical weights are dynamic, allowing for ongoing updates
+       In the domain of continual learning, Elastic Weight Con-                       and adjustments.
+    solidation (EWC) is a crucial technique that addresses the                           In this study, the epoch for calculating weight importance
+    issue of catastrophic forgetting in neural networks, which                        is set after the warmup phase, as gradients become more
+    occurs when networks are trained on new tasks [72]. The core                      consistent and stable following this training period.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    SHAO et al.: RETHINKING BRAIN TUMOR SEGMENTATION FROM THE FREQUENCY DOMAIN PERSPECTIVE                                                                     4541
+
+
+
+
+    C. Frequency Domain Cross-Attention
+       As illustrated in Figure 2 (c), the Frequency Domain Cross-
+    Attention (FDCA) module refines and integrates deeper fea-
+    tures extracted by the preceding ALC and LF encoding layers,
+    enhancing anisotropic feature representation through cross-
+    attention mechanisms. The module operates on multi-scale
+    feature maps F ∈ Rc×n×h×w sourced from various depths
+    within the network encoder. Here, c denotes the number of
+    channels, n represents the number of slices within the volu-
+    metric feature, and h and w represent the height and width of
+    each slice, respectively. FDCA employs semantic, positional,                      Fig. 3.      Feature maps between PANet [73] and HFF-Net. Con-
+    and slice attention, starting with decomposing the input feature                  ventional methods often overlook critical frequency-specific cues
+                                                                                      for brain tumor segmentation. In contrast, HFF-Net decouples fre-
+    map the F into the real Fr and imaginary Fi components via                        quency components to preserve low-frequency structural integrity while
+    the Fast Fourier Transform (FFT). This enables efficient atten-                   multi-directionally enhancing high-frequency tumor boundary details and
+    tion extraction from deep features during training, enhancing                     texture granularity.
+    feature distinction while maintaining low computational costs.
+    Semantic Ms ∈ Rc×1×1×1 , positional M p ∈ R1×1×h×w , and                          We employ learnable linear transformations Wµ , Wr , and Wd
+    slice Mn ∈ R1×n×1×1 attention maps are computed sequen-                           to derive the parameters of the mean vector µ, the low-rank
+    tially. These attention maps operate on the real part of the                      covariance factor R, and the diagonal covariance matrix D.
+    feature map through broadcasted multiplication ⊗:                                 Note, to ensure the positiveness of the covariance matrix,
+                                                                                      an exponential function is applied to the derived matrix D:
+             Fr 1 = Ms (Fr ) ⊗ Fr , Fi1 = Ms (Fr ) ⊗ Fi ,
+             Fr 2 = M p (Fr 1 ) ⊗ Fr 1 , Fi2 = M p (Fr 1 ) ⊗ Fi1 ,                             µ = Wµ (S),        R = Wr (S),        D = exp(Wd (S)).            (7)
+              Fr′ = Mn (Fr 2 ) ⊗ Fr 2 , Fi′ = Mn (Fr 2 ) ⊗ Fi2 .               (3)    These parameters contribute to modeling a low-rank Gaussian
+                                                                                      distribution N L (µ, 6), where 6 = R R T + D. The slice
+    Finally, the attention-modulated features in the frequency
+                                                                                      attention weights Mn are derived by sampling a vector v from
+    domain are transformed back into the spatial domain via the
+                                                                                      this distribution and processing it through a sigmoid function:
+    Inverse Fast Fourier Transform (IFFT), which consolidates
+    complementary frequency-specific details from HF and LF                                                Mn = σ (v), v ∼ N L (µ, 6).                           (8)
+    branches, preparing unified and discriminative feature repre-
+    sentations for the subsequent decoding phase.
+       Semantic attention refines channel features c by applying
+                                                                                      D. Frequency Domain Decomposition Module
+    maximum Pmax and average Pmean pooling operations to the
+    real-valued frequency domain features Fr . These operations                          As depicted in Figure 2 (d), the Frequency Domain Decom-
+    distill essential multimodal and multidirectional information,                    position (FDD) module serves as the initial step of the
+    which is then encoded via affine transformations W1 and                           segmentation framework by transforming multi-sequence MRI
+    W2 , respectively. The combined outputs are passed through                        scans into distinct low-frequency (LF) and high-frequency
+    a sigmoid function to produce semantic attention weights Ms :                     (HF) sub-bands, while preserving frequency-specific char-
+                                                                                      acteristics and spatial correspondence. These sub-bands are
+              Ms (Fr ) = σ (W1 · Pmax (Fr ) + W2 · Pmean (Fr )).               (4)    then fed into corresponding encoders, with HF inputs fur-
+                                                                                      ther refined by the Adaptive Laplacian Convolution (ALC)
+       Positional attention extracts crucial tissue contours and
+                                                                                      module to enhance directional feature representation. Figure 3
+    structural information from all slices, regardless of the h
+                                                                                      further compares the contrast in feature map representation
+    and w dimensions of the volumetric data. Maximum pooling
+                                                                                      between conventional approaches (e.g., PANet) and HFF-Net
+    Pmax and average pooling Pmean are applied to the semanti-
+                                                                                      on three dataset cases from the T1c modality, the most
+    cally enhanced frequency domain features Fr 1 , generating a
+                                                                                      discriminative modality for enhancing tumor segmentation.
+    dual-channel positional feature map refined by a 3D convolu-
+                                                                                      While PANet integrates multi-frequency information in an
+    tional layer. Normalization using a sigmoid function produces
+                                                                                      undifferentiated manner, potentially blurring structural fidelity,
+    positional attention weights M p :
+                                                                                      HFF-Net explicitly disentangles frequency components via the
+       M p (Fr 1 ) = σ (Conv(Concat(Pmax (Fr 1 ), Pmean (Fr 1 )))). (5)               FDD module, facilitating complementary encoding of coarse
+                                                                                      and fine-grained features for enhanced segmentation precision.
+       Slice attention enhances the network’s understanding of key                       The LF features are obtained using the Dual-Tree Com-
+    features along the slice dimension n by integrating statistical                   plex Wavelet Transform (DTCWT), which primarily captures
+    information and managing uncertainty. Important statistics are                    large-scale structural information such as the overall shape and
+    extracted using maximum Pmax and average Pmean pooling                            contour of tumors and surrounding tissues. This process can
+    operations, combined via linear transformations:                                  be formulated as:
+
+                   S = W1 · Pmax (Fr 2 ) + W2 · Pmean (Fr 2 ).                 (6)                        f m (x, y) → DTCWTr,i → L m
+                                                                                                                                    S
+                                                                                                                                      ,                          (9)
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    4542                                                                          IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 11, NOVEMBER 2025
+
+
+
+
+    where L mS denotes the LF subband components extracted from                       filters with two vanishing moments [67]. The Nonsubsampled
+    the m-th modality of the MRI image f (x, y), incorporating                        Directional Filter Bank NSDFBdfilt , based on the 'cd' filter
+    both real (r) and imaginary (i) parts. The number of decom-                       bank proposed by Cohen and Daubechies [74], enables arbi-
+    position levels is set to one, balancing essential LF contour                     trary directional decomposition, in contrast to the DTCWT,
+    information and computational efficiency. To highlight the                        which is limited to six fixed orientations. This provides greater
+    advantages of DTCWT’s LF decomposition, we first recall                           flexibility for adapting to various anatomical edge structures.
+    the formulation of the traditional discrete wavelet transform                        S
+                                                                                      Hm,d    represents the HF subbands extracted at direction d for
+    (DWT):                                                                            each modality, with two levels for both pyramid and directional
+                                X                                                     decomposition.
+                  L DWT ( f ) =   ⟨ f, φ j,k ⟩ φ j,k (x, y),  (10)                        To illustrate the potential aliasing artifacts introduced by
+                                         k
+                                                                                      downsampling in high-frequency decomposition, we examine
+    where L DWT ( f ) denotes the low-frequency component of the                      the frequency-domain formulation of the DTCWT, defined as:
+    input image f (x, y), such as a 2D brain MRI slice. Here,                                             1
+    φ j,k (x, y) is the scaling function at scale j and spatial location               Ĥ (ωx , ω y ) =
+                                                                                                          X
+                                                                                                                  ĝ(dωx + kπ, dω y + lπ ) · ψ̂ r,i (dωx , dω y ),
+    k, and ⟨ f, φ j,k ⟩ is the inner product between the image and
+                                                                                                          k,l=0
+    the scaling function, which is the LF coefficient at that scale
+                                                                                                                                                               (15)
+    and position. Note that the inner product is defined over the
+    square-integrable function space L 2 (R2 ) as:                                    where ĝ(·) denotes the frequency-domain representation of
+                              Z Z                                                     the HF component, and d = 2 is the downsampling factor.
+               ⟨ f, φ j,k ⟩ =       f (x, y) φ j,k (x, y) d x dy.   (11)              The indices k, l ∈ {0, 1} represent spectral shifts in frequency
+                                    R2
+                                                                                      caused by the subsampling process. This formulation reveals
+    The DTCWT, in comparison, performs LF decomposition via:                          that the downsampling process duplicates frequency compo-
+                     X                               
+                                                                                      nents and introduces spectral overlapping, which may distort
+     L DTCWT ( f ) =    ⟨ f, φ rj,k ⟩ + i⟨ f, φ ij,k ⟩ φ rj,k (x, y), (12)
+                            k
+                                                                                      edge and texture structures, issues that are inherently avoided
+                                                                                      in the nonsubsampled NSCT framework.
+    where φ rj,k (x, y) and φ ij,k (x, y) form a pair of Hilbert trans-                  In summary, our FDD module integrates DTCWT and
+    form scaling functions representing the real and imaginary                        NSCT to separately extract structural and textural cues through
+    components of the complex wavelet, respectively. This Hilbert                     low- and high-frequency decomposition. DTCWT provides
+    pair is designed to approximately satisfy the complementary                       robust low-frequency features via shift invariance and complex
+    energy condition:                                                                 phase response, while NSCT captures high-frequency details
+                |φ̂ r (ω)|2 + |φ̂ i (ω)|2 ≈ 1, ∀ ω ∈ [−π, π ),               (13)     with aliasing-free, directionally selective analysis. Aligned
+                                                                                      with the structural heterogeneity and texture patterns of brain
+    where ω denote the angular frequency. This structural design                      MRI, this design improves the spatial coherence and semantic
+    ensures that the real and imaginary parts complement each                         clarity of early-stage features. Compared to traditional DWT
+    other in the frequency domain, thereby preserving stable                          or fixed-orientation transforms, it achieves a better trade-off
+    responses across all frequencies. This stability is crucial for                   between spatial stability and directional sensitivity, thereby
+    reliably capturing signal variations. In the context of MRI,                      supporting more accurate segmentation.
+    it may correspond to subtle misalignments caused by patient
+    motion or intensity inconsistencies (e.g., inter-slice brightness                 E. Loss Function
+    variations) resulting from physiological dynamics like breath-
+                                                                                         The total loss function Ltotal of the model can be summa-
+    ing or pulsation.
+                                                                                      rized as:
+       Whether using traditional DWT or NSCT, their LF com-
+    ponents are generated by real-valued and typically direction-                                      Ltotal = Lsup + λ1 Lunsup + λ2 Lewc ,                   (16)
+    insensitive scaling functions. These lack the ability to represent
+    phase and directional information, making them more sen-                          where Lsup represents the supervised loss and Lunsup denotes
+    sitive to small shifts or subtle structural changes in the                        the unsupervised loss, aligning the consistency of outputs
+    image, potentially degrading the stability and robustness of                      between the dual branches. The weight λ1 dynamically adjusts
+    extracted features. Therefore, the DTCWT is employed for LF                       the weight of Lunsup during training. Additionally, λ2 adjusts
+    decomposition, as its complex representation offers improved                      the weight of the regularization term in the ALC layer that
+    approximate shift invariance compared to other transforms.                        maintains the HF filtering properties. Specifically, the super-
+       For HF features, which capture sharp edges and minute                          vised loss Lsup comprises the LF supervised loss LFsup (·),
+    anatomical variations, we employ the NSCT to extract com-                         the HF supervised loss LH    sup (·), both employing the Dice
+    plex multi-directional textures and edge information from                         Loss [75], and the elastic weight consolidation loss Lewc (·)
+    brain tumor images, the process is defined as:                                    associated with the ALC layer. The supervised loss can written
+                                                                                      as:
+               f m (x, y) → NSPpfilt → NSDFBdfilt → Hm,d
+                                                     S
+                                                         .                   (14)                       X                 f
+                                                                                           Lsup =                f
+                                                                                                               Lsup  ( ŷi t , yi ) + Lewc (θ, D), (17)
+    Here, the Nonsubsampled Pyramid NSPpfilt is implemented                                               f ∈{L, H}
+    using the 'pyrexc' filter bank derived from one-dimensional                                        t∈{main, side}
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    SHAO et al.: RETHINKING BRAIN TUMOR SEGMENTATION FROM THE FREQUENCY DOMAIN PERSPECTIVE                                                                     4543
+
+
+
+               f
+    where ŷi denotes the predicted result for the i-th MRI slice                                                 IV. E XPERIMENT
+    in frequency band f , and t indicates the type of output                          A. Datasets
+    from the model. Respectively, yi represents the ground truth
+                                                                                         1) BraTS2023-MEN: This dataset [76] includes 1650 mul-
+    for the i-th MRI slice. Additionally, θ denotes the parameters
+    of the convolution kernels across all channels in the ALC layer,                  tiparametric MRI scans of intracranial meningiomas, with
+    adjusted by their importance for continued updates, while D                       1000 training, 140 validation, and an undisclosed test set.
+    represents the discrete Laplacian matrices of corresponding                       Each MRI series includes T1-weighted pre-contrast (T1N),
+    dimensions. Similarly, the unsupervised loss Lunsup employs                       T1-weighted post-contrast (T1C), T2-weighted (T2W), and
+    a 3D DFL that uses the prediction from one branch as a                            T2-weighted FLAIR (T2F). The training set is split into 80%
+    pseudo-label to supervise the other branch and vice versa. The                    for training, 15% for validation, and 5% for testing.
+                                                                                         2) MSD BTS Task: This dataset [77] consists of 750 multi-
+    unsupervised loss can be defined as follows:
+                                                                                      parametric MRI scans of glioblastoma and lower-grade glioma,
+                                      unsup ( ŷ , ŷ ),
+                            Lunsup = LFF        L H                                   using T1, T1-Gd, T2, and FLAIR sequences. It targets edema,
+                                                                             (18)
+                                                                                      enhancing, and non-enhancing tumor regions. Of the images,
+    where ŷiL and ŷiH denote the main outputs of the model from                     484 are annotated and divided into 80% training, 15% valida-
+    the LF and HF branches, respectively. The final segmentation                      tion, and 5% testing.
+    outcome is determined by comparing and selecting the supe-                           3) BraTS2020 and BraTS2019: Both datasets [78], [79]
+    rior main output from the two branches.                                           provide multimodal scans with T1, T1Gd, T2, and T2-FLAIR
+       1) 3D Dynamic Focal Loss: The 3D DFL dynamically bal-                          modalities. The 2020 set has 369 annotated samples, and the
+    ances discrepancies between the outputs of the two branches,                      2019 set has 335. We performed five-fold cross-validation on
+    ensuring effective gradient updates, especially in later training                 these datasets.
+    stages. This refinement is crucial for the model’s performance
+    as it addresses complex discrepancies between the outputs
+                                                                                      B. Implementation Details
+    of different branches. Using 3D FFT, the 3D DFL method
+    converts each volumetric data patch from the spatial to the                          Our proposed HFF-Net is implemented in PyTorch 2.1.2,
+    frequency domain:                                                                 CUDA 11.8, and trained, validated, and tested on an NVIDIA
+                                                                                      GeForce RTX 4090 (24GB) GPU. Experiments are conducted
+           O f (u, v, w) f ∈{L ,H } = R(u, v, w) + Ii (u, v, w),             (19)     on four publicly available brain tumor segmentation datasets:
+                                                                                      BraTS2019, BraTS2020, BRATS2023-MEN, and MSD BTS.
+    where O f denotes the frequency domain output for f ∈                             The network is trained using stochastic gradient descent (SGD)
+    {L , H }, R and Ii are the real and imaginary parts, respec-                      with a momentum of 0.9, a weight decay of 5 × 10−5 , and
+    tively, and u, v, w are the frequency domain coordinates. The                     an initial learning rate of 0.3, which decays by a factor of
+    Euclidean amplitude distance between the outputs of the two                       0.53 every 50 epochs. Each model is trained for 350 epochs
+    branches is computed as:                                                          with a batch size of 1. The regularization weight in the ALC
+                                                                                      layer is fixed at 5 × 10−6 , and a warm-up period of 40 epochs
+                        X
+        D(O L , O H ) =      |O L (u, v, w) − O H (u, v, w)|2 . (20)
+                            u,v,w
+                                                                                      is employed to gradually stabilize training. During the warm-
+                                                                                      up phase, the weight λ for the unsupervised loss increases
+    Dynamic weights are calculated based on amplitude                                 linearly with the training epoch, following λ(t) = λmax · Tt ,
+    differences:                                                                      where λmax is set to 15, t is the current epoch and T is the
+                                                                                      total number of epochs. To enhance training stability, we apply
+               w(u, v, w) = |O L (u, v, w) − O H (u, v, w)|α ,               (21)
+                                                                                      Kaiming normal initialization [80] to all convolutional lay-
+     where the exponent α is a predefined parameter that adjusts                      ers, standard normal initialization to fully connected layers,
+    the sensitivity of the weight, thereby better addressing dif-                     and set all bias terms to zero. To prevent overfitting and
+    ferences between the two frequency domain outputs. This                           improve generalization, several data augmentation strategies
+    approach allows the model to dynamically adjust the loss                          are employed during training, including random flipping along
+    function weights based on amplitude differences between fre-                      each anatomical axis, random rotations within ±10◦ , and ran-
+    quency components, effectively guiding the learning process                       dom cropping centered on brain regions to extract 128×128×
+    to focus on significant discrepancies in the frequency domain,                    128 voxel patches. All input volumes are standardized using
+    optimizing segmentation performance. Finally, the total loss                      Z-score normalization (zero mean and unit variance). For all
+    for the entire volume is computed as a weighted average of the                    experiments involving five-fold cross-validation, we randomly
+    Euclidean amplitude distance and dynamic weights, defined as:                     partition each dataset into five approximately equal folds.
+                                                                                      Stratified sampling is employed where applicable to preserve
+               1 X
+      DFL =            w(u, v, w) · D(O L (u, v, w), O H (u, v, w)),                  class distribution. In each fold, the model is re-initialized and
+              N u,v,w                                                                 trained from scratch on four folds, while the remaining fold
+                                                                             (22)     is used for validation. All preprocessing and augmentation
+                                                                                      steps, including Z-score normalization and patch extraction,
+    where N is the total number of voxels, ensuring that the loss                     are applied independently within each training fold to avoid
+    function is normalized over the entire data volume.                               data leakage.
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    4544                                                                          IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 11, NOVEMBER 2025
+
+
+
+
+                                TABLE I                                                                            TABLE IV
+      C OMPARISON OF S EGMENTATION P ERFORMANCE ON BRATS2019                             C OMPARISON OF S EGMENTATION P ERFORMANCE ON BRATS2019
+     DATASET. R ED F ONT D ENOTES THE B EST R ESULTS A ND B LUE F ONT                      DATASET. R ED F ONT D ENOTES THE B EST R ESULTS A ND B LUE
+                R EPRESENTS T HE S ECOND B EST R ESULTS                                         F ONT R EPRESENTS T HE S ECOND B EST R ESULTS
+
+
+
+
+                                  TABLE II
+        C OMPARISON OF S EGMENTATION P ERFORMANCE ON MSD BTS
+         DATASET. T HE B EST T WO R ESULTS A RE S HOWN I N R ED A ND
+                        B LUE F ONTS , R ESPECTIVELY                                  positives. In contrast, our model performs end-to-end infer-
+                                                                                      ence without any post-processing. Its design, which combines
+                                                                                      full-volume processing with a dual-branch frequency-aware
+                                                                                      architecture, enables effective capture of brain tumor charac-
+                                                                                      teristics, contributing to its superior performance over other
+                                                                                      methods. As shown in Table I, HFF-Net achieved Dice scores
+                                                                                      of 96.16%, 95.56%, and 96.34% for ET (Enhancing Tumor),
+                                                                                      WT (Whole Tumor), and TC (Tumor Core) on BRATS2023-
+                                                                                      MEN, respectively, with corresponding HD95 distances of
+                                                                                      5.576 mm, 6.272 mm, and 6.432 mm. The 8.29% improvement
+                                                                                      in ET Dice score compared to S2 CA-Net indicates more
+                                                                                      accurate delineation of the enhancing tumor core, which
+                                TABLE III                                             is clinically critical for radiotherapy targeting and surgical
+     C OMPARISON OF S EGMENTATION P ERFORMANCE , M ODEL S IZE , AND                   planning, as it directly impacts the definition of high-dose
+     C OMPUTATIONAL C OMPLEXITY ON BRATS2020 DATASET. B EST T WO                      regions and resection margins. On the MSD BTS dataset
+          R ESULTS A RE S HOWN IN R ED AND B LUE , R ESPECTIVELY
+                                                                                      (Table II), HFF-Net achieved Dice scores of 87.28%, 94.03%,
+                                                                                      and 89.09%, outperforming S2 CA-Net by 4.91% in ET. This
+                                                                                      enhancement is especially relevant for reducing uncertainty
+                                                                                      in lesion localization, aiding in longitudinal monitoring and
+                                                                                      treatment response assessment. Similarly, Table III shows
+                                                                                      that HFF-Net reached Dice scores of 87.36%, 92.37%, and
+                                                                                      88.22% on BraTS2020, with an 8.65% improvement in ET
+                                                                                      over S2 CA-Net. Despite the higher model complexity (36.01M
+                                                                                      parameters and 541.18 GFLOPs) due to its dual-branch design,
+                                                                                      the model maintains strong segmentation accuracy while
+                                                                                      offering improved delineation of tumor boundaries, which
+                                                                                      is essential for preoperative risk evaluation. On BraTS2019
+                                                                                      (Table IV), HFF-Net achieved Dice scores of 85.35%, 91.58%,
+                                                                                      and 87.59%, outperforming S2 CA-Net by 6.5% in ET, with
+    C. Experimental Results                                                           slightly inferior HD95 results likely due to the smaller sam-
+       1) Quantitative Results: We thoroughly evaluated our pro-                      ple size. These results demonstrate consistent performance
+    posed HFF-Net on four publicly available brain tumor                              across diverse datasets and highlight HFF-Net’s robustness in
+    segmentation datasets: BRATS2023-MEN, MSD BTS Task,                               segmenting clinically relevant tumor subregions, potentially
+    BraTS2020, and BraTS2019, with all results summarized in                          enhancing clinical decision-making in both high-grade and
+    Tables I to IV. To ensure a fair and robust assessment,                           low-grade glioma cases.
+    we adopted five-fold cross-validation or subject-wise hold-                             a) Statistical significance analysis: To complement the above
+    out splitting across BraTS2019 and BraTS2020 datasets, with                       quantitative evaluations and strengthen the rigor of per-
+    training and validation subjects strictly separated at the patient                formance comparisons, we conducted additional statistical
+    level to avoid data leakage and validation bias. We compared                      significance tests on four benchmark datasets, comparing
+    our results with the results referenced from S2 CA-Net [84],                      HFF-Net with recent state-of-the-art methods. All experiments
+    a recent state-of-the-art method that employs a patch-based                       were conducted using five-fold cross-validation, and results are
+    inference strategy and post-processing to suppress false                          reported as mean ± standard deviation. This strategy helps
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    SHAO et al.: RETHINKING BRAIN TUMOR SEGMENTATION FROM THE FREQUENCY DOMAIN PERSPECTIVE                                                                     4545
+
+
+
+
+                                                                    TABLE V
+                A DDITIONAL S IGNIFICANCE T ESTS ON R ECENT SOTA M ETHODS FOR S EGMENTATION P ERFORMANCE ON F OUR DATASETS ,
+                                               R EPORTED AS M EAN ± S TD. * I NDICATE P-VALUE < 0.05
+
+
+
+
+    reduce the influence of validation bias and ensures that the                                                   TABLE VI
+    reported improvements reflect consistent performance across                         C OMPARISON OF S EGMENTATION P ERFORMANCE ON L I TS AND LA
+                                                                                       DATASETS . R ED F ONT D ENOTES THE B EST R ESULTS AND B LUE F ONT
+    different data splits. As shown in Table V, HFF-Net consis-                                      D ENOTES THE S ECOND B EST R ESULTS
+    tently outperforms other methods in Dice and HD95 across all
+    tumor subregions. In particular, the enhancing tumor (ET) Dice
+    scores show statistically significant improvements (p-value <
+    0.05) on all datasets. For instance, on the BraTS23-MEN
+    dataset, HFF-Net achieved an ET Dice of 96.1%, compared to
+    87.2% by SegMamba. Similarly, on MSD-BTS, our method
+    reached 87.1% in ET Dice, surpassing T-UNet (81.3%) and
+    E2ENet (71.5%).
+       Beyond this, HFF-Net also shows strong performance in
+    WT and TC segmentation. For example, on BraTS20, HFF-
+    Net achieved TC Dice of 88.1% with HD95 of 5.3 mm,
+    while CKD-TransBTS yielded 85.7% Dice and 6.1 mm HD95.
+    On the more challenging BraTS19 dataset, our method still                         Fig. 4. Segmentation results on the LiTS and LA datasets to show
+    obtained consistent improvements in all subregions over Swi-                      the generalizability of our method across different medical imaging
+                                                                                      modalities. In the LiTS dataset (upper row), red masks denote the liver
+    nUNETR and MedNeXt. These results confirm the statistical                         and green masks represent the lesion region; in the LA dataset (lower
+    significance of HFF-Net’s superior performance across all                         row), blue masks indicate the left atrial cavity. Zoom in for details.
+    datasets, especially in the enhancing tumor region, where it
+    consistently outperforms recent methods by a clear margin                         methods. On the LiTS dataset, it better captures organ contours
+    under standard evaluation protocols.                                              and small lesion boundaries, while on the LA dataset, it pre-
+          b) cross-dataset evaluation: To assess the generalization                   serves the continuity of the thin-walled atrial structure. These
+    ability of HFF-Net beyond brain tumor segmentation, we fur-                       visual results highlight HFF-Net’s effectiveness in handling
+    ther evaluated it on two widely used datasets from other                          anatomical targets of varying size and morphology. Quanti-
+    anatomical regions and modalities. The LA dataset (2018                           tative results are summarized in Table VI, where HFF-Net
+    Atrial Segmentation Challenge) [103] contains 100 high-                           consistently achieves the highest Dice scores and the lowest
+    resolution 3D cardiac MRI volumes, we used 80 for training                        HD95 across both datasets. On LiTS, it attained 89.94% Dice
+    and 20 for testing following [104], with a patch size of                          and 12.73 mm HD95, outperforming nnUNet by 3.63% and
+    96×96×80 and λmax set to 5. The LiTS dataset (2017 Liver                          10.54 mm. On LA, it reached 94.12% Dice and 2.35 mm
+    Tumor Segmentation Challenge) [105] comprises 131 abdom-                          HD95, with respective improvements of 2.17% and 2.75 mm.
+    inal CT scans, split into 100 training and 31 testing cases                       These results demonstrate the model’s strong adaptability
+    as in [106]; we applied a soft-tissue window of [−100,                            across different modalities and anatomical regions, reinforcing
+    250] HU, cropped around the liver, and used a patch size                          its potential for broader clinical applications.
+    of 112×112×32 with λmax set to 0.5. These datasets were                              2) Qualitative Results: We evaluated the performance of
+    selected to assess the model’s robustness across different                        HFF-Net through five-fold cross-validation on the BraTS2019
+    imaging modalities and anatomies, which are among the most                        training set, comparing it with previous state-of-the-art meth-
+    clinically relevant segmentation tasks beyond the brain.                          ods. The qualitative results, depicted in Figure 5, showcase
+       As shown in Figure 4, HFF-Net produces more accurate                           three samples with tumors at different locations. Each sub-
+    and spatially coherent segmentation results compared to other                     sequent row represents an increasing level of segmentation
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    4546                                                                          IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 11, NOVEMBER 2025
+
+
+
+
+    Fig. 5. Segmentation performance comparison on the BraTS2019
+    training dataset. All cases feature structurally complex brain tumors
+    with pronounced spatial heterogeneity. Red masks denote necrotic
+    tumor core (NCR/NET), yellow masks denote enhancing tumors (ET),                  Fig. 7. Visualization of the frequency representations before and after
+    and green masks denote peritumoral edema (ED). White dotted boxes                 DTCWT-based low-frequency decomposition and NSCT-based high-
+    highlight brain tumor regions with significant segmentation differences.          frequency fusion. The 3D amplitude plots illustrate how the frequency
+    Our method achieves more precise delineation, especially in cases with            components are affected by these decomposition and fusion steps. The
+    extensive ET involvement. Zoom in for details.                                    frequency-domain entropy (E ) and shift-invariance (S) values, shown
+                                                                                      above each spectrum, quantify the representation of texture details and
+                                                                                      the robustness to image shifts. Zoom in for details.
+
+
+                                                                                      and spatially coherent 3D predictions than prior methods,
+                                                                                      highlighting its robustness in challenging clinical scenarios.
+                                                                                         To gain deeper insight into how our method achieves
+                                                                                      superior segmentation performance in complex tumor regions,
+                                                                                      we conducted a comparative analysis of Grad-CAM [107]
+                                                                                      attention maps from three representative BraTS2020 sam-
+                                                                                      ples, focusing on enhancing tumor (ET) areas. As shown in
+                                                                                      Figure 6, we visualized the attention distributions of UNet
+                                                                                      3D, Att-UNet, and our HFF-Net under different module con-
+                                                                                      figurations. The first two networks exhibit dispersed attention
+                                                                                      with low-intensity responses in ET regions and blurry bound-
+                                                                                      aries, indicating weak localization of key structures. The third
+                                                                                      column shows our model with only the FDD module, which
+                                                                                      yields stronger and more concentrated responses around tumor
+                                                                                      contours. However, the attention tends to over-accumulate
+                                                                                      within the lesion, leading to homogeneous activation that
+    Fig. 6. Grad-CAM visualization of different models on BraTS2020 train-            blurs boundary transitions in heterogeneous regions. Adding
+    ing samples for ET, WT, and TC. Red indicates high attention, blue low            the FDCA module (4th column) intensifies attention across
+    attention. Compared to baselines, HFF-Net variants show progressively
+    sharper and more focused responses. The full model achieves the best              a broader spatial extent and enhances global contour cov-
+    boundary localization and fine-grained structural awareness, with yellow          erage, but boundary sharpness remains suboptimal, and fine
+    circles marking regions aligning closely with ground truth. Zoom in for           low-contrast details are still partially suppressed. In the fifth
+    details.
+                                                                                      column, incorporating ALC results in slightly reduced overall
+                                                                                      intensity but improves spatial selectivity, enabling finer sep-
+    difficulty. The images displayed in the axial plane include a                     aration of small intratumoral lesions and thin or elongated
+    global thumbnail at the bottom left, with white dashed boxes                      structures. Notably, ALC occasionally highlights non-tumor
+    highlighting areas of pronounced segmentation differences.                        areas, likely due to its increased sensitivity to high-frequency
+    Consistent with the quantitative results, HFF-Net exhibits                        cues. While this facilitates the detection of fine structural
+    excellent performance in outlining overall tumor contours,                        details, it may also result in false positive activations in
+    particularly in handling highly complex ET regions due to the                     anatomically noisy regions, suggesting the need for additional
+    HF feature branch providing detailed edges and rich texture                       regularization or uncertainty modeling in future work. The
+    information. Notably, in the third row, where the tumor is the                    full model integrating FDD, FDCA, and ALC (6th column)
+    largest and the segmentation is most complex, our method sig-                     exhibits balanced attention with sharp, well-localized focus on
+    nificantly outperforms others in delineating the necrotic core                    both global morphology and subtle structural variations, align-
+    and enhanced regions, demonstrating its robustness in intricate                   ing closely with ground truth annotations and demonstrating
+    segmentation tasks. Figure 8 further compares results on                          the synergistic effect of all components.
+    the BraTS2023-MEN dataset, which predominantly contains                                a) Frequency-domain analysis of fusion effectiveness: To
+    cases with large enhancing tumor (ET) volumes. Dice scores                        validate why combining DTCWT-based low-frequency
+    above each column indicate overall segmentation accuracy                          (LF) decomposition and NSCT-based high-frequency (HF)
+    per sample. Our model yields more anatomically complete                           fusion enhances segmentation performance, we conducted
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    SHAO et al.: RETHINKING BRAIN TUMOR SEGMENTATION FROM THE FREQUENCY DOMAIN PERSPECTIVE                                                                     4547
+
+
+
+
+    Fig. 8. Visual comparison of segmentation results on axial, sagittal, coronal, and 3D views from the BraTS2023-MEN dataset. Red masks
+    denote non-enhancing tumor core (NET), green masks represent surrounding non-enhancing FLAIR hyperintensity (SNFH), and blue masks denote
+    enhancing tumor (ET). Dice scores above each column indicate the overall segmentation accuracy for each case. As this dataset generally features
+    large ET regions, our method produces more anatomically faithful and spatially coherent 3D predictions compared to previous approaches. Zoom
+    in for details.
+
+
+
+    a frequency-domain analysis on three MRI samples from                             SSIM refers to the structural similarity index [108]. A higher
+    different modalities. The T1n and FLAIR images exhibit                            S value implies greater robustness to spatial displacement.
+    motion blur, while T1c serves as a clear reference. As shown                         In the original amplitude (3rd column), T1n and FLAIR
+    in Figure 7, each row displays, from left to right: the original                  show strong directional scattering and irregular fluctuations
+    image, LF and HF fused result, original amplitude spectrum,                       due to patient variation, scanner noise, and motion artifacts,
+    LF amplitude, and fused amplitude. We define two                                  which impair consistent global feature extraction. Taking the
+                                                    P quantitative                    blurry T1n in the first row as a representative example,
+    metrics: frequency-domain entropy E = − i Pi log(Pi ),
+                                                                                      we observe that after DTCWT-based LF decomposition (4th
+    where Pi = PAiA and Ai represents the amplitude
+                             j   j                                                    column), the amplitude spectrum becomes notably smoother,
+    of the i th FFT component, quantifies the richness of                             with elevated LF baseline amplitudes reflecting enhanced
+    texture details, higher E values indicate more diverse                            global structural stability. This transformation markedly
+                  P K The shift-invariance score is defined
+    frequency content.                                                                increased the shift-invariance metric S (from 0.34 to 0.84),
+    as S = N1 k=−K        SSIM(I, Ik ), where Ik is the FFT                           validating DTCWT’s inherent robustness. However, entropy E
+    log-amplitude spectrum after horizontally shifting the input                      slightly decreased (from 8.63 to 6.58), suggesting minor loss
+    image I by k pixels, and N is the total number of shifts,                         of HF texture. After integrating NSCT-based HF information
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    4548                                                                          IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 11, NOVEMBER 2025
+
+
+
+
+                                TABLE VII                                                                           TABLE IX
+        A BLATION R ESULTS FOR THE P ROPOSED C OMPONENTS ON THE                         A BLATION S TUDY ON FDD M ODULE : D ECOMPOSITION S TRATEGIES ,
+                        BRATS2023-M EN DATASET                                                  L EVELS , AND D IRECTIONS IN HF D ECOMPOSITION
+
+
+
+
+                                  TABLE VIII
+              A BLATION S TUDY ON D IFFERENT O PERATORS IN ALC
+                      C ONVOLUTIONAL K ERNEL W EIGHTS
+
+                                                                                      using only the FDD module (DTCWT+NSCT), feature dis-
+                                                                                      tributions corresponding to peritumoral edema (ED/SNFH,
+                                                                                      green), necrotic or non-enhancing tumor (NCR/NET, orange),
+                                                                                      and enhancing tumor (ET, violet) show preliminary cluster-
+                                                                                      ing. Nonetheless, intra-class cohesion is suboptimal, and ET
+    (5th column), the fused amplitude became more uniformly                           and NCR/NET remain poorly separated. This suggests that
+    distributed and higher overall, mitigating prior irregularities.                  frequency decomposition and fusion alone provide insuffi-
+    Consequently, entropy E rose significantly (to 10.19), indicat-                   cient fine-grained semantic separability. With the addition
+    ing richer texture and structure, while S remained substantially                  of the FDCA module, each cluster becomes more compact,
+    improved (0.71 vs. 0.34). Similar trends were consistently                        and inter-class boundaries are more clearly defined, indi-
+    observed in other cases.                                                          cating enhanced global structure encoding. However, some
+       In summary, the proposed combination of DTCWT and                              overlap between ET and NCR/NET still persists, reflect-
+    NSCT in the low and high frequency fusion strategy achieves a                     ing limited discrimination in semantically complex regions.
+    balance between global structural stability and detailed texture                  Finally, incorporating the ALC module yields the most distinct
+    preservation, leading to more robust frequency representations                    and cohesive clustering. In particular, ET and NCR/NET
+    and improved segmentation performance. However, the effec-                        are effectively separated, demonstrating ALC’s ability to
+    tiveness of frequency decomposition relies on the assumption                      refine high-frequency, multi-directional features and improve
+    that directional and textural distinctions between tumor sub-                     recognition of intricate sub-regions such as enhancing tumor
+    regions are preserved across modalities. In real-world scans                      boundaries. However, in clinical scenarios where the contrast
+    with severe inter-sequence misalignment or motion-corrupted                       between enhancing and non-enhancing tumor regions is intrin-
+    high-frequency components, this assumption may be violated,                       sically low, such as in infiltrative gliomas or post-treatment
+    potentially leading to degraded frequency separation and fea-                     scans which the frequency-based representation may still
+    ture fusion.                                                                      struggle to achieve sufficient separability. This indicates the
+       3) Ablation Analysis:                                                          potential need for integrating complementary semantic priors
+          a) Ablation study for each component in our HFF-net: To                     or uncertainty-aware modeling to enhance robustness.
+    assess the contribution of each module in a clinically realistic                       b) Ablation study results for different discrete operators applied
+    setting, we conducted ablation experiments on the BraTS2023-                      to ALC convolutional kernel weights: As presented in Table VIII,
+    MEN dataset. As summarized in Table VII, introducing the                          we evaluated the discrete Laplace operator along with three
+    FDD module yields strong baseline performance with Dice                           other HF edge detection operators [71]. The discrete Laplace
+    scores of 92.89% (ET), 91.38% (WT), and 92.48% (TC),                              operator achieved the highest Dice scores (96.16% for ET,
+    highlighting the effectiveness of frequency-based dual-branch                     95.56% for WT, and 96.34% for TC) and the lowest HD95
+    encoding. Adding the ALC module further improves ET seg-                          distances (5.576 mm, 6.272 mm, and 6.432 mm, respec-
+    mentation by 1.96%, benefiting from its adaptive modeling of                      tively). In comparison, the Sobel operator had Dice scores
+    multi-directional HF details, while only marginally increasing                    of 91.35%, 91.72%, and 89.50%, with HD95 of 6.372 mm,
+    parameters (by 0.72M) and FLOPs. Incorporating FDCA leads                         6.175 mm, and 13.031 mm. The Scharr operator improved
+    to notable gains, especially for TC (increases by 4.08%), due                     Dice scores to 94.47%, 93.03%, and 91.44%, but had higher
+    to enhanced cross-slice semantic aggregation. The complete                        HD95 (10.872 mm, 13.643 mm, 11.295 mm). The Kirsch
+    HFF-Net achieves the best overall performance, with Dice                          operator performed moderately with Dice scores of 95.58%,
+    scores of 96.16% for ET, 95.56% for WT, and 96.34% for                            92.81%, and 93.29%, and HD95 of 7.283 mm, 9.381 mm, and
+    TC, while maintaining a moderate complexity of 37.76 mil-                         7.58 mm.
+    lion parameters and 573.06 GFLOPs. These results confirm                               c) Ablation study for decomposition strategy combinations
+    the effectiveness and complementarity of each component in                        and HF decomposition layers and directions in the FDD mod-
+    enhancing segmentation accuracy.                                                  ule: As shown in Table IX, different combinations of LF
+       To further understand the contribution of each compo-                          and HF decomposition strategies significantly affect seg-
+    nent to feature discrimination among tumor sub-regions,                           mentation performance. The DWT/DWT setup yielded the
+    we conducted t-SNE [109] visualizations on the extracted                          lowest Dice scores and highest HD95, due to its inabil-
+    feature representations, as shown in Figure 9 (a). When                           ity to preserve spatial resolution and lack of directional
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    SHAO et al.: RETHINKING BRAIN TUMOR SEGMENTATION FROM THE FREQUENCY DOMAIN PERSPECTIVE                                                                     4549
+
+
+
+
+                                                                                      Fig. 10. Comparative visualization of trade-offs among methods regard-
+                                                                                      ing computational complexity, clinical applicability, and segmentation
+                                                                                      performance. (a) Depicts computational complexity using parameter size,
+                                                                                      Dice score, and GFLOPs (bubble size). (b) Illustrates inference efficiency
+                                                                                      with throughput (images per second), Dice score, and GPU processing
+                                                                                      time (bubble size).
+    Fig. 9. Feature visualization with t-SNE to show (a) how frequency
+    domain decomposition (FDD), adaptive Laplacian convolution (ALC),
+    and frequency domain cross-attention (FDCA) modules individually and
+    jointly enhance feature representation; (b) comparison of alternative             across all sub-regions, effectively balancing structural stability
+    frequency decomposition combinations within the FDD module. Each                  and fine-grained semantic discriminability. This supports the
+    color corresponds to a specific category of brain tumor sub-regions.
+                                                                                      superiority and rationale of our frequency-domain design in
+                                                                                      the FDD module.
+    decomposition. Using DTCWT for both LF and HF improved                               4) Computational Complexity and Efficiency Analysis:
+    performance when configured with one decomposition level                                a) Computational complexity and segmentation performance:
+    and six directions, but degraded when the level increased to                      To assess the practical applicability of our method in clinical
+    two, highlighting DTCWT’s sensitivity to over-decomposition.                      scenarios, we analyzed the trade-off between model complex-
+    The NSCT/NSCT configuration performed consistently well,                          ity and segmentation performance. As shown in Figure 10 (a),
+    with a [1,4] setting achieving a notable Dice improve-                            HFF-Net achieves the highest Dice score (90.50%) among
+    ment of up to 12.91% (TC) and HD95 reduction of over                              all compared methods, despite having a moderate number of
+    70%, benefiting from NSCT’s strong directional selectivity.                       parameters (36.01M) and computational cost (541.2 GFLOPs).
+    Our proposed DTCWT/NSCT combination with [1,4] fur-                               Notably, it outperforms models with significantly larger
+    ther improved performance across all regions, achieving Dice                      parameter sizes, such as TransUNet (105.28M) and nnUNet
+    scores of 96.16%, 95.56%, and 96.34% for ET, WT, and                              (28.5M), which achieve only 82.08% and 85.40% Dice,
+    TC, respectively, and the lowest HD95 values. This confirms                       respectively. In contrast, lightweight models like S2 CA-Net
+    that using DTCWT for LF ensures spatial stability and shift-                      and TransBTSV2 exhibit lower complexity but still lag behind
+    invariance, while NSCT for HF captures directional textures                       in accuracy, highlighting the effectiveness of HFF-Net’s dual-
+    effectively. Moreover, configurations with one decomposition                      branch frequency-aware architecture and attention mechanisms
+    level consistently outperformed two-level setups, as excessive                    in utilizing model capacity efficiently. Each bubble in the plot
+    decomposition introduces noise in relatively low-resolution                       represents a method, with its color uniquely assigned and
+    MRI volumes. Overall, balancing decomposition depth and                           its size proportional to GFLOPs, offering a visual depiction
+    orientation selectivity is essential for achieving accurate                       of computational demand. While HFF-Net balances perfor-
+    and robust segmentation. To further validate the rationale                        mance and complexity effectively, its relatively higher resource
+    and effectiveness of the proposed DTCWT-NSCT combina-                             requirements may limit deployment in resource-constrained
+    tion, we conducted a t-SNE analysis to visualize the feature                      clinical settings. Future work may focus on optimizing the
+    distributions generated by different frequency decomposition                      architecture to reduce complexity while preserving segmenta-
+    combinations, as shown in Figure 9 (b). Using DWT for                             tion quality.
+    both LF and HF components resulted in highly dispersed                                  b) Inference efficiency and clinical applicability: In time-
+    feature points with significant overlap between enhancing                         sensitive clinical environments, inference efficiency plays a
+    tumor (ET) and necrotic/non-enhancing tumor (NCR/NET),                            crucial role in supporting diagnostic decisions and real-
+    due to DWT’s lack of directional and scale selectivity.                           time interventions. As illustrated in Figure 10 (b), HFF-Net
+    In contrast, DTCWT–based decomposition yielded more com-                          achieves a throughput of 6.71 images per second and a GPU
+    pact clusters, benefiting from shift-invariance, though ET                        processing time of 159.3 ms per image, performing favorably
+    and NCR/NET remained poorly separated. Applying NSCT                              compared to models such as Swin UNETR (229.1 ms) and
+    to both bands led to improved distinction between ET                              TransBTS (245.9 ms). Although it is marginally less efficient
+    and NCR/NET, thanks to its multi-directional decomposi-                           than lightweight architectures like S2 CA-Net (117.3 ms) and
+    tion capability that captures fine texture and edge details,                      UNETR (86.4 ms), the substantial gain in accuracy justifies
+    albeit with slightly looser clustering for peritumoral edema                      the computational trade-off in many clinical contexts. The plot
+    (ED/SNFH). Notably, our DTCWT–NSCT hybrid strategy                                encodes GPU latency as bubble size and assigns a distinct
+    achieved the most compact and clearly separated clusters                          color to each model for clarity. Overall, HFF-Net demonstrates
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    4550                                                                          IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 11, NOVEMBER 2025
+
+
+
+
+                                                                                                                     TABLE X
+                                                                                       B ROAD -I MPACT Q UANTITATIVE A NALYSIS C OMPARING C LASSIC UN ET
+                                                                                            AND A 2D HFF-N ET VARIANT ACROSS D IVERSE M EDICAL
+                                                                                                              I MAGING M ODALITIES
+
+
+
+
+    Fig. 11. Visualization of failure cases to show how missing FLAIR
+    modality signals affect segmentation. Red arrows highlight areas of
+    significant deviation from the ground truth.
+
+
+
+
+    a strong balance between precision and efficiency, which can
+    reduce the need for manual correction and accelerate clinical
+    workflows. Nevertheless, for applications with strict real-time
+    constraints, such as intraoperative navigation or emergency
+    diagnosis, further improvements in inference speed are desir-
+    able to enhance its clinical versatility.
+       5) Failure Case Analysis: While HFF-Net achieves strong
+                                                                                      Fig. 12. Cross-domain segmentation on four 2D datasets shows that
+    overall performance, failure cases still occur under conditions                   our frequency-decoupled design generalizes across medical imaging
+    of abnormal or incomplete modality signals. As illustrated                        modalities by maintaining structural integrity and enhancing fine-grained
+    in Figure 11, we present two examples where segmentation                          boundaries.
+    errors arise due to partial corruption of the FLAIR modality.
+    In both cases, necrotic or enhancing tumor regions (red and                       where imperfect imaging data is the norm rather than the
+    blue) were misclassified as peritumoral edema (green). Such                       exception.
+    misclassifications occur because the FLAIR modality plays a                          6) Broader Impact Analysis: To further assess the generaliz-
+    pivotal role in highlighting edema with high signal intensity,                    ability and broader applicability of our frequency-decoupled
+    enabling clear discrimination from necrotic or non-enhancing                      framework, we implemented a two-dimensional variant of
+    regions. In contrast, T1 and T2 modalities alone exhibit limited                  HFF-Net and evaluated it on four public 2D medical
+    contrast for this purpose, making it difficult for the model to                   image segmentation datasets, each representing a distinct
+    reliably resolve the boundary between these subregions. This                      imaging modality. Specifically, we selected the CREMI
+    modality dependence becomes particularly problematic when                         dataset [110] for neuronal membrane segmentation from elec-
+    FLAIR signals are partially missing, blurred, or corrupted,                       tron microscopy images, the GlaS dataset [111] for gland
+    as observed in cases affected by motion artifacts, field-of-view                  segmentation in hematoxylin and eosin stained histopatho-
+    truncation, or acquisition anomalies.                                             logical slides, the ISIC2018 dataset [112] for skin lesion
+       From a representational standpoint, frequency decomposi-                       segmentation from dermoscopic photographs, and the Kvasir-
+    tion in the FDD module is modality-agnostic and applied                           SEG [113] dataset for polyp segmentation in colonoscopy
+    uniformly to all inputs. Consequently, when a key modality                        images. For the CREMI and GlaS datasets, we adopted the
+    like FLAIR is degraded, the decomposed frequency compo-                           official training and testing protocols as defined in prior
+    nents may no longer accurately reflect the expected anatomical                    benchmarks. For ISIC2018 and Kvasir-SEG, we randomly
+    structure, resulting in ambiguity during both training and                        divided the data into 80% training and 20% testing subsets.
+    inference. Moreover, as shown in the visualizations, the net-                     During training and inference, all input images were resized
+    work fails to preserve semantic separation between structurally                   to 256 × 256, and standard augmentations (flipping, rotation,
+    similar but pathologically distinct regions, particularly in                      transposition) were applied. Performance on all datasets was
+    volumetric renderings, where misclassified edema occupies                         reported using Dice and IoU [114] metrics for consistency and
+    spatially inconsistent and morphologically implausible zones.                     comparability.
+       These failure cases underscore the need for future models                         To ensure fair optimization across datasets, we used dataset-
+    to incorporate modality-aware mechanisms that can explicitly                      specific hyperparameter settings. For GlaS, the initial learning
+    detect and compensate for corrupted or missing input signals.                     rate was set to 0.4, with λmax = 6 and a batch size of 2.
+    Potential strategies include uncertainty modeling, attention                      For CREMI, we used a learning rate of 0.5, λmax = 1, and
+    masking, or plug-in robustness modules that learn adaptive                        a batch size of 2. For ISIC2018 and Kvasir-SEG, the initial
+    weighting schemes across modalities based on their reliability.                   learning rate was set to 0.5, λmax = 2, and the batch size
+    Integrating such mechanisms may enhance the generalizability                      was fixed at 2. All models were optimized using stochastic
+    of frequency-aware networks in realistic clinical settings,                       gradient descent (SGD) with momentum 0.9 and a weight
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    SHAO et al.: RETHINKING BRAIN TUMOR SEGMENTATION FROM THE FREQUENCY DOMAIN PERSPECTIVE                                                                      4551
+
+
+
+
+    decay of 5×10−5 . The 2D variant of HFF-Net retains the core                      space of segmentation methods, highlighting the continued rel-
+    frequency-aware architecture, replacing all 3D convolutions                       evance of frequency analysis in achieving robust, interpretable,
+    with their 2D counterparts and reducing the input to a single                     and modality-adaptive solutions.
+    modality. Additionally, the FDCA module was adapted by
+    omitting inter-slice attention components to suit the 2D setting.                                                  R EFERENCES
+       As shown in Table X and Figure 12, the 2D adaptation                             [1] E. G. Van Meir, C. G. Hadjipanayis, A. D. Norden, H. K. Shu,
+                                                                                            P. Y. Wen, and J. J. Olson, “Exciting new advances in neuro-oncology:
+    of our method consistently surpasses baseline UNet across                               The avenue to a cure for malignant glioma,” CA, A Cancer J. Clini-
+    four heterogeneous datasets, spanning electron microscopy,                              cians, vol. 60, no. 3, pp. 166–193, May 2010.
+    histology, dermoscopy, and endoscopy. On CREMI and GlaS,                            [2] B. H. Menze et al., “The multimodal brain tumor image segmentation
+                                                                                            benchmark (BRATS),” IEEE Trans. Med. Imag., vol. 34, no. 10,
+    our approach yields more coherent boundary localization and                             pp. 1993–2024, Dec. 2014.
+    lower HD95, reflecting improved modeling of anisotropic and                         [3] S. Pereira, A. Pinto, V. Alves, and C. A. Silva, “Brain tumor segmenta-
+    topology-sensitive structures. On ISIC2018 and Kvasir-SEG,                              tion using convolutional neural networks in MRI images,” IEEE Trans.
+                                                                                            Med. Imag., vol. 35, no. 5, pp. 1240–1251, May 2016.
+    it achieves superior lesion separation and contour regularity                       [4] B. M. Ellingson, P. Y. Wen, and T. F. Cloughesy, “Evidence and context
+    under diverse appearance conditions. These findings reinforce                           of use for contrast enhancement as a surrogate of disease burden and
+    the medical imaging modality agnostic and structurally adap-                            treatment response in malignant glioma,” Neuro-Oncology, vol. 20,
+                                                                                            no. 4, pp. 457–471, Mar. 2018.
+    tive nature of our frequency-aware architecture, validating that                    [5] Y. Y. Wang et al., “Patterns of tumor contrast enhancement predict
+    its benefits are not confined to volumetric MRI or neuro-                               the prognosis of anaplastic gliomas with IDH1 mutation,” Amer.
+    oncology applications. Instead, the explicit decomposition and                          J. Neuroradiology, vol. 36, no. 11, pp. 2023–2029, Nov. 2015.
+                                                                                        [6] Y. Li et al., “MRI features predict p53 status in lower-grade
+    disentanglement of directional and spectral representations                             gliomas via a machine-learning approach,” NeuroImage, Clin., vol. 17,
+    serve as a general strategy to address common challenges in                             pp. 306–311, Sep. 2018.
+    medical segmentation, namely low-contrast ambiguity, irreg-                         [7] A. Kunimatsu, K. Yasaka, H. Akai, H. Sugawara, N. Kunimatsu, and
+                                                                                            O. Abe, “Texture analysis in brain tumor MR imaging,” Magn. Reson.
+    ular morphology, and boundary discontinuity. More broadly,                              Med. Sci., vol. 21, no. 1, pp. 95–109, 2022.
+    this suggests that frequency-domain modeling may offer a                            [8] A. Kassner and R. E. Thornhill, “Texture analysis: A review of
+    foundational design principle for next-generation segmentation                          neurologic MR imaging applications,” Amer. J. Neuroradiology, vol. 31,
+                                                                                            no. 5, pp. 809–816, May 2010.
+    frameworks, capable of generalizing across anatomical targets,                      [9] E. I. Zacharaki et al., “Classification of brain tumor type and grade
+    imaging protocols, and clinical use cases.                                              using MRI texture and shape in a machine learning scheme,” Magn.
+                                                                                            Reson. Med., vol. 62, no. 6, pp. 1609–1618, Dec. 2009.
+                                                                                       [10] C. Csutak et al., “Differentiating high-grade gliomas from brain
+                  V. C ONCLUSION AND F UTURE W ORK                                          metastases at magnetic resonance: The role of texture analysis of the
+                                                                                            peritumoral zone,” Brain Sci., vol. 10, no. 9, p. 638, Sep. 2020.
+       In this work, we proposed HFF-Net, a segmentation                               [11] T. Kaur, B. S. Saini, and S. Gupta, “Quantitative metric for MR brain
+                                                                                            tumour grade classification using sample space density measure of
+    framework that leverages frequency-domain decomposition                                 analytic intrinsic mode function representation,” IET Image Process.,
+    to effectively capture the complex textures and directional                             vol. 11, no. 8, pp. 620–632, Aug. 2017.
+    structures inherent in brain tumor MRI. Although our                               [12] Qurat-Ul-Ain, G. Latif, S. B. Kazmi, M. A. Jaffar, and A. M. Mirza,
+                                                                                            “Classification and segmentation of brain tumor using texture analysis,”
+    model demonstrates significant improvement in segmenting                                in Recent Advances in Artificial Intelligence, Knowledge Engineer-
+    contrast-enhancing tumor regions by explicitly integrat-                                ing and Data Bases. Athens, Greece: WSEAS Press, Feb. 2010,
+    ing low- and high-frequency features, challenges remain                                 pp. 147–155.
+                                                                                       [13] F. Davnall et al., “Assessment of tumor heterogeneity: An emerging
+    regarding robustness to partially corrupted or incomplete                               imaging tool for clinical practice?” Insights Imag., vol. 3, no. 6,
+    imaging modalities, as highlighted by our failure analysis.                             pp. 573–589, Dec. 2012.
+    Future research could explore advanced approaches such                             [14] N. Soni, S. Priya, and G. Bathla, “Texture analysis in cerebral gliomas:
+                                                                                            A review of the literature,” Amer. J. Neuroradiology, vol. 40, no. 6,
+    as modality-adaptive or missing-modality-aware strategies to                            pp. 928–934, Jun. 2019.
+    address these limitations, potentially incorporating uncertainty                   [15] U. N. Hoang et al., “Assessment of multiphasic contrast-enhanced
+    modeling to enhance reliability in clinically realistic scenar-                         MR textures in differentiating small renal mass subtypes,” Abdominal
+                                                                                            Radiol., vol. 43, pp. 3400–3409, Dec. 2018.
+    ios. Additionally, while HFF-Net achieves a strong balance                         [16] K. Skogen, A. Schulz, J. B. Dormagen, B. Ganeshan, E. Helseth, and
+    between segmentation accuracy and computational efficiency,                             A. Server, “Diagnostic performance of texture analysis on MRI in
+    optimizing the model architecture to further reduce computa-                            grading cerebral gliomas,” Eur. J. Radiol., vol. 85, no. 4, pp. 824–829,
+                                                                                            Apr. 2016.
+    tional demands would significantly facilitate its deployment                       [17] Y. Yu et al., “Characterizing brain tumor regions using texture anal-
+    in resource-limited clinical environments. Extending this                               ysis in magnetic resonance imaging,” Frontiers Neurosci., vol. 15,
+    frequency-domain approach beyond brain MRI to other modal-                              Jun. 2021, Art. no. 634926.
+                                                                                       [18] G. Litjens et al., “A survey on deep learning in medical image analysis,”
+    ities and anatomical structures presents another promising                              Med. Image Anal., vol. 42, pp. 60–88, Dec. 2017.
+    avenue, potentially broadening its clinical utility and impact                     [19] Y. Yang and S. Soatto, “FDA: Fourier domain adaptation for semantic
+    across diverse medical imaging applications.                                            segmentation,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recog-
+                                                                                            nit. (CVPR), Jun. 2020, pp. 4085–4095.
+       This study situates frequency-domain modeling within the                        [20] Z. Liu et al., “Deep learning based brain tumor segmentation: A
+    broader landscape of medical image segmentation, offering a                             survey,” Complex Intell. Syst., vol. 9, no. 1, pp. 1001–1026, Feb. 2023.
+    principled alternative to prevailing spatial-domain approaches.                    [21] G. P. Mazzara, R. P. Velthuizen, J. L. Pearlman, H. M. Greenberg, and
+                                                                                            H. Wagner, “Brain tumor target volume determination for radiation
+    By integrating classical signal decomposition techniques into                           treatment planning through automated MRI segmentation,” Int. J.
+    a deep learning framework, our method complements exist-                                Radiat. Oncol. Biol. Phys., vol. 59, no. 1, pp. 300–312, May 2004.
+    ing architectures with enhanced representation of anatomical                       [22] B. M. Ellingson et al., “Baseline pretreatment contrast enhancing tumor
+                                                                                            volume including central necrosis is a prognostic factor in recurrent
+    texture and directionality. Beyond performance gains, this                              glioblastoma: Evidence from single and multicenter trials,” Neuro-
+    work contributes a novel perspective that expands the design                            Oncology, vol. 19, no. 1, pp. 89–98, Jan. 2017.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    4552                                                                          IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 44, NO. 11, NOVEMBER 2025
+
+
+
+
+      [23] M. Hajiabadi, B. A. Savareh, H. Emami, and A. Bashiri, “Comparison          [44] Z. Jiang, C. Ding, M. Liu, and D. Tao, “Two-stage cascaded U-net: 1st
+           of wavelet transformations to enhance convolutional neural network               place solution to BraTS challenge 2019 segmentation task,” in Proc. Int.
+           performance in brain tumor segmentation,” BMC Med. Informat. Decis.              MICCAI Brainlesion Workshop, Shenzhen, China. Cham, Switzerland:
+           Making, vol. 21, no. 1, pp. 1–11, Dec. 2021.                                     Springer, 2019, pp. 231–241.
+      [24] L. Qiong, L. Chaofan, T. Jinnan, C. Liping, and S. Jianxiang, “Medical      [45] D. Liu, N. Sheng, T. He, W. Wang, J. Zhang, and J. Zhang, “SGEResU-
+           image segmentation based on frequency domain decomposition SVD                   Net for brain tumor segmentation,” Math. Biosci. Eng., vol. 19, no. 6,
+           linear attention,” Sci. Rep., vol. 15, no. 1, p. 2833, Jan. 2025.                pp. 5576–5590, 2022.
+      [25] V. Kumar Singh et al., “Prior wavelet knowledge for multi-modal             [46] Z. Zhao, H. Yang, and J. Sun, “Modality-adaptive feature interaction for
+           medical image segmentation using a lightweight neural network with               brain tumor segmentation with missing modalities,” in Proc. MICCAI.
+           attention guided features,” Exp. Syst. Appl., vol. 209, Dec. 2022,               Cham, Switzerland: Springer, 2022, pp. 183–192.
+           Art. no. 118166.                                                            [47] J. Chen et al., “TransUNet: Transformers make strong encoders for
+      [26] Y. Peng, M. Sonka, and D. Z. Chen, “Spectral U-net: Enhanc-                      medical image segmentation,” 2021, arXiv:2102.04306.
+           ing medical image segmentation via spectral decomposition,” 2024,           [48] A. Dosovitskiy et al., “An image is worth 16×16 words: Transformers
+           arXiv:2409.09216.                                                                for image recognition at scale,” 2020, arXiv:2010.11929.
+      [27] L. Garia and H. Muthusamy, “Dual-tree complex wavelet pooling               [49] H. Jia, B. Chao, W. Cai, H. Huang, and Y. Xia, “HNF-Netv2 for
+           and attention-based modified U-net architecture for automated breast             brain tumor segmentation using multi-modal MR imaging,” in Proc.
+           thermogram segmentation and classification,” J. Imag. Informat. Med.,            Int. MICCAI Brainlesion Workshop. Cham, Switzerland: Springer,
+           vol. 38, no. 2, pp. 887–901, Sep. 2025.                                          Jan. 2022, pp. 106–115.
+                                                                                       [50] B. Yu et al., “SA-LuT-nets: Learning sample-adaptive intensity lookup
+      [28] R. Darooei, M. Nazari, R. Kafieh, and H. Rabbani, “Optimal deep
+                                                                                            tables for brain tumor segmentation,” IEEE Trans. Med. Imag., vol. 40,
+           learning architecture for automated segmentation of cysts in OCT
+                                                                                            no. 5, pp. 1417–1427, May 2021.
+           images using X-let transforms,” Diagnostics, vol. 13, no. 12, p. 1994,      [51] Q. Qiao, W. Wang, M. Qu, K. Su, B. Jiang, and Q. Guo, “Medi-
+           Jun. 2023.                                                                       cal image segmentation via single-source domain generalization with
+      [29] S. A. Agnes, A. A. Solomon, and K. Karthick, “Wavelet U-Net++                    random amplitude spectrum synthesis,” in Proc. Int. Conf. Med. Image
+           for accurate lung nodule segmentation in CT scans: Improving early               Comput. Comput.-Assist. Intervent. Cham, Switzerland: Springer, 2024,
+           detection and diagnosis of lung cancer,” Biomed. Signal Process.                 pp. 435–445.
+           Control, vol. 87, Jan. 2024, Art. no. 105509.                               [52] M. F. Ahamed et al., “A review on brain tumor segmentation based on
+      [30] Y. Zhao, S. Wang, Y. Zhang, S. Qiao, and M. Zhang, “WRANet:                      deep learning methods with federated learning techniques,” Computer-
+           Wavelet integrated residual attention U-net network for medical image            ized Med. Imag. Graph., vol. 110, Dec. 2023, Art. no. 102313.
+           segmentation,” Complex Intell. Syst., vol. 9, no. 6, pp. 6971–6983,         [53] Z. Liu, C. Ma, W. She, and M. Xie, “Innovative multi-class segmen-
+           Dec. 2023.                                                                       tation for brain tumor MRI using noise diffusion probability models
+      [31] H. Lu, H. Wang, Q. Zhang, D. Won, and S. W. Yoon, “A dual-tree                   and enhancing tumor boundary recognition,” Sci. Rep., vol. 14, no. 1,
+           complex wavelet transform based convolutional neural network for                 p. 29576, Nov. 2024.
+           human thyroid medical image segmentation,” in Proc. IEEE Int. Conf.         [54] K. Xu, M. Qin, F. Sun, Y. Wang, Y.-K. Chen, and F. Ren, “Learning in
+           Healthcare Informat. (ICHI), Jun. 2018, pp. 191–198.                             the frequency domain,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern
+      [32] Z. Wang, X. Li, H. Duan, Y. Su, X. Zhang, and X. Guan,                           Recognit. (CVPR), Jun. 2020, pp. 1740–1749.
+           “Medical image fusion based on convolutional neural networks and            [55] X. Li, Y. Zhang, J. Yuan, H. Lu, and Y. Zhu, “Discrete cosin trans-
+           non-subsampled contourlet transform,” Exp. Syst. Appl., vol. 171,                former: Image modeling from frequency domain,” in Proc. IEEE/CVF
+           Jun. 2021, Art. no. 114574.                                                      Winter Conf. Appl. Comput. Vis., Jan. 2023, pp. 5468–5478.
+      [33] B. Badjie and E. D. Ülker, “A deep transfer learning based architecture     [56] C. Liu, W. Xiang, Y. He, H. Xue, S. Zheng, and H. Su, “Improving
+           for brain tumor classification using MR images,” Inf. Technol. Control,          model generalization by on-manifold adversarial augmentation in the
+           vol. 51, no. 2, pp. 332–344, Jun. 2022.                                          frequency domain,” 2023, arXiv:2302.14302.
+      [34] S. Z. Kurdi, M. H. Ali, M. M. Jaber, T. Saba, A. Rehman, and                [57] Z. Zhu and R. Soricut, “Wavelet-based image tokenizer for vision
+           R. Damaševičius, “Brain tumor classification using meta-heuristic opti-         transformers,” 2024, arXiv:2405.18616.
+           mized convolutional neural networks,” J. Personalized Med., vol. 13,        [58] L. Jiang, B. Dai, W. Wu, and C. C. Loy, “Focal frequency loss for image
+           no. 2, p. 181, Jan. 2023.                                                        reconstruction and synthesis,” in Proc. IEEE/CVF Int. Conf. Comput.
+      [35] M. A. Khan et al., “Multimodal brain tumor detection and classifi-               Vis. (ICCV), Oct. 2021, pp. 13919–13929.
+           cation using deep saliency map and improved dragonfly optimization          [59] H. Phung, Q. Dao, and A. Tran, “Wavelet diffusion models are fast
+           algorithm,” Int. J. Imag. Syst. Technol., vol. 33, no. 2, pp. 572–587,           and scalable image generators,” in Proc. IEEE/CVF Conf. Comput.
+           Mar. 2023.                                                                       Vis. Pattern Recognit. (CVPR), Jun. 2023, pp. 10199–10208.
+      [36] S. Maqsood, R. Damasevicius, and F. M. Shah, “An efficient approach         [60] D. Fuoli, L. Van Gool, and R. Timofte, “Fourier space losses for
+           for the detection of brain tumor using fuzzy logic and U-NET CNN                 efficient perceptual image super-resolution,” in Proc. IEEE/CVF Int.
+           classification,” in Proc. Int. Conf. Comput. Sci. Appl., vol. 12953,             Conf. Comput. Vis. (ICCV), Oct. 2021, pp. 2360–2369.
+                                                                                       [61] T. Liu, J. Cheng, and S. Tan, “Spectral Bayesian uncertainty for
+           Cagliari, Italy. Cham, Switzerland: Springer, 2021, pp. 105–118.
+                                                                                            image super-resolution,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern
+      [37] V. Rajinikanth, S. Kadry, R. Damaševicius, R. A. Sujitha, G. Balaji, and
+                                                                                            Recognit., Oct. 2023, pp. 18166–18175.
+           M. A. Mohammed, “Glioma/glioblastoma detection in brain MRI using
+                                                                                       [62] F. Gao, X. Wang, Y. Gao, J. Dong, and S. Wang, “Sea ice change detec-
+           pre-trained deep-learning scheme,” in Proc. 3rd Int. Conf. Intell. Com-
+                                                                                            tion in SAR images based on convolutional-wavelet neural networks,”
+           put. Instrum. Control Technol. (ICICICT), Aug. 2022, pp. 987–990.
+                                                                                            IEEE Geosci. Remote Sens. Lett., vol. 16, no. 8, pp. 1240–1244,
+      [38] Ö. Çiçek, A. Abdulkadir, S. S. Lienkamp, T. Brox, and O. Ronneberger,            Aug. 2019.
+           “3D U-net: Learning dense volumetric segmentation from sparse anno-         [63] Y. Zhou, J. Huang, C. Wang, L. Song, and G. Yang, “XNet:
+           tation,” in Proc. Int. Conf. Med. Image Comput. Comput.-Assist. Interv.,         Wavelet-based low and high frequency fusion networks for fully-and
+           Athens, Greece. Cham, Switzerland: Springer, 2016, pp. 424–432.                  semi-supervised semantic segmentation of biomedical images,” in Proc.
+      [39] F. Isensee, P. F. Jaeger, S. A. A. Kohl, J. Petersen, and K. H. Maier-           IEEE/CVF Int. Conf. Comput. Vis., Jul. 2023, pp. 21085–21096.
+           Hein, “NnU-Net: A self-configuring method for deep learning-based           [64] S. M. Azimi, P. Fischer, M. Körner, and P. Reinartz, “Aerial
+           biomedical image segmentation,” Nature Methods, vol. 18, no. 2,                  LaneNet: Lane-marking semantic segmentation in aerial imagery using
+           pp. 203–211, Feb. 2021.                                                          wavelet-enhanced cost-sensitive symmetric fully convolutional neu-
+      [40] A. Hatamizadeh et al., “UNETR: Transformers for 3D medical image                 ral networks,” IEEE Trans. Geosci. Remote Sens., vol. 57, no. 5,
+           segmentation,” in Proc. IEEE/CVF Winter Conf. Appl. Comput. Vis.                 pp. 2920–2938, May 2019.
+           (WACV), Jan. 2022, pp. 574–584.                                             [65] D. Ji, F. Zhao, H. Lu, F. Wu, and J. Ye, “Structural and statistical texture
+      [41] O. Oktay et al., “Attention U-net: Learning where to look for the                knowledge distillation and learning for segmentation,” IEEE Trans.
+           pancreas,” 2018, arXiv:1804.03999.                                               Pattern Anal. Mach. Intell., vol. 47, no. 5, pp. 3639–3656, May 2025.
+      [42] Z. Zhang, Q. Liu, and Y. Wang, “Road extraction by deep residual            [66] Y. Lu and M. N. Do, “A new contourlet transform with sharp fre-
+           U-net,” IEEE Geosci. Remote Sens. Lett., vol. 15, pp. 749–753, 2018.             quency localization,” in Proc. Int. Conf. Image Process., Oct. 2006,
+      [43] A. Shaker, M. Maaz, H. Rasheed, S. Khan, M.-H. Yang, and F. S. Khan,             pp. 1629–1632.
+           “UNETR++: Delving into efficient and accurate 3D medical image              [67] A. L. Da Cunha, J. Zhou, and M. N. Do, “The nonsubsampled
+           segmentation,” IEEE Trans. Med. Imag., vol. 43, no. 9, pp. 3377–3390,            contourlet transform: Theory, design, and applications,” IEEE Trans.
+           Sep. 2024.                                                                       Image Process., vol. 15, no. 10, pp. 3089–3101, May 2006.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+    SHAO et al.: RETHINKING BRAIN TUMOR SEGMENTATION FROM THE FREQUENCY DOMAIN PERSPECTIVE                                                                        4553
+
+
+
+
+      [68] Z. Huang, S. Jiang, Z. Yang, Y. Ding, W. Wang, and Y. Yu, “Automatic          [93] A. Myronenko and A. Hatamizadeh, “Robust semantic segmentation of
+           multi-organ segmentation of prostate magnetic resonance images using               brain tumor regions from 3D MRIs,” in Proc. Int. MICCAI Brainlesion
+           watershed and nonsubsampled contourlet transform,” Biomed. Signal                  Workshop. Springer, Jan. 2020, pp. 82–89.
+           Process. Control, vol. 25, pp. 53–61, Mar. 2016.                              [94] M. H. Vu, T. Nyholm, and T. Löfstedt, “TuNet: End-to-end hierarchical
+      [69] A. Heshmati, M. Gholami, and A. Rashno, “Scheme for unsupervised                   brain tumor segmentation using cascaded networks,” in Proc. Brainle-
+           colour-texture image segmentation using neutrosophic set and nonsub-               sion: Glioma, Multiple Sclerosis, Stroke Traumatic Brain Injuries: 5th
+           sampled contourlet transform,” IET Image Process., vol. 10, no. 6,                 Int. Workshop, BrainLes Held Conjunct (MICCAI), Shenzhen, China.
+           pp. 464–473, 2016.                                                                 Cham, Switzerland: Springer, Oct. 2019, pp. 174–186.
+      [70] P. N. Reddy, C. M. Rao, and C. Satyanarayana, “Brain MR image                 [95] J. M. J. Valanarasu, V. A. Sindagi, I. Hacihaliloglu, and V. M. Patel,
+           segmentation by modified active contours and contourlet transform,”                “KiU-net: Towards accurate segmentation of biomedical images using
+           ICTACT J. Image Video Process., vol. 8, no. 2, pp. 1645–1650, 2017.                over-complete representations,” in Proc. Int. Conf. Med. image Com-
+      [71] C. I. Gonzalez et al., “Edge detection methods and filters used on digital         put. Comput.-Assist. Intervent. Cham, Switzerland: Springer, 2020,
+           image processing,” in Edge Detection Methods Based on Generalized                  pp. 363–373.
+           Type-2 Fuzzy Logic, 2017, pp. 11–16.                                          [96] W. Wang, C. Chen, J. Wang, S. Zha, Y. Zhang, and J. Li, “Med-
+      [72] L. Wang, X. Zhang, H. Su, and J. Zhu, “A comprehensive survey                      DANet: Dynamic architecture network for efficient medical volumetric
+           of continual learning: Theory, method and application,” IEEE Trans.                segmentation,” in Proc. Eur. Conf. Comput. Vis. Cham, Switzerland:
+           Pattern Anal. Mach. Intell., vol. 46, no. 8, pp. 5362–5383, Aug. 2024.             Springer, Jan. 2022, pp. 506–522.
+      [73] X. Zhao et al., “Prior attention network for multi-lesion segmenta-           [97] B. Wu et al., “E2ENet: Dynamic sparse feature fusion for accurate
+           tion in medical images,” IEEE Trans. Med. Imag., vol. 41, no. 12,                  and efficient 3D medical image segmentation,” in Proc. Adv. Neural
+           pp. 3812–3823, Dec. 2022.                                                          Inf. Process. Syst., vol. 37. Red Hook, NY, USA: Curran Associates,
+      [74] A. Cohen and I. Daubechies, “Non-separable bidimensional wavelet                   Jan. 2023, pp. 118483–118512.
+           bases,” Revista Matematica Iberoamericana, vol. 9, no. 1, pp. 51–137,         [98] A. Hatamizadeh, V. Nath, Y. Tang, D. Yang, H. R. Roth, and D. Xu,
+           Apr. 1993.                                                                         “Swin UNETR: Swin transformers for semantic segmentation of brain
+      [75] F. Milletari, N. Navab, and S. Ahmadi, “V-Net: Fully convolutional                 tumors in MRI images,” in Proc. Int. MICCAI Brainlesion Workshop.
+           neural networks for volumetric medical image segmentation,” in Proc.               Springer, 2021, pp. 272–284.
+           4th Int. Conf. 3D Vis. (3DV), Oct. 2016, pp. 565–571.                         [99] S. Roy et al., “MedNeXt: Transformer-driven scaling of ConvNets for
+      [76] D. LaBella et al., “The ASNR-MICCAI brain tumor segmen-                            medical image segmentation,” in Proc. Int. Conf. Med. Image Comput.
+           tation (BraTS) challenge 2023: Intracranial meningioma,” 2023,                     Comput.-Assist. Intervent. Cham, Switzerland: Springer, Jan. 2023,
+           arXiv:2305.07642.                                                                  pp. 405–415.
+      [77] M. Antonelli et al., “The medical segmentation decathlon,” Nat. Com-         [100] J. Lin et al., “CKD-TransBTS: Clinical knowledge-driven hybrid
+           mun., vol. 13, no. 1, p. 4128, 2022.                                               transformer with modality-correlated cross-attention for brain tumor
+      [78] S. Bakas et al., “Advancing the cancer genome atlas glioma MRI                     segmentation,” IEEE Trans. Med. Imag., vol. 42, no. 8, pp. 2451–2461,
+           collections with expert segmentation labels and radiomic features,” Sci.           Aug. 2023.
+           Data, vol. 4, no. 1, pp. 1–13, Sep. 2017.                                    [101] Y. He, V. Nath, D. Yang, Y. Tang, A. Myronenko, and D. Xu,
+      [79] S. Bakas et al., “Identifying the best machine learning algorithms for             “SwinUNETR-v2: Stronger Swin transformers with stagewise convo-
+           brain tumor segmentation, progression assessment, and overall survival             lutions for 3D medical image segmentation,” in Proc. Int. Conf. Med.
+           prediction in the BRATS challenge,” 2018, arXiv:1811.02629.                        Image Comput. Comput.-Assist. Intervent. Cham, Switzerland: Cham,
+      [80] K. He, X. Zhang, S. Ren, and J. Sun, “Delving deep into rectifiers:                Switzerland: Springer, Jan. 2023, pp. 416–426.
+                                                                                        [102] Z. Xing, Y. Tian, Y. Yang, G. Liu, and L. Zhu, “SegMamba: Long-range
+           Surpassing human-level performance on ImageNet classification,” in
+                                                                                              sequential modeling mamba for 3D medical image segmentation,” in
+           Proc. IEEE Int. Conf. Comput. Vis., Dec. 2015, pp. 1026–1034.
+                                                                                              Proc. Int. Conf. Med. Image Comput. Comput.-Assist. Intervent. Cham,
+      [81] J. Zhang, Y. Xie, Y. Wang, and Y. Xia, “Inter-slice context residual
+                                                                                              Switzerland: Springer, Jan. 2024, pp. 578–588.
+           learning for 3D medical image segmentation,” IEEE Trans. Med. Imag.,
+                                                                                        [103] Z. Xiong et al., “A global benchmark of algorithms for segmenting the
+           vol. 40, no. 2, pp. 661–672, Feb. 2021.
+                                                                                              left atrium from late gadolinium-enhanced cardiac magnetic resonance
+      [82] W. Wang, C. Chen, M. Ding, H. Yu, S. Zha, and J. Li, “Trans-
+                                                                                              imaging,” Med. Image Anal., vol. 67, Jan. 2021, Art. no. 101832.
+           BTS: Multimodal brain tumor segmentation using transformer,” in
+                                                                                        [104] X. Luo, J. Chen, T. Song, and G. Wang, “Semi-supervised medical
+           Proc. Int. Conf. Med. Image Comput. Comput.-Assist. Intervent., 2021,
+                                                                                              image segmentation through dual-task consistency,” in Proc. AAAI
+           pp. 109–119.
+                                                                                              Conf. Artif. Intell., 2021, vol. 35, no. 10, pp. 8801–8809.
+      [83] H. Peiris, M. Hayat, Z. Chen, G. Egan, and M. Harandi, “A robust             [105] P. Bilic et al., “The liver tumor segmentation benchmark (LiTS),” Med.
+           volumetric transformer for accurate 3D tumor segmentation,” in Proc.               Image Anal., vol. 84, Nov. 2022, Art. no. 102680.
+           Int. Conf. Med. Image Comput. Comput.-Assist. Intervent. Cham,               [106] J. Wang and T. Lukasiewicz, “Rethinking Bayesian deep learning
+           Switzerland: Springer, 2022, pp. 162–172.                                          methods for semi-supervised volumetric medical image segmentation,”
+      [84] L. Zhou, Y. Jiang, W. Li, J. Hu, and S. Zheng, “Shape-scale co-                    in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR),
+           awareness network for 3D brain tumor segmentation,” IEEE Trans.                    Jun. 2022, pp. 182–190.
+           Med. Imag., vol. 43, no. 7, pp. 2495–2508, Jul. 2024.                        [107] R. R. Selvaraju, M. Cogswell, A. Das, R. Vedantam, D. Parikh, and
+      [85] S. Zheng et al., “Rethinking semantic segmentation from a sequence-                D. Batra, “Grad-CAM: Visual explanations from deep networks via
+           to-sequence perspective with transformers,” in Proc. IEEE/CVF Conf.                gradient-based localization,” in Proc. IEEE Int. Conf. Comput. Vis.
+           Comput. Vis. Pattern Recognit., Jun. 2021, pp. 6881–6890.                          (ICCV), Oct. 2017, pp. 618–626.
+      [86] Y. Xie, J. Zhang, C. Shen, and Y. Xia, “CoTr: Efficiently bridging           [108] W. Zhou, A. C. Bovik, H. R. Sheikh, and E. P. Simoncelli, “Image
+           CNN and transformer for 3D medical image segmentation,” in Proc.                   quality assessment: From error visibility to structural similarity,” IEEE
+           MICCAI, Strasbourg, France. Springer, 2021, pp. 171–180.                           Trans. Image Process., vol. 13, pp. 600–612, 2004.
+      [87] H.-Y. Zhou, J. Guo, Y. Zhang, L. Yu, L. Wang, and Y. Yu,                     [109] L. V. D. Maaten and G. E. Hinton, “Visualizing data using t-SNE,”
+           “nnFormer: Interleaved transformer for volumetric segmentation,”                   J. Mach. Learn. Res., vol. 9, no. 86, pp. 2579–2605, Jan. 2008.
+           2021, arXiv:2109.03201.                                                      [110] J. Funke, S. Saalfeld, and A. Cardona, “CREMI: Challenge on circuit
+      [88] W. Yu, B. Fang, Y. Liu, M. Gao, S. Zheng, and Y. Wang, “Liver vessels              reconstruction from electron microscopy images,” in Proc. Work-
+           segmentation based on 3D residual U-NET,” in Proc. IEEE Int. Conf.                 shop Connectomics (MICCA), 2016. [Online]. Available: https://cremi.
+           Image Process. (ICIP), Sep. 2019, pp. 250–254.                                     org/data
+      [89] H. Cao et al., “Swin-Unet: Unet-like pure transformer for medical            [111] K. Sirinukunwattana et al., “Gland segmentation in colon histology
+           image segmentation,” in Proc. Eur. Conf. Comput. Vis. Springer, 2022,              images: The GlaS challenge contest,” Med. Image Anal., vol. 35,
+           pp. 205–218.                                                                       pp. 489–502, Jan. 2017.
+      [90] J. M. J. Valanarasu and V. M. Patel, “UNeXt: MLP-based rapid medical         [112] N. Codella et al., “Skin lesion analysis toward melanoma detection
+           image segmentation network,” in Proc. MICCAI. Cham, Switzerland:                   2018: A challenge hosted by the international skin imaging collabora-
+           Springer, 2022, pp. 23–33.                                                         tion (ISIC),” 2019, arXiv:1902.03368.
+      [91] J. Li et al., “TransBTSV2: Wider instead of deeper transformer for           [113] D. Jha et al., “Kvasir-SEG: A segmented polyp dataset,” in Proc. Int.
+           medical image segmentation,” 2022, arXiv:2201.12785.                               Conf. Multimedia Modeling, vol. 2. Springer, 2019, pp. 451–462.
+      [92] Y.-X. Zhao, Y.-M. Zhang, and C.-L. Liu, “Bag of tricks for 3D                [114] P. Jaccard, “Etude comparative de La distribution florale dans une
+           MRI brain tumor segmentation,” in Proc. Int. MICCAI Brainlesion                    portion des Alpes et des Jura,” Bull. Soc. Vaudoise Sci. Nat., vol. 37,
+           Workshop. Cham, Switzerland: Springer, 2019, pp. 210–220.                          pp. 547–579, Jan. 1901.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:47 UTC from IEEE Xplore. Restrictions apply.
+

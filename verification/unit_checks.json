@@ -1,0 +1,58 @@
+[
+  {
+    "name": "check_labels_and_splits",
+    "seconds": 0.0032993000058922917,
+    "status": "passed"
+  },
+  {
+    "name": "check_gaussian_and_haar",
+    "seconds": 0.016387800002121367,
+    "status": "passed"
+  },
+  {
+    "name": "check_availability_and_anchor",
+    "seconds": 0.007220700004836544,
+    "status": "passed"
+  },
+  {
+    "name": "check_fusion_and_stability",
+    "seconds": 0.0074327000038465485,
+    "status": "passed"
+  },
+  {
+    "name": "check_utility_sign_and_detachment",
+    "seconds": 0.0027958999999100342,
+    "status": "passed"
+  },
+  {
+    "name": "check_model_and_gradients",
+    "seconds": 0.4809594999969704,
+    "status": "passed"
+  },
+  {
+    "name": "check_frozen_stage_and_roundtrip",
+    "seconds": 0.42880670000158716,
+    "status": "passed"
+  },
+  {
+    "name": "check_patch_stream_and_metrics",
+    "seconds": 0.018238999997265637,
+    "status": "passed"
+  },
+  {
+    "name": "check_sliding_identity_and_leakage",
+    "seconds": 0.16835859999991953,
+    "status": "passed"
+  },
+  {
+    "name": "check_json_and_registry",
+    "seconds": 1.8868019000074128,
+    "status": "passed"
+  },
+  {
+    "name": "check_nifti_adapter",
+    "reason": "nibabel not installed in local CPU environment",
+    "seconds": 0.0004980000085197389,
+    "status": "blocked"
+  }
+]

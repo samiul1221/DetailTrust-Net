@@ -1,0 +1,975 @@
+    IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 37, NO. 5, MAY 2026                                                                         2121
+
+
+
+
+                         DCTC-Net: Dual-Branch Cross-Fusion
+                          Transformer–CNN Architecture for
+                             Medical Image Segmentation
+                                                                             Rui Sun
+
+
+
+       Abstract—Hybrid architectures that combine convolutional                       diagnosis, patient condition analysis, image-guided surgery,
+    neural networks (CNNs) with Transformers have emerged as                          tissue and organ reconstruction, and treatment planning. Com-
+    a promising approach for medical image segmentation. How-                         pared to natural RGB images, medical images often exhibit
+    ever, existing networks based on this hybrid architecture often
+    encounter two challenges. First, while the CNN branch effectively                 high-density noise, low contrast, and blurred edges. Thus,
+    captures local image features through convolution operations,                     the challenge of rapidly and accurately segmenting specific
+    vanilla convolution lacks the ability to achieve adaptive fea-                    human organs and lesions from medical images remains a
+    ture extraction. Second, although the Transformer branch can                      major hurdle in the field of smart medicine.
+    model global image information, conventional self-attention (SA)                     Traditional methods for medical image segmentation ini-
+    primarily focuses on spatial relationships, neglecting channel
+    and cross-dimensional attention, leading to suboptimal segmen-                    tially relied on handcrafted features developed by medical
+    tation results, particularly for medical images with complex                      experts based on their domain expertise [3]. These methods,
+    backgrounds. To address these limitations, we propose a dual-                     while possessing a strong mathematical basis and theoretical
+    branch cross-fusion Transformer–CNN architecture for medical                      support, often suffer from poor generalization abilities when
+    image segmentation (DCTC-Net). Our network provides two key                       applied to different organs or lesions in the human body. Later,
+    advantages. First, a dynamic deformable convolution (DDConv)
+    is integrated into the CNN branch to overcome the limitations                     inspired by fully convolutional networks (FCNs) [4] and the
+    of adaptive feature extraction with fixed-size convolution ker-                   encoder–decoder paradigm, Ronneberger et al. [1] designed
+    nels and also eliminate the issue of shared convolution kernel                    the U-Net, which was first applied to medical image segmen-
+    parameters across different inputs, significantly enhancing the                   tation. Since then, the U-shaped encoder–decoder structure
+    feature expression capabilities of the CNN branch. Second,                        has garnered widespread attention. The small parameter count
+    a (shifted)-window adaptive complementary attention module
+    ((S)W-ACAM) and compact convolutional projection are incor-                       and effective segmentation performance of the U-Net have
+    porated into the Transformer branch, enabling the network to                      enabled deep learning to achieve breakthroughs in the field
+    comprehensively learn cross-dimensional long-range dependen-                      of medical image segmentation. Subsequently, a variety of
+    cies in medical images. Experimental results demonstrate that the                 improved medical image segmentation networks have been
+    proposed DCTC-Net achieves superior medical image segmenta-                       developed, such as 2-D U-Net++ [5], ResDO-UNet [6], SGU-
+    tion performance compared to state-of-the-art (SOTA) methods,
+    including CNN and Transformer networks. In addition, our                          Net [7], 2.5-D RIU-Net [8], 3-D Unet [9], and V-Net [10]. The
+    DCTC-Net requires fewer parameters and lower computational                        rapid advancement of convolutional neural networks (CNNs)
+    costs and does not rely on pretraining.                                           in medical image segmentation is mainly attributable to the
+       Index Terms—Deep learning, dynamic deformable convolution                      scale invariance and inductive bias inherent in the convolution
+    (DDConv), medical image segmentation, (shifted)-window adap-                      operation. However, the fixed receptive field limits CNNs’
+    tive complementary attention.                                                     ability to effectively capture long-range spatial dependencies
+                                                                                      among pixels in medical images.
+                               I. I NTRODUCTION                                          To address the limitations of CNNs in capturing global
+                                                                                      dependencies, Vaswani et al. [11] proposed the Transformer
+    M       EDICAL image segmentation involves partitioning a
+            medical image into distinct regions with unique char-
+    acteristics. Accurate medical image segmentation can not
+                                                                                      architecture originally for natural language processing (NLP),
+                                                                                      which was later adapted for image analysis. By leveraging
+    only facilitate abnormal detection in human body regions but                      self-attention (SA) mechanisms and long-range dependence
+    also guide clinicians. Consequently, precise medical image                        modeling, Transformers effectively overcome the problem of
+    segmentation has become a key component of computer-aided                         CNNs being limited to local feature extraction. Numerous
+                                                                                      Transformer-based methods have been applied to medical
+       Received 13 October 2024; revised 14 April 2025 and 31 July 2025;              image segmentation, including Swin-Unet [12], BAT [13],
+    accepted 26 October 2025. Date of publication 27 November 2025; date of
+    current version 4 May 2026. An earlier version of this paper was presented
+                                                                                      Swin UNETR [14], and UCTransNet [15]. These methods
+    in part at the IJCAI 2023 [DOI: 10.24963/ijcai.2023/113].                         can be broadly categorized into pure Transformer architectures
+       The author is with the College of Biomedical Engineering, Fudan Univer-        and hybrid CNN-Transformer architectures. Pure Transformer
+    sity, Shanghai 200433, China, and also with Shanghai Innovation Institute,
+    Shanghai 200231, China (e-mail: siri0920@163.com).
+                                                                                      architectures rely on SA to model long-range dependencies.
+       Digital Object Identifier 10.1109/TNNLS.2025.3628995                           However, due to the lack of inductive bias in the Transformer
+                  2162-237X © 2025 IEEE. All rights reserved, including rights for text and data mining, and training of artificial intelligence and
+                            similar technologies. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                                          See https://www.ieee.org/publications/rights/index.html for more information.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    2122                                                     IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 37, NO. 5, MAY 2026
+
+
+
+
+    Fig. 1. Comparisons of different architectures. (a) CNN-based medical image segmentation network [1] usually uses the pyramid structure of convolution
+    operations to intensively predict medical image features, and the limited receptive field becomes larger with the deepening of network layers. (b) Transformer
+    structure [2] uses the global receptive field to intensively predict medical image features. Although it can effectively capture the global features of images, it
+    requires a large number of calculations and parameters. (c) Transformer branch of DCTC-Net uses the shifted window and compact convolutional projection
+    to effectively reduce the number of parameters and computational costs while realizing the capture of global features of medical images.
+
+
+
+    architecture itself, Transformers perform poorly on small-                               convolutional projection, our (S)W-ACAM significantly
+    scale datasets [16]. Moreover, Transformers tend to neglect                              reduces the network’s parameter count and computa-
+    local detailed features, which reduces the separability between                          tional complexity compared to conventional CNNs and
+    the background and the foreground, particularly for small                                pure Transformer architectures while maintaining the
+    lesions or objects with significant scale variations. Hybrid                             capability to capture comprehensive global features.
+    CNN-Transformer architectures leverage the complementary                              3) We present a novel parallel network structure for
+    strengths of both CNNs and Transformers to model both                                    medical image segmentation, termed dual-branch cross-
+    local and global information in medical images, achieving                                fusion Transformer-CNN architecture for medical image
+    promising results. However, these hybrid architectures still                             segmentation (DCTC-Net), based on adaptive CNNs and
+    suffer from two main limitations. First, these networks often                            cross-dimensional Transformer architectures. In contrast
+    neglect organ deformation and lesion irregularities when mod-                            to existing hybrid architectures that combine CNNs with
+    eling local features, resulting in limited representation of local                       Transformers, such as Swin-Unet [12] and Swin UNETR
+    details. Second, these networks often ignore the correlation                             [14], DCTC-Net enhances representation learning by
+    between spatial and channel dimensions when modeling global                              effectively integrating local and global features at var-
+    features, resulting in inadequate SA expression. To address                              ious resolutions through cross-fusion between CNNs
+    the aforementioned problems, our main contributions are as                               and Transformers. Moreover, DCTC-Net eliminates the
+    follows.                                                                                 need for pretraining, requires fewer parameters, and
+       1) We propose a novel dynamic deformable convolution                                  incurs lower computational costs, with only 11.58 M
+           (DDConv) module for medical image feature extraction.                             parameters and 4.53 GFLOPs.
+           Leveraging task-adaptive learning, DDConv flexibly
+           adjusts both the weight coefficients and deformation                                                 II. R ELATED W ORK
+           offsets of the convolution operation adaptively. DDConv                       Medical image segmentation plays a crucial role in the
+           overcomes the limitations of fixed, narrow receptive                       field of medical image processing and is also one of the
+           fields and nonadaptive convolution kernel parameters                       key technologies of computer-aided diagnosis and treatment
+           that are prevalent in vanilla convolution and its variants,                systems. In recent years, with the rapid development of deep
+           such as dilated convolution and involution. Conse-                         learning techniques, researchers have continuously developed
+           quently, DDConv enhances the network’s ability to                          numerous deep network models for medical image segmenta-
+           detect subtle lesions and targets exhibiting significant                   tion. Generally, medical image segmentation methods can be
+           scale variations in medical images.                                        coarsely classified into two categories: CNN-based methods
+       2) We introduce a novel (shifted)-window adaptive comple-                      and Transformer-based methods.
+           mentary attention module ((S)W-ACAM). The module
+           enables cross-dimensional global modeling of medical
+           images through four parallel branches using adap-                          A. CNNs-Based Methods
+           tive weight coefficient learning. In contrast to existing                     CNNs have demonstrated remarkable success in medical
+           attention mechanisms, such as CBAM and Nonlocal,                           image segmentation by learning hierarchical feature repre-
+           (S)W-ACAM effectively addresses the limitations of                         sentations through multilayer architectures. Unlike traditional
+           conventional attention by explicitly modeling the cross-                   handcrafted methods, CNN-based approaches can automati-
+           dimensional relationships between spatial features and                     cally extract discriminative features from large-scale medical
+           channels. This allows (S)W-ACAM to capture cross-                          datasets, making them indispensable components of modern
+           dimensional, long-range correlations within medical                        intelligent medical systems.
+           images and enhance the separability between seg-                              Ronneberger et al. [1] drew inspiration from the FCN [4]
+           mented objects and the background. As illustrated in                       and designed the first end-to-end network, U-Net, for medical
+           Fig. 1, by integrating shifted windows and compact                         image segmentation in the ISBI cell tracking challenge. The
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    SUN: DCTC-Net: DUAL-BRANCH CROSS-FUSION Transformer–CNN ARCHITECTURE                                                                                        2123
+
+
+
+    U-Net architecture employs a symmetrical encoder–decoder                          obtain position embedding weights suitable for datasets of
+    structure, enabling the full utilization of local contextual infor-               varying sizes. Recognizing the greater complexity and higher
+    mation within medical images while reducing the reliance on                       resolution of images compared to text, Cao et al. [12] proposed
+    extensive training datasets. Consequently, U-Net can achieve                      Swin-Unet, a pure Transformer network for medical image
+    effective medical image segmentation even with limited data.                      segmentation that incorporates the shifted window multihead
+    Building upon U-Net, Alom et al. [17] developed R2U-Net by                        SA (SW-MSA) mechanism from Swin Transformer [26].
+    integrating U-Net with ResNet [18] and recurrent neural net-                      Swin-Unet achieved state-of-the-art (SOTA) segmentation per-
+    work (RCNN) components [19], achieving strong performance                         formance on the Synapse and ACDC multiorgan segmentation
+    across multiple medical image segmentation datasets, includ-                      datasets upon its release. To better leverage Transformers for
+    ing blood vessels and retinas. Subsequently, Gu et al. [21]                       processing dermoscopic image data, Wang et al. [13] designed
+    introduced dynamic convolution [20] into U-Net, proposing                         BAT, a network based on boundary detection principles. The
+    CA-Net. Experiments using medical datasets have shown that                        proposed boundary-wise attention gate (BAG) fully utilizes
+    CA-Net not only improves the segmentation accuracy of medi-                       prior knowledge of image boundaries to capture finer details
+    cal images but also reduces the network training time. Building                   in medical images. BAT achieved impressive Dice scores on
+    on U-Net, Yang et al. [23] incorporated the idea of resid-                        skin lesion datasets, surpassing many existing medical image
+    ual connections and deformable convolution [22], integrating                      segmentation networks.
+    residual deformable convolution into U-Net and proposing                             In contrast to the SA mechanisms found in existing Trans-
+    DCU-Net. DCU-Net achieves superior segmentation perfor-                           former architectures [12], [13], our (S)W-ACAM requires
+    mance compared to U-Net on the DRIVE medical dataset.                             fewer parameters and lower computational cost while effec-
+    Lei et al. [7] designed SGU-Net based on U-Net, proposing                         tively capturing global cross-dimensional long-range depen-
+    an ultralight convolution module and an additional adversarial                    dencies in medical images and enhancing the global feature
+    shape-constraint that significantly improve the segmentation                      expression capability of the segmentation network.
+    accuracy of abdominal medical images through self-supervised                         Our DCTC-Net, while eliminating the need for pretraining
+    training. Although CNNs have made significant progress in                         on large labeled datasets, effectively preserves local details
+    architecture design, their success is primarily due to scale                      and global semantic information in medical images. Specifi-
+    invariance and inductive bias in local modeling. However,                         cally, DCTC-Net leverages DDConv to capture complex local
+    fixed receptive fields limit their ability to capture relationships               features often obscured by noise or variability, while (S)W-
+    between distant pixels in medical images and constrain the                        ACAM leverages global context to improve segmentation
+    capacity to model long-range dependencies.                                        accuracy and robustness across different anatomical structures.
+       Compared to existing approaches, such as vanilla con-                          These benefits are demonstrated in the ablation study and
+    volution [1], dynamic convolution [20], and deformable                            through competitive quantitative results on the ISIC2018,
+    convolution [22], our DDConv not only adaptively adjusts the                      LiTS-Liver, and ACDC datasets.
+    weight coefficient and deformation offsets of the convolution
+    kernels according to the medical image characteristics, but also                                                III. M ETHOD
+    better adapts to the shape of organs and small lesions with
+    significant scale variations. Consequently, it enhances the local                 A. Overall Architecture
+    feature expression ability of the segmentation network.                              The fusion of local and global features significantly
+                                                                                      enhances performance in medical image segmentation. CNNs
+    B. Transformer-Based Methods                                                      capture local features within medical images through con-
+       Vaswani et al. [11] introduced the Transformer. Due to its                     volution operations and hierarchical feature representation.
+    unique architecture, Transformers gained the ability to process                   Conversely, Transformers achieve the extraction of global
+    inputs of variable length, establish long-range dependence                        features in medical images through cascaded SA mechanisms
+    modeling, and capture global information. Transformer’s suc-                      and contextual matrix operations. To fully leverage both local
+    cess is primarily attributed to the SA mechanism, enabling it                     details and global semantic features present in medical images,
+    to capture long-range dependencies.                                               we propose a parallel interactive network architecture: DCTC-
+       Building on the Transformer’s excellent performance in                         Net. The overall architecture of the network is illustrated in
+    NLP, ViT [2] represents the first successful application of                       Fig. 2(a). DCTC-Net capitalizes on the complementary proper-
+    Transformers in image processing, capturing the global context                    ties of CNNs and Transformers. During forward propagation,
+    information of input images through multiple cascaded Trans-                      DCTC-Net continuously feeds local details extracted by the
+    former layers. This contributes to the successful adoption of                     CNN branch to the decoder of the Transformer branch. Simi-
+    Transformers in image classification. Subsequently, Chen et al.                   larly, DCTC-Net also feeds the global long-range relationships
+    [24] introduced TransUNet, marking a new era for Trans-                           captured by the Transformer branch to the decoder of the
+    formers in medical image segmentation. Since TransUNet                            CNN branch. Consequently, the proposed DCTC-Net provides
+    directly adopts the Transformer network from NLP for image                        superior local and global feature representation compared to
+    segmentation, the input image patch size is fixed, resulting                      pure CNN or Transformer networks, showcasing significant
+    in high computational overhead. To address this limitation,                       potential in the field of medical image segmentation.
+    Valanarasu et al. [25] proposed MedT, which incorporates                             Specifically, DCTC-Net comprises four key components:
+    a gating mechanism that can be automatically adjusted to                          a patch embedding module, a dynamically adaptive CNN
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    2124                                                     IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 37, NO. 5, MAY 2026
+
+
+
+
+    Fig. 2. (a) Architecture of DCTC-Net. DCTC-Net consists of a dual-branch interaction between dynamically adaptive CNNs and cross-dimensional feature
+    fusion Transformer. The DDConv in the CNN branch can adaptively adjust the weight coefficient and deformation offset of the convolution operation, which
+    improves the segmentation accuracy of irregular objects in medical images. The (S)W-ACAM in the Transformer branch can capture the cross-dimensional
+    long-range dependencies in medical images, improving the separability of segmented objects and backgrounds in medical images. The LPM significantly
+    reduces the parameters and computational cost of the original Transformer network by using the Ghost strategy. (b) Two successive Transformer blocks.
+    W-ACAM and SW-ACAM are cross-dimensional SA modules with shifted windows and compact convolutional projection configurations.
+
+
+
+    branch, a cross-dimensional fusion Transformer branch, and a                                                    TABLE I
+    feature fusion module. The design of the dynamically adaptive                     VARIANTS OF DCTC-N ET FOR M EDICAL I MAGE S EGMENTATION . T HE
+    CNN branch and the cross-dimensional fusion Transformer                            E XAMPLE I NPUT S IZE I S 224 × 224. S R EPRESENTS THE F EATURE
+                                                                                         M APS ’ H EIGHT ( AND W IDTH ) OF E ACH S TAGE . D AND H M EAN
+    branch draws inspiration from the U-Net and Swin-Unet                                 E MBEDDING D IMENSIONS AND THE N UMBER OF H EADS IN THE
+    architectures, respectively. The dynamically adaptive CNN                               (S)W-ACAM M ODULE , R ESPECTIVELY. d R EPRESENTS THE
+    branch consists of seven primary stages. A central challenge in                           D IMENSION OF Q, K AND V A FTER C OMPACT C ON -
+                                                                                                              STRUCTIVE P ROJECTION
+    medical image segmentation is effectively handling multiscale
+    change targets, which refer to the significant variations in
+    size, shape, and morphology exhibited by segmentation targets
+    (such as organs or lesions) across different images or even
+    within the same image. Traditional convolution operations,
+    employing fixed-size kernels and static receptive fields, strug-
+    gle to adapt to this inherent variability. To overcome this
+    limitation, our CNN branch utilizes the dynamically adap-
+    tive DDConv in each stage. Unlike traditional fixed kernels,
+    DDConv dynamically learns both deformation offsets and
+    weight coefficients based on the input features. The learned
+    offsets allow the receptive field’s shape and sampling locations
+    to adapt to the specific geometry of organs or lesions, while
+    the learned weight coefficients adjust the feature emphasis
+    dynamically. This dual adaptivity makes DDConv particularly
+    adept at capturing features across diverse scales and com-
+    plex shapes, enabling the network to better understand local
+    semantic features, perceive subtle changes, and accurately
+    extract these multiscale change targets. Similarly, the cross-
+    dimensional fusion Transformer branch also consists of seven
+    main stages. By employing (S)W-ACAM attention in each
+    stage, as illustrated in Fig. 2(b), the segmentation network
+    gains enhanced understanding of the global dependencies
+    within medical images. This allows it to effectively capture
+    positional information between different organs and improve
+    the separability between foreground and background.
+       Although our DCTC-Net can effectively improve the feature                      the number of model parameters to rise sharply, resulting in
+    representation of medical images, the dual-branch structure                       slower model training. Inspired by the Ghost network [27],
+    requires a substantial amount of training data and network                        we redesigned the MLP layer in the original Transformer and
+    parameters. The conventional Transformer network contains                         proposed a lightweight perceptron module (LPM). The LPM
+    numerous multilayer perceptron (MLP) layers, which not only                       enables our DCTC-Net to not only achieve better medical
+    increase the training burden of the network but also cause                        image segmentation results than using MLP layers but also
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    SUN: DCTC-Net: DUAL-BRANCH CROSS-FUSION Transformer–CNN ARCHITECTURE                                                                                        2125
+
+
+
+                                                                               TABLE II
+                 P ERFORMANCE C OMPARISON OF THE P ROPOSED M ETHOD AGAINST THE SOTA A PPROACHES ON THE ISIC2018 B ENCHMARKS .
+                                      R ED I NDICATES THE B EST R ESULT, AND B LUE D ISPLAYS THE S ECOND B EST
+
+
+
+
+                                                                     TABLE III
+               P ERFORMANCE C OMPARISON OF THE P ROPOSED M ETHOD AGAINST THE SOTA A PPROACHES ON THE L I TS-L IVER B ENCHMARKS .
+                                     R ED I NDICATES THE B EST R ESULT, AND B LUE D ISPLAYS THE S ECOND B EST
+
+
+
+
+    significantly reduce the number of parameters and computa-                        without a large amount of labeled data for training. Notably,
+    tional costs; the Transformer can even achieve good results                       the dual-branch structure involves symmetric encoders and
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    2126                                                     IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 37, NO. 5, MAY 2026
+
+
+
+
+    Fig. 3. Module of the proposed DDConv. Compared with existing popular convolution strategies, DDConv can dynamically adjust the weight coefficient
+    and deformation offset of the convolution operation during the training process, which facilitates feature capture and extraction of irregular targets in medical
+    images. α and β represent the different weight values of DDConv in different states.
+
+
+
+    decoders, allowing the parallel interaction network structure                     square convolution kernel S defines the extent of the receptive
+    to maximize the preservation of both local features and global                    field; for example, a 3 × 3 convolution kernel can be expressed
+    features in medical images.                                                       as
+       While the DCTC-Net architecture’s dual-branch design                                       S = {(0, 0) , (0, 1) , (0, 2) , . . . , (2, 1) , (2, 2)} . (1)
+    could potentially increase computational complexity, strategic
+                                                                                      Then, the output feature map Y at the coordinate ϕn can be
+    optimizations—including the efficient DDConv in the CNN
+                                                                                      expressed as
+    branch, as well as (S)W-ACAM and LPM within the Trans-                                                     X
+    former branch—effectively mitigate this concern. As shown                                        Y (ϕn ) =   W · X (ϕn + ϕm )            (2)
+    in the Experiment and Results section, DCTC-Net achieves                                                            ϕm∈S
+    highly competitive GFLOPs compared with SOTA methods.                             where W is the convolutional kernel weight matrix. When the
+    We have leveraged the core framework of our previous work                         deformation offset 4ϕm = {m = 1, 2, 3, . . . , N} is introduced in
+    [28], and further enhanced the generalization and interpretabil-                  the weight matrix M, N is the total length of S . Thus (2) can
+    ity of the method.                                                                be expressed as
+                                                                                                            X
+                                                                                                  Y (ϕn ) =   W · X (ϕn + ϕm + 4ϕm ) .               (3)
+    B. Dynamic Deformable Convolution
+                                                                                                                 ϕm∈S
+       Vanilla convolution exhibits spatial invariance and channel
+                                                                                         Through network learning, an offset matrix with the same
+    specificity, which limits its capacity to adapt to varying visual
+                                                                                      size as the input feature map can be obtained, and the matrix
+    patterns across different spatial locations. Moreover, the fixed
+                                                                                      dimension is twice that of the input feature map.
+    receptive field of vanilla convolution makes it challenging to
+                                                                                         To demonstrate that the convolution kernel of DDConv is
+    effectively extract features from small targets or those with
+                                                                                      dynamic, we first present the output feature map of vanilla
+    blurred edges. Consequently, vanilla convolution inherently
+                                                                                      convolution
+    possesses limited adaptability and weak generalization ability
+                                                                                                               y = σ (W · X)                    (4)
+    for complex feature representation in medical images. While
+    existing deformable convolution [22] and dynamic convolu-                         where σ is the activation function, and y is the output feature
+    tion approaches [20] outperform vanilla convolution to some                       map. In contrast, the output feature map of DDConv is
+    extent, they still face the problem of balancing network
+                                                                                                      ŷ = σ ((α1 · W1 + · · · + αn · Wn ) · X)                  (5)
+    performance and model size when applied to medical image
+    segmentation.                                                                     where n is the number of weight coefficients, αn is the weight
+       To overcome the aforementioned shortcomings of current                         coefficient with learnable parameters, and ŷ is the output fea-
+    convolution operations, this article introduces a novel con-                      ture map generated by DDConv. DDConv dynamically adjusts
+    volution strategy termed DDConv, illustrated in Fig. 3. As                        the convolution kernel weights by linearly combining different
+    shown, DDConv adaptively learns kernel deformation offsets                        weight matrices according to the corresponding weight coef-
+    and weight coefficients based on the specific task and data                       ficients before performing the convolution operation.
+    distribution, thereby changing both the shapes and values of                         Based on the preceding analysis, it is evident that DDConv
+    convolution kernels. It can effectively address the problems                      dynamically adjusts both the shape and weights of the convo-
+    of large data distribution differences and significant target                     lution kernel. In contrast to directly increasing the number and
+    deformation encountered in medical image segmentation. Fur-                       size of convolution kernels, DDConv offers a simpler and more
+    thermore, DDConv is designed as a plug-and-play module,                           efficient alternative. The proposed DDConv not only addresses
+    readily embeddable within any network structure.                                  the limited adaptive feature extraction capability of fixed-size
+       The shape transformation of the convolutional kernel in                        convolution kernels but also mitigates the inherent drawback of
+    DDConv is based on the network’s learning of deformation                          shared convolution kernel parameters across different inputs.
+    offsets. The segmentation network initially samples the input                     As a result, our DDConv can effectively enhance the segmen-
+    feature map X using a square convolutional kernel S , and then                    tation accuracy of both small targets and large targets with
+    performs a weighted summation with a weight matrix M. The                         blurred boundaries in medical images.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    SUN: DCTC-Net: DUAL-BRANCH CROSS-FUSION Transformer–CNN ARCHITECTURE                                                                                        2127
+
+
+
+                                                                                      computational complexity. Therefore, we also introduce com-
+                                                                                      pact convolutional projection. First, we reduce the spatial size
+                                                                                      of the medical image through the shifted window operation.
+                                                                                      Second, we compress the channel dimension of feature maps
+                                                                                      using compact convolutional projection. Finally, we perform
+                                                                                      the SA calculation. Notably, this method not only better cap-
+                                                                                      tures global high-dimensional information in medical images
+                                                                                      but also significantly reduces the computational costs. With
+                                                                                      an image containing h × w patches, each within windows
+                                                                                      of size M × M, the complexity of the (S)W-ACAM, global
+                                                                                      MSA in the original Transformer, and the (S)W-MSA in Swin
+                                                                                      Transformer are compared as follows:
+    Fig. 4. Module of the proposed (S)W-ACAM. Unlike conventional SA,
+    (S)W-ACAM has the advantages of spatial and channel attention, and can                                     Ω (MSA) = 4hwC 2 + 2 (hw)2 C                      (6)
+    also capture long-distance correlation features between spatial and channel                        Ω ((S) W-MSA) = 4hwC + 2M hwC  2        2
+                                                                                                                                                                 (7)
+    dimensions. Through the shifted window operation, the spatial resolution
+    of images is significantly reduced, and through the compact convolutional                                          hwC 2
+    projection operation, the channel dimension of images is also significantly                   Ω ((S) W-ACAM) =              + M 2 hwC.        (8)
+    reduced. Thus, the overall computational costs and complexity of our proposed                                          4
+    network are reduced. λ1 –λ4 are learnable weight parameters.                      The former term of each formula is a quadratic function of
+                                                                                      the number of patches hw, while the latter term is linear when
+                                                                                      M is fixed (the default is 7). Then, the computational cost of
+    C. Shifted Window Adaptive Complementary Attention                                (S)W-ACAM is smaller than MSA and (S)W-MSA.
+    Module                                                                              Among the four parallel branches of (S)W-ACAM, two
+                                                                                      branches are used to capture channel correlation and spatial
+       The SA mechanism, a core component of Transform-                               correlation, and the remaining two branches are used to capture
+    ers, captures long-range dependencies within feature maps                         the correlation between channel dimension C and spatial
+    through matrix operations. However, SA mechanisms primar-                         dimension H, and between channel dimension C and spatial
+    ily focus on dependencies in the spatial dimension, neglecting                    dimension W. After adopting the shifted window partitioning
+    cross-dimensional dependencies between spatial and channel                        method, as shown in Fig. 2(b), the calculation process of
+    features [29]. As a result, when applied to medical image                         successive Transformer blocks is as follows:
+    segmentation characterized by low-contrast and high-density
+                                                                                                       T̂ l = W-ACAM LN T l−1 + T l−1
+                                                                                                                                     
+    noise, SA mechanisms may struggle to distinguish segmen-                                                                                      (9)
+    tation targets from the background, leading to suboptimal                                          T = LPM LN T̂ + T̂
+                                                                                                          l             l
+                                                                                                                                 l
+                                                                                                                                                 (10)
+    performance.                                                                                      l+1
+                                                                                                            = SW-ACAM LN T + T   l         l
+                                                                                                                                   
+                                                                                                   T̂                                            (11)
+       To address the aforementioned limitations, we introduce a
+                                                                                                      l+1
+                                                                                                            = LPM LN T̂ l+1            l+1
+                                                                                                                             
+    novel cross-dimensional SA module termed (S)W-ACAM. As                                         T                            + T̂             (12)
+    illustrated in Fig. 4, (S)W-ACAM consists of four parallel
+                                                                                      where T̂ l and T l represent the output features of (S)W-ACAM
+    branches: the top two branches implement a conventional
+                                                                                      and LPM, respectively. W-ACAM represents window adaptive
+    dual attention module, while the bottom two branches are
+                                                                                      complementary attention, SW-ACAM represents shifted win-
+    cross-dimensional attention modules. Compared to existing SA
+                                                                                      dow adaptive complementary attention, and LPM represents
+    modules, such as spatial SA, channel SA, and dual SA, our
+                                                                                      the lightweight perceptron module. For the specific attention
+    proposed (S)W-ACAM can not only effectively extract long-
+                                                                                      calculation process of each branch, we follow the same prin-
+    range dependencies in both spatial and channel dimensions,
+                                                                                      ciple as Swin Transformer, as follows:
+    but also capture the cross-dimensional long-range dependen-
+                                                                                                                               QK T
+                                                                                                                                         
+    cies between spatial and channel features. The four branches
+    are designed to be complementary and enhance the sepa-                                  Attention (Q, K, V) = SoftMax √           +B V       (13)
+                                                                                                                                 C/8
+    rability between foreground and background. Therefore, the
+    four branches together provide richer long-range dependence                       where relative position bias B ∈ RNpatch ×Npatch , and Q, K, V ∈
+    relationships, ultimately improving segmentation results for                      RNpatch ×C/8 are query, key, and value matrices, respectively. C/8
+    medical images.                                                                   represents the dimension of query/key, and Npatch represents
+       The standard Transformer architecture [2] employs global                       the number of patches.
+    SA, calculating the relationship between one token and all                           After four parallel attention branches Out1 –Out4 are calcu-
+    other tokens, resulting in high computational cost. This com-                     lated, the final feature fusion output is
+    plexity increases exponentially with image size. To improve                            Out = λ1 · Out1 + λ2 · Out2 + λ3 · Out3 + λ4 · Out4                 (14)
+    computational efficiency, we adopt the shifted window cal-
+    culation method, inspired by Swin Transformer [26], which                         where λ1 –λ4 are learnable parameters that enable adaptive
+    restricts SA calculations to local windows. However, directly                     control of the importance of each attention branch.
+    applying the shifted window method to our four-branch                                Unlike other SA mechanisms, the (S)W-ACAM presented in
+    (S)W-ACAM module does not sufficiently reduce the overall                         this article comprehensively captures the correlation between
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    2128                                                     IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 37, NO. 5, MAY 2026
+
+
+
+                                                                                      the final feature map Fghost ∈ RH×W×C/r . By combining the
+                                                                                      intrinsic features and Ghost features, we can obtain a feature
+                                                                                      map similar to that obtained using a standard convolutional
+                                                                                      layer, but at a much lower computational cost.
+                                                                                         Furthermore, drop path is a regularization technique that
+                                                                                      helps prevent overfitting in neural networks. Applying drop
+                                                                                      path in the LPM module can further regularize the model and
+    Fig. 5. Module of the proposed LPM. The LPM comprises a linear                    prevent overfitting.
+    dimensionality reduction layer (Conv 1 × 1), a Ghost Conv module for                 To ensure that the dimension of the output is consistent with
+    efficient feature expansion, a drop path layer for regularization, a squeeze-
+    and-excitation (SE) block for channel attention, and a linear dimensionality      that of the input, we use another linear transformation layer
+    expansion layer.                                                                  implemented with a 1 × 1 convolution to restore the number
+                                                                                      of channels to the original dimension C. This operation can
+                                                                                      be expressed as
+    spatial and channel dimensions and effectively leverages the
+                                                                                                             Y = Conv1×1 (Fse )                   (17)
+    contextual information present in medical images to enable
+    long-range dependence modeling. By effectively addressing                         where Fse represents the feature tensor processed by the
+    the limitation of conventional SA—namely, its primary focus                       channel attention mechanism [30], and Y ∈ RH×W×C is the
+    on spatial SA while neglecting channel and cross-dimensional                      final output feature tensor.
+    SA—our (S)W-ACAM achieves superior feature representa-                               Through linear dimensionality reduction and expansion
+    tion for medical images characterized by high noise levels,                       transformations, Ghost convolution, and channel attention
+    low contrast, and complex backgrounds.                                            mechanisms, the LPM module effectively reduces the number
+                                                                                      of parameters and computational complexity of the Trans-
+    D. Lightweight Perceptron Module                                                  former branch while ensuring feature representation ability.
+       To reduce the number of parameters and computational
+    complexity of the Transformer branch while preserving its                         E. Loss Function
+    ability to capture long-range dependencies, we adopted prin-                         To optimize the training of the DCTC-Net, we employ three
+    ciples from GhostNet [27] to redesign the MLP layer in the                        loss functions: the overall loss of the DCTC-Net (LDCTC ),
+    Transformer, proposing an LPM, whose structure is shown                           the loss of the CNN branch (LCNN ), and the loss of the
+    in Fig. 5. The LPM primarily consists of five parts: a linear                     Transformer branch (LTrans ). These three loss functions are
+    dimensionality reduction layer, a Ghost module, a drop path, a                    defined as follows:
+    channel attention, and a linear dimensionality expansion layer.
+                                                                                           LDCTC = Lmse yDCTC   , ylabel   + LDice yDCTC , ylabel
+                                                                                                                                                 
+       To reduce computational costs, the LPM first performs a                                             i       i                i       i       (18)
+                                                                                            LCNN = Lmse yi , yi
+                                                                                                           CNN label
+                                                                                                                          + LDice yi , yi
+                                                                                                                                   CNN label
+                                                                                                                                             
+    linear transformation on the input data to reduce the feature                                                                                   (19)
+    dimensionality. The linear dimensionality reduction is imple-                           LTrans = Lmse yi , yi
+                                                                                                           Trans label
+                                                                                                                       
+                                                                                                                          + LDice yi , yi
+                                                                                                                                   Trans label
+                                                                                                                                               
+                                                                                                                                                    (20)
+    mented using a 1 × 1 convolution, reducing the number of
+    input channels from C to C/r, where r is the reduction ratio                      where Lmse (·) denotes the mean squared error loss, which
+    used to control the extent of reduction. This operation can be                    measures the pixel-wise difference; and LDice (·) denotes the
+    expressed as                                                                      dice loss, which is used to better handle class imbalance.
+                       X 0 = ReLU Conv1×1 (X)                                         yDCTC , yCNN  , yTrans , and ylabel represent the predicted output
+                                               
+                                                               (15)                    i       i       i            i
+                                                                                      of the DCTC-Net, the predicted output of the CNN branch,
+    where X ∈ RH×W×C is the input feature tensor, X 0 ∈ RH×W×C/r                      the predicted output of the Transformer branch, and the ground
+    is the dimensionality-reduced feature tensor, and Conv1×1 (·)                     truth label, respectively.
+    represents the 1 × 1 convolution operation.                                          To balance the weights among these three loss functions, we
+       After reducing the number of channels, we utilize the                          adopt a Gaussian ramp-up curve to dynamically adjust them,
+    Ghost module to increase the diversity of features. The Ghost                     which is defined as follows:
+    module generates more feature maps through a series of                                                                           2
+    inexpensive operations. Specifically, the Ghost module first                                                    λ = e−5(1−k/K)                             (21)
+    uses a 3 × 3 convolutional layer to generate a small number                       where λ is a learnable weight coefficient, used to balance the
+    of “intrinsic” features Fintrinsic ∈ RH×W×k from the reduced                      fusion loss and the branch losses; k represents the current
+    feature X 0 , where k << C/r. Then, for each intrinsic feature                    training epoch number; and K represents the total number
+    Fintrinsic,i , the Ghost module applies a series of simple linear                 of training epochs. This formula ensures that each branch
+    transformations to generate more “Ghost” features Fghost,i j .                    independently learns effective features in the early stages of
+    These linear transformations are computationally inexpensive                      training. As training progresses, the fused LDCTC loss guides
+    but can effectively increase the diversity of the features. The                   the network to learn complementary information between
+    specific formula can be expressed as                                              branches, thereby improving the overall consistency and accu-
+                           Fghost,i j = Φ j Fintrinsic,i
+                                                         
+                                                                 (16)                 racy of segmentation.
+                                                                                         The final overall loss function can be expressed as
+    where Φ j (·) represents the jth linear transformation. Finally,
+    the intrinsic features and Ghost features are combined to obtain                    LTotal = λLDCTC + ((1 − λ) /2) LCNN + ((1 − λ) /2) LTrans . (22)
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    SUN: DCTC-Net: DUAL-BRANCH CROSS-FUSION Transformer–CNN ARCHITECTURE                                                                                        2129
+
+
+
+       To ensure that each branch can fully explore the feature                       B. Implementation Details and Evaluation Metrics
+    space in the early stages of training, we initialize λ to 0.1,
+                                                                                         All networks are implemented using PyTorch 1.7 on one
+    ensuring that the LCNN and LTrans losses dominate during the
+                                                                                      NVIDIA GeForce RTX 3090 GPU with 24 GB memory. For
+    initial training phase, guiding each branch to learn features
+                                                                                      optimization, we used the Adam optimizer with an initial
+    independently. As training progresses, the Gaussian ramp-up
+                                                                                      learning rate of 0.001. The learning rate is dynamically
+    curve precisely controls the growth of the λ value, guiding
+                                                                                      adjusted during training: it is halved if the validation loss
+    the network to learn complementary information between
+                                                                                      does not decrease for ten consecutive epochs. To train the
+    branches, thereby improving the overall consistency and accu-
+                                                                                      networks, we employed a combination of mean squared error
+    racy of segmentation.
+                                                                                      (mse) loss and dice loss. As for other hyperparameter settings,
+                                                                                      we primarily followed the settings of mainstream methods in
+    F. Architecture Variants                                                          the field of medical image segmentation, while adapting them
+       We have built a DCTC-Net-T as a base network with a                            to our DCTC-Net and datasets. This is based on reports that
+    model size of 11.58 M and a computational cost of 4.53                            CPFNet [33] and Swin-Unet [12] work well with such settings.
+    GFLOPs. In addition, we built the DCTC-Net-B network to                           Specifically, our total epoch number is set to 200.
+    make a fair comparison with the latest networks, such as CvT                         In the experiment on the ISIC2018 dataset, we conducted
+    [36] and PVT [37]. The window size is set to 7, and the input                     an overall evaluation of mainstream medical image segmen-
+    image size is 224 × 224. Other network parameters are set as                      tation networks using five metrics: Dice (DI), Jaccard (JA),
+    follows:                                                                          Sensitivity (SE), Accuracy (AC), and Specificity (SP). In the
+       1) DCTC-Net-T: Layer number = {2, 2, 6, 2, 6, 2, 2},                           experiment on the LiTS-Liver dataset, we conducted an overall
+          H = {3, 6, 12, 24, 12, 6, 3}, and D = 96, and                               evaluation of mainstream medical image segmentation net-
+       2) DCTC-Net-B: Layer number = {2, 2, 18, 2, 18, 2, 2},                         works using five metrics: DI, VOE, RVD, ASD, and RMSD.
+          H = {4, 8, 16, 32, 16, 8, 4}, and D = 96,                                   In the experiment on the ACDC dataset, we conducted an
+    where D represents the number of image channels when                              overall evaluation of mainstream medical image segmentation
+    entering the first layer of the dynamically adaptive CNNs                         networks using DI and 95HD [52].
+    branch and the cross-dimensional fusion Transformer branch,                          The values of DI, JA, AC, SE, and SP range from 0 to
+    Layer number represents the number of Transformer blocks                          100, and better segmentation results mean that the values of
+    used in each stage, and H represents the number of multiple                       evaluation metrics such as DI, JA, AC, SE, and SP will be
+    heads in SA. The specific details about different versions of                     higher, while the values of evaluation metrics such as VOE,
+    DCTC-Net are shown in Table I.                                                    RVD, ASD, RMSD, and 95HD will be lower [53]. These
+                                                                                      evaluation metrics are defined as
+                      IV. E XPERIMENT AND R ESULTS                                                                        2TP
+    A. Datasets                                                                                                 DI =                                           (23)
+                                                                                                                    FP + 2TP + FN
+       We conducted research on the skin lesion segmentation                                                              TP
+                                                                                                               JA =                                            (24)
+    dataset (ISIC2018) from the International Symposium on                                                          TP + FN + FP
+    Biomedical Imaging (ISBI) [49], the Liver Tumor Segmen-                                                            TP
+                                                                                                               SE =                                            (25)
+    tation (LiTS) Challenge dataset from the Medical Image                                                          TP + FN
+    Computing and Computer Assisted Intervention (MICCAI)                                                                 TP + TN
+                                                                                                               AC =                                            (26)
+    Society [50], and the Automated Cardiac Diagnosis Chal-                                                         TP + FP + TN + FN
+    lenge (ACDC) dataset from the University Hospital of Dijon                                                        TN
+                                                                                                               SP =                                            (27)
+    (France) [51]. These three datasets have different data types                                                   TN + FP
+    and data distributions. The ISIC2018 dataset has electron
+    microscope images, which contain 2594 dermoscopic images                          where TP, TN, FP, and FN indicate the number of true
+    for training, but the ground truth images of the testing set have                 positives, true negatives, false positives, and false negatives,
+    not been released, so we performed a fivefold cross-validation                    respectively,
+    on the training set for a fair comparison. The LiTS dataset is                                     ˇ
+                                                                                                        ˇ A ∩ Bˇ
+                                                                                                                ˇ
+    a CT image of the human abdomen, containing 131 3-D CT                              VOE = 1 − ˇ     ˇ       ˇ × 100%                            (28)
+    liver scans, of which 100 scans are used for training, and the                                        A ∪ Bˇ
+                                                                                                 |A| − |B|
+    remaining 31 scans are used for testing. The ACDC dataset is                        RVD =               × 100%                                  (29)
+    an MRI image of the human heart, which contains cardiac                                         |B|
+                                                                                                     8                                            9
+    short-axis Cine MRI data from 100 patients. The ACDC                                             <X                         X                 =
+    dataset includes healthy patients and patients with previous                        HD = max               min || a − b ||,    min || b − a ||  (30)
+                                                                                                     :        b∈S (B)             a∈S (A)         ;
+    myocardial infarction, dilated cardiomyopathy, hypertrophic                                             a∈S (A)               b∈S (B)
+    cardiomyopathy, and abnormal right ventricle (20 scans for                                        1
+                                                                                        ASD =
+    each group). These data are obtained over a period of six                                 |S (A)| + |S (B)|
+    years using two MRI scanners of two magnetic strengths (1.5
+                                                                                            0                                          1
+                                                                                              X                       X
+    and 3.0 T). In addition, all images are empirically resized to                        ×@        min || a − b || +   min || b − a ||A                       (31)
+    224 × 224 for efficiency.                                                                               b∈S (B)                    a∈S (A)
+                                                                                                  a∈S (A)                    b∈S (B)
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    2130                                                     IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 37, NO. 5, MAY 2026
+
+
+                     1
+      RMSD =                                                                          96.82 ± 1.22%, while DCTC-Net-T demonstrates a com-
+             |S (A)| + |S (B)|                                                        petitive second-best dice score of 96.48 ± 1.05%, both
+          rX
+                                                                                      with considerably fewer parameters (21.24 M and 11.58 M,
+                                         X
+        ×             min || a − b ||2 +                       min || b − a ||2
+                     a∈S (A) b∈S (B)                   b∈S (B) a∈S (A)                respectively) than several prominent methods. Furthermore,
+                                                                             (32)     DCTC-Net-B demonstrates superior performance in VOE and
+    where A and B denote the ground truth and the segmentation                        all distance metrics compared to Mamba methods. These
+    result, respectively. S (A) and S (B) denote the set of surface                   achievements can be attributed to the architecture’s ability to
+    voxels corresponding to A and B, respectively. In addition, the                   address the unique challenges of liver segmentation: irregular
+    95HD is defined as the 95th quantile of Hausdorff distances                       liver and tumor shapes, low image contrast, and numerous
+    (HD) instead of the maximum [54].                                                 small tumors. By adaptively adjusting the shape of its convolu-
+                                                                                      tional kernels, the DDConv module is particularly well-suited
+                                                                                      to segmenting the irregular contours of liver tumors. The
+    C. Evaluation and Results                                                         dual-branch design, which fuses local and global information,
+       In this article, we conducted a comprehensive comparison                       provides greater robustness to noise and contrast variations,
+    across three multimodal datasets (ISIC2018, LiTS-Liver, and                       enabling the model to accurately infer tumor location and
+    ACDC) between the proposed DCTC-Net and a range of                                shape even in low-contrast regions.
+    mainstream medical image segmentation networks, including                            Table IV shows the quantitative comparison of DCTC-
+    U-Net [1], Attention Unet [31], Swin-Unet [12], BRAU-Net++                        Net’s performance on the ACDC dataset alongside recent
+    [39], VM-Unet [45], and TMU [48], which possess inherent                          prominent medical image segmentation networks. The results
+    encoder–decoder structures. To ensure a fair comparison with                      demonstrate DCTC-Net’s competitive performance in MRI-
+    CvT [36], PVT [37], and CrossForm [38], architectures lacking                     based multiorgan segmentation. DCTC-Net-B achieves an
+    the decoder component, we augmented them with a decoder                           average DI score of 91.95 ± 0.66%, and the lowest average
+    mirroring the structure of DCTC-Net’s decoder to enable fair                      95HD of 3.27 ± 0.51 mm. Although DCTC-Net-T and DCTC-
+    segmentation performance comparisons. Beyond presenting                           Net-B do not achieve the best 95HD scores, they achieve
+    quantitative results, we provide a detailed analysis of the                       superior average DI scores on this challenging dataset; sig-
+    factors contributing to DCTC-Net’s performance.                                   nificantly outperforming U-Mamba’s dice score of 90.73 ±
+       Table II shows the quantitative comparison between the pro-                    0.76%. Notably, DCTC-Net’s design specifically addresses the
+    posed DCTC-Net and current mainstream CNNs, Transformer,                          key challenges of cardiac MRI analysis, including dynamic
+    and Mamba networks on the ISIC2018 dataset. From the                              motion, complex tissue structures, and interpatient variabil-
+    experimental results, we conclude that our DCTC-Net achieves                      ity. The dual-branch structure enables effective capture of
+    an optimal balance between model size and performance: it                         both global cardiac anatomy and fine-grained tissue details,
+    achieves the highest dice score of 91.23% without pretraining,                    while the learned discriminative features better accommodate
+    while DCTC-Net-T delivers the lowest computational cost                           interpatient differences in heart morphology. The proposed
+    at just 4.53 GFLOPs and 11.58 M parameters, achieving a                           method also outperforms other SOTA methods, such as
+    competitive dice score of 90.72%. While U-Mamba demon-                            the Transformer-based methods like MCAFT-Net (91.16 ±
+    strates some effectiveness, it achieves a lower dice score of                     0.79% dice score) and Mamba-based methods like DMA-Net
+    87.54% with a high computational cost of 453.89 GFLOPs.                           (91.22 ± 0.71% dice score) used for comparison.
+    Our DCTC-Net-B network outperforms BAT, CvT, and Cross-                              From the visualization in Fig. 6, it can be clearly observed
+    Form, with dice scores 1.02%, 3.00%, and 3.79% higher,                            that the DCTC-Net can preserve local detail features and
+    respectively, while maintaining a lower parameter count. These                    global semantic features in medical images optimally. There-
+    superior results can be attributed to DCTC-Net’s ability to                       fore, it achieves accurate segmentation results for segmentation
+    address the specific challenges posed by dermoscopic images:                      targets with irregular edges and significant scale variations.
+    blurred lesion boundaries, complex textures, and interfering                      Fig. 6(a) shows the final output result of the CNN branch,
+    factors such as hair and blood vessels. The DDConv module,                        and Fig. 6(b) shows the final output result of the Transformer
+    with its ability to adaptively adjust the shape and weights of                    branch. We can observe that the CNN branch has more
+    convolution kernels, is better equipped to capture the subtle                     accurate control over the local detail information of segmented
+    structures and textures of lesion boundaries. Similarly, the                      targets. However, since CNN branches mainly capture local
+    (S)W-ACAM module effectively models the global contextual                         features of images, they are more susceptible to noise inter-
+    information in images, suppressing noise interference and                         ference. In contrast, the Transformer branch has more precise
+    helping the model to better distinguish between lesions and                       control over target localization. Since the Transformer branch
+    background.                                                                       mainly captures the global features of the image, it easily
+       Table III presents the quantitative comparison of DCTC-                        overlooks the detailed information of the segmented target.
+    Net’s performance on the LiTS-Liver dataset, alongside                            Therefore, after integrating the CNN branch with the Trans-
+    established mainstream segmentation networks. The results                         former branch, the DCTC-Net fully leverages the structural
+    highlight DCTC-Net’s superior performance in medical image                        and generalization advantages of CNNs and Transformers,
+    segmentation, further confirming its ability to preserve both                     providing better local and global feature representations in
+    local and global features in medical images. Notably, DCTC-                       medical image data, demonstrating great potential in the field
+    Net-B achieves SOTA performance with a dice score of                              of medical image segmentation.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    SUN: DCTC-Net: DUAL-BRANCH CROSS-FUSION Transformer–CNN ARCHITECTURE                                                                                        2131
+
+
+
+                                                                               TABLE IV
+                  P ERFORMANCE C OMPARISON OF THE P ROPOSED M ETHOD AGAINST THE SOTA A PPROACHES ON THE ACDC B ENCHMARKS .
+                                      R ED I NDICATES THE B EST R ESULT, AND B LUE D ISPLAYS THE S ECOND B EST
+
+
+
+
+    D. Failure Case Analysis                                                                                            TABLE V
+                                                                                      A BLATION E XPERIMENTS OF DDC ONV, (S)W-ACAM, AND LPM IN
+       While DCTC-Net demonstrates robust performance across                                         DCTC-N ET IN THE ISIC2018 DATASET
+    various datasets, analyzing its limitations is essential for
+    guiding future research. We present typical failure cases in
+    Fig. 7 to provide a comprehensive evaluation.
+       Fig. 7 illustrates two primary failure modes. The first two
+    rows show instances of inadequate handling of blurred bound-
+    aries. In these examples, the target objects exhibit extremely
+    low contrast with surrounding tissue, and boundaries are
+    inherently ambiguous. Our DCTC-Net, while attempting to
+    delineate regions, produces contours that are either discon-
+    tinuous or slightly inaccurate. This highlights a challenge in
+    scenarios with very low signal-to-noise ratios, where pre-
+    cise edge determination is difficult even for human experts.
+    Future work could address this by incorporating advanced
+    boundary-aware mechanisms, such as explicit boundary pre-
+    diction branches during training or loss functions that heavily                   that dynamically increase weights for small, hard-to-detect
+    penalize boundary errors.                                                         objects.
+       The bottom two rows of Fig. 7 display cases of missed                            By acknowledging and analyzing these failure cases, we
+    small target detection. Here, DCTC-Net fails to identify very                     identify clear pathways for enhancing DCTC-Net’s robustness
+    small-scale lesions. A likely cause is the hierarchical down-                     and accuracy in future work.
+    sampling process in the encoder. During successive pooling
+    or strided convolution operations, feature information corre-
+    sponding to tiny targets can be significantly diluted or lost                     E. Ablation Study
+    entirely, making accurate decoder reconstruction challenging.                       To fully demonstrate the effectiveness of the different mod-
+    To mitigate this issue, future improvements could focus on                        ules within DCTC-Net, we conducted a series of ablation
+    optimizing network architecture to better preserve small-scale                    experiments on the ISIC2018 dataset. Table V summarizes
+    features, for example, by modifying downsampling strategies,                      the results and demonstrates that the DDConv, (S)W-ACAM,
+    enhancing cross-scale feature fusion using techniques like                        and LPM modules each contribute significantly to the model’s
+    feature pyramid networks (FPNs), or designing loss functions                      performance.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    2132                                                     IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 37, NO. 5, MAY 2026
+
+
+
+                                                                                      87.45% to 89.15%. This indicates that the DDConv module
+                                                                                      is effective in capturing the fine-grained structures and tex-
+                                                                                      ture information of lesion boundaries in dermoscopic images,
+                                                                                      thereby improving segmentation accuracy. The adaptive nature
+                                                                                      of DDConv enables it to better handle cases where lesion edges
+                                                                                      are blurred, contributing to the improvement of the model’s
+                                                                                      accuracy. Table V shows that the addition of the DDConv
+                                                                                      module improves the overall dice score by nearly 2%.
+                                                                                         Adding the (S)W-ACAM module to the U-Net+Swin-Unet
+                                                                                      baseline leads to an increase in the dice coefficient from
+                                                                                      87.45% to 89.62%, while reducing the number of parameters
+                                                                                      by 16.66 M. This suggests that the (S)W-ACAM module is
+                                                                                      effective in modeling the global contextual information of
+                                                                                      the image, suppressing noise interference, and helping the
+                                                                                      model better distinguish between lesions and the background.
+                                                                                      This global context modeling ability is crucial for reducing
+                                                                                      the impact of interfering factors such as hair and blood
+                                                                                      vessels. Table V also demonstrates the importance of cross-
+                                                                                      dimensional feature extraction. When (S)W-ACAM is replaced
+                                                                                      with cross-channel (C-C) attention mechanisms, cross-height
+                                                                                      (C-H) attention mechanisms, cross-width (C-W) attention
+                                                                                      mechanisms, and height–width (H-W) attention mechanisms,
+                                                                                      the results show lower dice scores. This demonstrates that
+                                                                                      the cross-dimensional feature extraction capability of (S)W-
+                                                                                      ACAM is key for performance. From the ablation results,
+                                                                                      it can be seen that (S)W-ACAM improves the final model
+                                                                                      accuracy, while significantly reducing the number of model
+    Fig. 6. Visualization results of DCTC-Net on ISIC2018 dataset and LiTS-           parameters, contributing to model efficiency.
+    Liver dataset. Predicted image output by (a) CNNs branch, (b) Transformer            Table V shows that the number of parameters is greatly
+    branch, and (c) DCTC-Net. (d) Corresponding label. (e) Corresponding
+    original image.                                                                   reduced after using the LPM module. This shows that the
+                                                                                      LPM module can significantly reduce the number of model
+                                                                                      parameters while maintaining model performance. However,
+                                                                                      the model performs modestly when using LPM alone, so it
+                                                                                      needs to be combined with the (S)W-ACAM module to achieve
+                                                                                      better performance.
+                                                                                         In summary, the ablation experiments clearly demonstrate
+                                                                                      that the DDConv, (S)W-ACAM, and LPM modules each play
+                                                                                      crucial roles in DCTC-Net, and that a synergistic effect exists
+                                                                                      between them. DDConv effectively captures local detailed
+                                                                                      features, (S)W-ACAM effectively models global contextual
+                                                                                      information, and LPM significantly reduces the number of
+                                                                                      model parameters while maintaining model performance. The
+                                                                                      effective combination of these modules enables DCTC-Net to
+                                                                                      achieve excellent results in medical image segmentation tasks.
+
+                                                                                      F. Network Visualization
+                                                                                         To facilitate understanding of the DCTC-Net, we visualized
+                                                                                      the feature maps at each stage of the network, as shown in
+                                                                                      Fig. 8. We use linear interpolation to upsample the deep feature
+                                                                                      maps, which initially have low spatial resolution, to the same
+    Fig. 7. Visualization of typical failure cases. The first two rows show poor      size as the input and output images. In the visualization, red
+    handling of blurred boundaries. The last two rows show missed detection of        represents areas that the network focuses on more, while blue
+    small targets. Predicted image output by (a) CNNs branch, (b) Transformer
+    branch, and (c) DCTC-Net. (d) Corresponding label. (e) Corresponding
+                                                                                      represents areas that the network focuses on less.
+    original image.                                                                      The visualization results demonstrate the entire process of
+                                                                                      feature extraction and fusion, as well as other transformations
+                                                                                      that the image undergoes in the network. In the two branches
+      The addition of the DDConv module to the U-Net+Swin-                            of the encoder, the model analyzes and identifies the semantic
+    Unet baseline results in an increase in the dice coefficient from                 information in the image. In the two branches of the decoder,
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    SUN: DCTC-Net: DUAL-BRANCH CROSS-FUSION Transformer–CNN ARCHITECTURE                                                                                        2133
+
+
+
+
+    Fig. 8. Visualization of results at each layer of DCTC-Net—taking ISIC2018 dataset image segmentation as an example.
+
+
+
+    after skip connections and feature fusion operations, the model                   medical imaging modalities such as dermoscopic images, CT
+    begins to focus more on the semantic features of the target                       images, and MRI images. However, DCTC-Net’s performance
+    region. The information exchange and fusion between the                           requires further validation for other types of medical images.
+    CNN and Transformer branches play an important role in the                        Furthermore, domain shift, arising from differences in imag-
+    accurate segmentation of the target region.                                       ing parameters, image contrast, and noise levels, may exist
+       Overall, as the network depth increases, the DCTC-Net                          between different datasets. Enhancing DCTC-Net’s general-
+    gradually refines the localization and contour segmentation of                    ization ability across various data types and domains for future
+    semantic objects in medical images, demonstrating the effec-                      research.
+    tiveness of our proposed DCTC-Net for global information                             Future research can focus on several aspects to enhance
+    modeling and accurate segmentation of medical images.                             DCTC-Net’s applicability and robustness. First, weakly super-
+                                                                                      vised learning methods, such as semi-supervised learning [55],
+                                 V. D ISCUSSION                                       [56] and self-supervised learning [57], could be explored
+                                                                                      to reduce the reliance on labeled data. Second, techniques
+       Despite exhibiting promising performance in medical image                      like model compression [58] and knowledge distillation [59]
+    segmentation tasks, DCTC-Net, like all deep learning models,                      can be employed to further reduce computational complexity.
+    faces certain limitations in specific application scenarios. To                   Third, domain adaptation learning methods [60] should be
+    comprehensively evaluate DCTC-Net’s applicability and guide                       investigated to improve generalization across different medical
+    future research, we examine its limitations concerning data                       image types and domains.
+    dependence, computational resource requirements, and gener-                          We believe that our DCTC-Net will play a crucial role in
+    alization ability.                                                                the field of medical image segmentation. Through continuous
+       First, our DCTC-Net relies on a substantial amount of                          exploration and improvement, it will provide enhanced support
+    labeled data for training. While techniques such as the Gaus-                     for clinical diagnosis and treatment.
+    sian ramp-up curve are employed to mitigate the small sample
+    problem, DCTC-Net may still face the risk of overfitting
+                                                                                                                 VI. C ONCLUSION
+    when available labeled data is severely limited, leading to
+    degraded generalization on unseen data. This limitation is                           In this study, we proposed a novel architecture, DCTC-Net,
+    particularly prominent in scenarios involving rare diseases or                    which combines dynamically adaptive CNNs and a cross-
+    novel medical imaging modalities, where obtaining sufficient                      dimensional fusion Transformer in a parallel configuration
+    labeled data is often challenging.                                                for medical image segmentation. The proposed DCTC-Net
+       Second, the dual-branch structure and use of Transformer                       integrates the strengths of both CNNs and Transformers,
+    modules in DCTC-Net contribute to a relatively high param-                        preserving both local details and global semantic features
+    eter count and computational complexity. Although we have                         of medical images by leveraging local relationship modeling
+    optimized the model’s efficiency, deploying DCTC-Net and                          and long-range dependence modeling. The proposed DDConv
+    performing real-time inference may still present challenges to                    overcomes the limitations of fixed receptive fields and param-
+    devices with limited computational resources, such as embed-                      eter sharing inherent in vanilla convolution, improving local
+    ded medical devices or mobile diagnostic platforms. There-                        feature representation and enabling adaptive extraction of
+    fore, further reducing DCTC-Net’s computational complexity                        spatial features. The proposed (S)W-ACAM SA mechanism
+    in resource-constrained scenarios is a noteworthy research                        comprehensively captures the cross-dimensional correlation
+    direction.                                                                        between spatial features and channels, and adaptively learns
+       Third, DCTC-Net’s performance is highly dependent on                           salient information between spatial and channel dimensions
+    the distribution of the training data. We have primarily val-                     through network training. Furthermore, by replacing the MLP
+    idated the effectiveness of DCTC-Net on datasets such as                          in traditional Transformers with LPM, DCTC-Net significantly
+    ISIC2018, LiTS-Liver, and ACDC, which encompass various                           reduces the number of parameters, reduces dependence on
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    2134                                                     IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 37, NO. 5, MAY 2026
+
+
+
+    pretraining, addresses data scarcity challenges in labeled med-                   [15] H. Wang, P. Cao, J. Wang, and O. R. Zaı̈ane, “UCTransNet: Rethinking
+    ical images, and reduces over-fitting. Compared to existing                            the skip connections in U-Net from a channel-wise perspective with
+                                                                                           transformer,” in Proc. AAAI Conf. Artif. Intell., 2021, pp. 2441–2449.
+    CNN and Transformer-based medical image segmentation                              [16] F. Shamshad et al., “Transformers in medical imaging: A survey,” Med.
+    networks, our DCTC-Net exhibits significant advantages in                              Image Anal., vol. 88, Aug. 2023, Art. no. 102802.
+    both operational efficiency and segmentation effectiveness.                       [17] M. Z. Alom, M. Hasan, C. Yakopcic, T. M. Taha, and V. K. Asari,
+                                                                                           “Recurrent residual convolutional neural network based on U-Net (R2U-
+       While DCTC-Net has demonstrated encouraging results,                                Net) for medical image segmentation,” 2018, arXiv:1802.06955.
+    several directions warrant further exploration. First, although                   [18] J. Song, B. Li, Y. Wu, Y. Shi, and A. Li, “ReAL: A new ResNet-ALSTM
+    the model performs well across multiple modalities, its                                based intrusion detection system for the Internet of Energy,” in Proc.
+                                                                                           IEEE 45th Conf. Local Comput. Netw. (LCN), Nov. 2020, pp. 491–496.
+    generalization on broader medical image types, such as                            [19] R. Girshick, J. Donahue, T. Darrell, and J. Malik, “Rich feature hierar-
+    ultrasound and digital pathology, remains to be validated;                             chies for accurate object detection and semantic segmentation,” in Proc.
+    incorporating domain adaptation techniques will be cru-                                IEEE Conf. Comput. Vis. Pattern Recognit., Jun. 2014, pp. 580–587.
+                                                                                      [20] Y. Chen, X. Dai, M. Liu, D. Chen, L. Yuan, and Z. Liu, “Dynamic con-
+    cial. Second, to meet deployment demands on extremely                                  volution: Attention over convolution kernels,” in Proc. IEEE/CVF Conf.
+    resource-constrained devices, advanced model compression                               Comput. Vis. Pattern Recognit. (CVPR), Jun. 2020, pp. 11027–11036.
+    techniques like network pruning and quantization could be                         [21] R. Gu et al., “CA-Net: Comprehensive attention convolutional neural
+    explored to optimize efficiency further. Finally, integrating                          networks for explainable medical image segmentation,” IEEE Trans.
+                                                                                           Med. Imag., vol. 40, no. 2, pp. 699–711, Feb. 2021.
+    task-specific prior knowledge, such as anatomical shape con-                      [22] J. Dai et al., “Deformable convolutional networks,” in Proc. IEEE Int.
+    straints, could enhance segmentation robustness in complex                             Conf. Comput. Vis. (ICCV), Oct. 2017, pp. 764–773.
+    cases and improve model interpretability, making it more                          [23] X. Yang, Z. Li, Y. Guo, and D. Zhou, “DCU-Net: A deformable
+                                                                                           convolutional neural network based on cascade U-Net for reti-
+    valuable for clinical applications.                                                    nal vessel segmentation,” Multimedia Tools Appl., vol. 81, no. 11,
+                                                                                           pp. 15593–15607, May 2022.
+                              ACKNOWLEDGMENT                                          [24] J. Chen et al., “TransUNet: Transformers make strong encoders for
+                                                                                           medical image segmentation,” 2021, arXiv:2102.04306.
+      The author would like to thank Professor Tao Lei and                            [25] J. M. J. Valanarasu, P. Oza, I. Hacihaliloglu, and V. M. Patel, “Medical
+    Professor Asoke K. Nandi for their contributions to this article.                      transformer: Gated axial-attention for medical image segmentation,” in
+                                                                                           Proc. Int. Conf. Med. Image Comput. Comput.-Assist. Intervent., 2021,
+                                                                                           pp. 36–46.
+                                   R EFERENCES                                        [26] Z. Liu et al., “Swin transformer: Hierarchical vision transformer using
+                                                                                           shifted windows,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV),
+    [1]  O. Ronneberger, P. Fischer, and T. Brox, “U-Net: Convolutional net-               Oct. 2021, pp. 10012–10022.
+         works for biomedical image segmentation,” in Proc. 18th Int. Conf.           [27] K. Han, Y. Wang, Q. Tian, J. Guo, C. Xu, and C. Xu, “Ghostnet: More
+         Med. Image Comput. Comput.-Assist. Intervent., 2015, pp. 234–241.                 features from cheap operations,” in Proc. IEEE/CVF Conf. Comput. Vis.
+    [2] A. Dosovitskiy et al., “An image is worth 16×16 words: Transformers                Pattern Recognit., Jun. 2020, pp. 1580–1589.
+         for image recognition at scale,” 2020, arXiv:2010.11929.                     [28] T. Lei, R. Sun, X. Wang, Y. Wang, X. He, and A. Nandi, “CiT-Net:
+    [3] P. Suetens, Fundamentals of Medical Imaging. Cambridge, U.K.: Cam-                 Convolutional neural networks hand in hand with vision transformers
+         bridge Univ. Press, 2017.                                                         for medical image segmentation,” in Proc. 32nd Int. Joint Conf. Artif.
+    [4] J. Long, E. Shelhamer, and T. Darrell, “Fully convolutional networks               Intell., Aug. 2023, pp. 1017–1025.
+         for semantic segmentation,” in Proc. IEEE Conf. Comput. Vis. Pattern         [29] L. Hong, R. Wang, T. Lei, X. Du, and Y. Wan, “Qau-Net: Quartet
+         Recognit. (CVPR), Jun. 2015, pp. 3431–3440.                                       attention U-Net for liver and liver-tumor segmentation,” in Proc. IEEE
+    [5] Z. Zhou, M. M. R. Siddiquee, N. Tajbakhsh, and J. Liang, “UNet+: A                 Int. Conf. Multimedia Expo (ICME), Jul. 2021, pp. 1–6.
+         nested U-Net architecture for medical image segmentation,” in Proc. 4th      [30] J. Hu, L. Shen, and G. Sun, “Squeeze-and-excitation networks,” in
+         Int. Workshop Deep Learn. Med. Image Anal. Multimodal Learn. Clin.                Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit., Jun. 2018,
+         Decis. Support, pp. 3–11.                                                         pp. 7132–7141.
+    [6] Y. Liu, J. Shen, L. Yang, G. Bian, and H. Yu, “ResDO-UNet: A deep             [31] O. Oktay et al., “Attention U-Net: Learning where to look for the
+         residual network for accurate retinal vessel segmentation from fundus             pancreas,” 2018, arXiv:1804.03999.
+         images,” Biomed. Signal Process. Control, vol. 79, Jan. 2023, Art. no.
+                                                                                      [32] Z. Gu et al., “CE-Net: Context encoder network for 2D medical image
+         104087.
+                                                                                           segmentation,” IEEE Trans. Med. Imag., vol. 38, no. 10, pp. 2281–2292,
+    [7] T. Lei, R. Sun, X. Du, H. Fu, C. Zhang, and A. K. Nandi, “SGU-Net:
+                                                                                           Oct. 2019.
+         Shape-guided ultralight network for abdominal image segmentation,”
+                                                                                      [33] S. Feng et al., “CPFNet: Context pyramid fusion network for med-
+         IEEE J. Biomed. Health Informat., vol. 27, no. 3, pp. 1431–1442, Mar.
+                                                                                           ical image segmentation,” IEEE Trans. Med. Imag., vol. 39, no. 10,
+         2023.
+                                                                                           pp. 3008–3018, Oct. 2020.
+    [8] P. Lv, J. Wang, and H. Wang, “2.5D lightweight RIU-Net for automatic
+                                                                                      [34] L. Luo, Y. Li, Z. Chai, H. Lin, P.-A. Heng, and H. Chen, “Scale-
+         liver and tumor segmentation from CT,” Biomed. Signal Process. Con-
+                                                                                           aware super-resolution network with dual affinity learning for lesion
+         trol, vol. 75, May 2022, Art. no. 103567.
+                                                                                           segmentation from medical images,” IEEE Trans. Neural Netw. Learn.
+    [9] Ö. Çiçek, A. Abdulkadir, S. S. Lienkamp, T. Brox, and O. Ronneberger,
+                                                                                           Syst., vol. 36, no. 6, pp. 10530–10543, Jun. 2025.
+         “3D U-Net: Learning dense volumetric segmentation from sparse
+         annotation,” in Proc. 19th Int. Conf. Med. Image Comput. Comput.-            [35] J. Chen et al., “TransUNet: Rethinking the U-Net architecture design
+         Assist. Intervent.-MICCAI, Oct. 2016, pp. 424–432.                                for medical image segmentation through the lens of transformers,” Med.
+    [10] F. Milletari, N. Navab, and S.-A. Ahmadi, “V-Net: Fully convolutional             Image Anal., vol. 97, Oct. 2024, Art. no. 103280.
+         neural networks for volumetric medical image segmentation,” in Proc.         [36] H. Wu et al., “CvT: Introducing convolutions to vision transformers,” in
+         4th Int. Conf. 3D Vis. (3DV), Oct. 2016, pp. 565–571.                             Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV), Oct. 2021, pp. 22–31.
+    [11] A. Vaswani et al., “Attention is all you need,” in Proc. Adv. Neural Inf.    [37] W. Wang et al., “Pyramid vision transformer: A versatile backbone for
+         Process. Syst., vol. 30, 2017, pp. 5998–6008.                                     dense prediction without convolutions,” in Proc. IEEE/CVF Int. Conf.
+    [12] H. Cao et al., “Swin-UNet: UNet-like pure transformer for medical                 Comput. Vis. (ICCV), Oct. 2021, pp. 568–578.
+         image segmentation,” in Proc. Comput. Vis.-ECCV Workshops, Oct.              [38] W. Wang et al., “CrossFormer: A versatile vision transformer hinging
+         2021, pp. 205–218.                                                                on cross-scale attention,” 2021, arXiv:2108.00154.
+    [13] J. Wang et al., “Boundary-aware transformers for skin lesion                 [39] L. Lan, P. Cai, L. Jiang, X. Liu, Y. Li, and Y. Zhang, “BRAU-
+         segmentation,” in Proc. 24th Int. Conf. Med. Image Comput. Comput.                Net+: U-shaped hybrid CNN-transformer network for medical image
+         Assist. Intervent., Sep. 2021, pp. 206–216.                                       segmentation,” 2024, arXiv:2401.00722.
+    [14] Y. Tang et al., “Self-supervised pre-training of Swin transformers for 3D    [40] S. Ren and X. Li, “HResFormer: Hybrid residual transformer for
+         medical image analysis,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern             volumetric medical image segmentation,” IEEE Trans. Neural Netw.
+         Recognit. (CVPR), Jun. 2022, pp. 20698–20708.                                     Learn. Syst., vol. 36, no. 6, pp. 10558–10566, Jun. 2025.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+    SUN: DCTC-Net: DUAL-BRANCH CROSS-FUSION Transformer–CNN ARCHITECTURE                                                                                         2135
+
+
+
+    [41] S. Yan, B. Yang, A. Chen, X. Zhao, and S. Zhang, “Multi-scale convo-         [55] T. Lei et al., “Semi-supervised 3-D medical image segmentation using
+         lutional attention frequency-enhanced transformer network for medical             multiconsistency learning with fuzzy perception-guided target selection,”
+         image segmentation,” Inf. Fusion, vol. 119, Jul. 2025, Art. no. 103019.           IEEE Trans. Radiat. Plasma Med. Sci., vol. 9, no. 4, pp. 421–432, Apr.
+    [42] X. Liu, P. Gao, T. Yu, F. Wang, and R.-Y. Yuan, “CSWin-UNet:                      2025.
+         Transformer UNet with cross-shaped windows for medical image                 [56] T. Lei, Y. Wang, X. Wang, X. Wang, B. Hu, and A. K. Nandi, “Unified
+         segmentation,” Inf. Fusion, vol. 113, Jan. 2025, Art. no. 102634.                 feature consistency of under-performing pixels and valid regions for
+    [43] J. Ma, F. Li, and B. Wang, “U-Mamba: Enhancing long-range depen-                  semi-supervised medical image segmentation,” IEEE Trans. Radiat.
+         dency for biomedical image segmentation,” 2024, arXiv:2401.04722.                 Plasma Med. Sci., vol. 9, no. 2, pp. 169–181, Feb. 2025.
+    [44] Z. Wang, J.-Q. Zheng, Y. Zhang, G. Cui, and L. Li, “Mamba-UNet:              [57] F. Zhang et al., “Federated cross-incremental self-supervised learning for
+         UNet-like pure visual mamba for medical image segmentation,” 2024,                medical image segmentation,” IEEE Trans. Neural Netw. Learn. Syst.,
+         arXiv:2402.05079.                                                                 vol. 36, no. 7, pp. 13498–13511, Jul. 2025.
+    [45] J. Ruan, J. Li, and S. Xiang, “VM-UNet: Vision mamba UNet for                [58] R. Zhang and A. C. S. Chung, “EfficientQ: An efficient and accurate
+         medical image segmentation,” 2024, arXiv:2402.02491.                              post-training neural network quantization method for medical image
+    [46] W. Zhao, F. Wang, Y. Wang, Y. Xie, Q. Wu, and Y. Zhou, “UD-                       segmentation,” Med. Image Anal., vol. 97, Oct. 2024, Art. no. 103277.
+         Mamba: A pixel-level uncertainty-driven mamba model for medical              [59] B. Zhao, C. Wang, and S. Ding, “CrossMatch: Enhance semi-supervised
+         image segmentation,” 2025, arXiv:2502.02024.                                      medical image segmentation with perturbation strategies and knowl-
+    [47] G. Zhai, G. Wang, Q. Shang, Y. Li, and H. Wang, “DMA-Net: A                       edge distillation,” IEEE J. Biomed. Health Informat., vol. 29, no. 9,
+         dual branch encoder and multi-scale cross attention fusion network                pp. 6780–6792, Sep. 2025.
+         for skin lesion segmentation,” IET Image Process., vol. 18, no. 14,          [60] D. Kollias, A. Arsenos, and S. Kollias, “Domain adaptation, explainabil-
+         pp. 4531–4541, Dec. 2024.                                                         ity & fairness in AI for medical image analysis: Diagnosis of COVID-19
+    [48] X. Yang, Z. Luo, Y. Wu, X. Xie, N. Li, and T. Li, “TMU: Transmission-             based on 3-D chest CT-scans,” in Proc. IEEE/CVF Conf. Comput. Vis.
+         enhanced mamba-UNet for medical image segmentation,” in Proc. Int.                Pattern Recognit. Workshops (CVPRW), Jun. 2024, pp. 4907–4914.
+         Conf. Intell. Comput., 2024, pp. 428–438.
+    [49] N. Codella et al., “Skin lesion analysis toward melanoma detection 2018:
+         A challenge hosted by the International Skin Imaging Collaboration
+         (ISIC),” 2019, arXiv:1902.03368.
+    [50] P. Bilic et al., “The liver tumor segmentation benchmark (LiTS),” Med.
+         Image Anal., vol. 84, Jan. 2022, Art. no. 102680.
+    [51] O. Bernard et al., “Deep learning techniques for automatic MRI cardiac
+         multi-structures segmentation and diagnosis: Is the problem solved?,”
+         IEEE Trans. Med. Imag., vol. 37, no. 11, pp. 2514–2525, Nov. 2018.
+    [52] A. A. Taha and A. Hanbury, “Metrics for evaluating 3D medical image
+         segmentation: Analysis, selection, and tool,” BMC Med. Imag., vol. 15,                                 Rui Sun is currently pursuing the Ph.D. degree with
+         no. 1, pp. 1–28, Dec. 2015.                                                                            Fudan University, Shanghai, China.
+    [53] X. Li, L. Yu, H. Chen, C.-W. Fu, L. Xing, and P.-A. Heng,                                                 His research interests include image analysis, mul-
+         “Transformation-consistent self-ensembling model for semisupervised                                    timodal learning, causal reasoning, and trustworthy
+         medical image segmentation,” IEEE Trans. Neural Netw. Learn. Syst.,                                    artificial intelligence.
+         vol. 32, no. 2, pp. 523–534, Feb. 2021.
+    [54] T. Lei, D. Zhang, X. Du, X. Wang, Y. Wan, and A. K. Nandi, “Semi-
+         supervised medical image segmentation using adversarial consistency
+         learning and dynamic convolution network,” IEEE Trans. Med. Imag.,
+         vol. 42, no. 5, pp. 1265–1277, May 2023.
+
+
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:31 UTC from IEEE Xplore. Restrictions apply.
+

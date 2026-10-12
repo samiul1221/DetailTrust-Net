@@ -1,0 +1,726 @@
+                                           IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 28, NO. 1, JANUARY 2024                                      379
+
+
+
+
+    M2FTrans: Modality-Masked Fusion Transformer
+          for Incomplete Multi-Modality Brain
+                  Tumor Segmentation
+                 Junjie Shi , Li Yu , Senior Member, IEEE, Qimin Cheng , Xin Yang , Member, IEEE,
+                         Kwang-Ting Cheng , Fellow, IEEE, and Zengqiang Yan , Member, IEEE
+
+
+       Abstract—Brain tumor segmentation is a fundamen-                                                          I. INTRODUCTION
+    tal task and existing approaches usually rely on multi-
+                                                                                             CCURATE brain tumor segmentation is crucial for quanti-
+    modality magnetic resonance imaging (MRI) images for
+    accurate segmentation. However, the common problem of
+    missing/incomplete modalities in clinical practice would
+                                                                                      A      tative assessment of tumor progression and surgery treat-
+                                                                                      ment planning. Magnetic resonance imaging (MRI) provides
+    severely degrade their segmentation performance, and ex-                          various tissue contrast views and spatial resolutions for brain ex-
+    isting fusion strategies for incomplete multi-modality brain                      amination, making it possible to quantitatively categorize brain
+    tumor segmentation are far from ideal. In this work, we                           tumor regions into heterogeneous subregions by comparing MRI
+    propose a novel framework named M2 FTrans to explore and                          modalities with different contrast levels (i.e., T1, T1c, T2, and
+    fuse cross-modality features through modality-masked fu-                          Flair) [1], [2], [3], [4], [5]. Thus, multi-modality MRI imaging
+    sion transformers under various incomplete multi-modality
+                                                                                      becomes a standard routine as different modalities complement
+    settings. Considering vanilla self-attention is sensitive to
+    missing tokens/inputs, both learnable fusion tokens and                           each other in understanding brain structure and physiopathology.
+    masked self-attention are introduced to stably build long-                        However, in clinical practice, MRI sequences may be incomplete
+    range dependency across modalities while being more flex-                         due to image degradation, patient motion-related artifacts, incor-
+    ible to learn from incomplete modalities. In addition, to                         rect acquisition settings, short scan times, etc. Insufficient brain
+    avoid being biased toward certain dominant modalities,                            information will be the bottleneck of brain tumor segmentation.
+    modality-specific features are further re-weighted through                        How to reconstruct complete brain information given incomplete
+    spatial weight attention and channel-wise fusion trans-                           modalities is of great clinical value, which is formulated as
+    formers for feature redundancy reduction and modality re-                         incomplete multi-modality brain tumor segmentation.
+    balancing. In this way, the fusion strategy in M2 FTrans is                          Existing approaches mainly differ in fusion strategies as il-
+    more robust to missing modalities. Experimental results
+                                                                                      lustrated in Fig. 1. One typical way is to calculate the mean
+    on the widely-used BraTS2018, BraTS2020, and BraTS2021
+    datasets demonstrate the effectiveness of M2 FTrans, out-                         and variance of each accessible modality and fuse the corre-
+    performing the state-of-the-art approaches with large mar-                        sponding features with equal importance, which may fail to
+    gins under various incomplete modalities for brain tumor                          effectively aggregate features with missing modalities. Another
+    segmentation.                                                                     solution is to directly fuse modality features through convolution
+                                                                                      followed by a modality re-weighting mechanism based on the
+       Index Terms—Incomplete multi-modality segmentation,                            relative weights across modalities or between tumor regions
+    transformer, fusion token, masked self-attention.
+                                                                                      and different modalities, but such a convolution-based fusion
+                                                                                      strategy may be insufficient to incorporate global information.
+                                                                                      It is due to the inductive bias of locality and weight sharing
+       Manuscript received 20 June 2023; revised 27 September 2023; ac-               of convolutional operations. Comparatively, transformer, as a
+    cepted 17 October 2023. Date of publication 20 October 2023; date of
+    current version 5 January 2024. This work was supported in part by the
+                                                                                      sequence-to-sequence framework, builds pair-wise dependency
+    National Natural Science Foundation of China under Grants 62202179,               for each pair of tokens/patches. By dividing an input image into
+    62271220, and 42271352, in part by the Natural Science Foundation of              patches/tokens, the features of each patch can be re-weighted and
+    Hubei Province of China under Grant 2022CFB585, and in part by the                refined based on the interactions with all other patches through
+    National Natural Science Foundation of China/Research Grants Council              transformers. In this way, global information and long-range
+    Joint Research Scheme under Grant N_HKUST627/20. (Corresponding
+    author: Zengqiang Yan.)                                                           dependency are well captured. Therefore, introducing a trans-
+       Junjie Shi, Li Yu, Qimin Cheng, Xin Yang, and Zengqiang Yan                    former [6], [7] module to complement global information is a
+    are with the Hubei Key Laboratory of Smart Internet Technology,                   straightforward solution, but it struggles to minimize the impact
+    Hubei 430074, China, and also with the School of Electronic Infor-                of missing values brought by incomplete modalities in attention
+    mation and Communications, Huazhong University of Science and
+    Technology, Wuhan 430074, China (e-mail: shijunjie@hust.edu.cn; hus-
+                                                                                      calculation. How to construct a more compatible transformer-
+    tlyu@hust.edu.cn; chengqm@hust.edu.cn; xinyang2014@hust.edu.cn;                   style fusion strategy under the existence of incomplete/missing
+    z_yan@hust.edu.cn).                                                               modalities is demanding yet under-explored.
+       Kwang-Ting Cheng is with the School of Engineering, Hong Kong                     Inspired by the class tokens in vision transformers (ViT) [7]
+    University of Science and Technology, Kowloon 999077, Hong Kong                   and masked attention [8], we propose M2 FTrans to exploit
+    (e-mail: timcheng@ust.hk).
+       Code is available at https://github.com/Jun-Jie-Shi/M2FTrans.                  transformers for feature fusion under incomplete multi-modal
+       Digital Object Identifier 10.1109/JBHI.2023.3326151                            settings. Specifically, M2 FTrans first consists of four encoders
+
+                        2168-2194 © 2023 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                                      See https://www.ieee.org/publications/rights/index.html for more information.
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+     380                                                              IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 28, NO. 1, JANUARY 2024
+
+
+
+
+     Fig. 1. Representative fusion strategies for incomplete multi-modality brain tumor segmentation. Given modality-specific features from different
+     modalities, HeMIS [27] shares statistical indicators but is less effective, RFNet [30] adopts convolution but suffers from insufficient global information,
+     mmFormer [9] introduces vanilla self-attention to enrich global information but struggles to well deal with missing modalities, and our M2 FTrans
+     introduces learnable fusion tokens and calculate masked self-attention for better cross-modality interaction and is more robust to missing modalities.
+     Here, PoE is short for Products of Experts developed in HeMIS-like approaches, corresponding to the Abstraction Layer in the original HeMIS.
+
+
+
+
+     and one shared decoder to extract modality-specific features                                                II. RELATED WORK
+     from the four modalities separately. To minimize the negative
+     influence of missing modalities, instead of direct inter-modality                 A. Multi-Modality Brain Tumor Segmentation
+     feature fusion through cross-attention like mmFormer [9], we                         Brain tumor segmentation is a fundamental task in medical
+     introduce learnable fusion tokens to a modality-masked fu-                        image analysis, and related works can be roughly categorized as
+     sion transformer (MMFT) to adaptively incorporate accessible                      follows:
+     cross-modality features. As modalities contribute differently                        1) Complete Multi-Modality: Brain tumor segmentation with
+     to tumor regions, both spatial weight attention (SWA) and                         complete/full modalities follows the same pipeline of medical
+     channel-wise fusion transformers (CFT) are jointly adopted                        image segmentation, where both convolutional neural networks
+     to re-weight modalities during fusion from different perspec-                     (CNN) [1], [2], [4], [10], [11], [12], [13] and transformers [3],
+     tives. In this way, fusion features are less likely to be domi-                   [14], [15], [16], [17] have been extensively studied. More re-
+     nated by certain modalities, being more robust to various in-                     cently, SF-Net [37] introduced pixel-level image fusion as an
+     complete multi-modality scenarios especially when dominant                        auxiliary task to regularize feature learning while both deep
+     modalities are missing. Experimental results on the widely-used                   semantics and edge information are jointly fused in [38]. Seg-
+     BraTS2018 and BraTS2020 datasets demonstrate the superiority                      TransVAE [39] exploited transformers with a variational au-
+     of M2 FTrans against the state-of-the-art approaches for brain                    toencoder (VAE) branch to reconstruct the input images jointly
+     tumor segmentation under various settings (i.e., complete and in-                 with segmentation. TbraTS [40] quantified the voxel-wise un-
+     complete modalities). The main contributions are summarized as                    certainty for brain tumor segmentation by introducing the confi-
+     follows:                                                                          dence level for image segmentation to disease diagnosis. UMM-
+         r A transformer-style fusion strategy to deal with incom-                     Net [41] developed an uncertainty-aware multi-dimensional mu-
+            plete multi-modality scenarios for brain tumor segmenta-                   tual learning framework to learn different dimensional networks
+            tion with richer global information.                                       simultaneously, providing useful soft labels as supervision to the
+         r Modality-masked fusion transformers with learnable fu-                      others for improving model generalizability. The main challenge
+            sion tokens for effective feature fusion while minimizing                  is how to balance modalities rather than being biased toward
+            the negative influence of missing modalities.                              certain modalities. As these frameworks are trained by full
+         r Spatial weight attention and channel-wise fusion trans-                     modalities, they would encounter severe performance degrada-
+                                                                                       tion when dealing with incomplete/missing modalities, making
+            formers to adaptively re-weight modalities to avoid dom-                   them less attractive in clinical practice.
+            inant modalities given the incomplete/missing modality                        2) Incomplete Multi-Modality: Solutions         to missing/
+            problem.                                                                   incomplete modalities include knowledge distillation (KD) [18],
+        The rest of this article is organized as follows. Section II                   [19], [20], [21], [22], [23], generative adversarial networks
+     reviews related works on brain tumor segmentation with incom-                     (GAN) [24], [25], [26], and shared representation learning [9],
+     plete/missing modalities and Section III describes the proposed                   [27], [28], [29], [30]. In terms of KD-based approaches,
+     M2 FTrans in detail. We present a thorough evaluation against                     ACN [21] and SMU-Net [23] are the most representative ones,
+     the state-of-the-art methods in Section IV and ablation studies                   where ACN trained a teacher-student framework for each
+     in Section V. Section VI concludes this article.                                  missing situation and SMU-Net proposed a style matching
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+    SHI et al.: M2 FTRANS: MODALITY-MASKED FUSION TRANSFORMER                                                                                                   381
+
+
+
+    mechanism to reconstruct missing information from the
+    full-modality network. Both of the two approaches are of
+    high complexity, as they trained a separate model for each
+    multi-modality setting (i.e., 15 models in total) to deal
+    with missing modalities. Despite the efficiency, KD-based
+    approaches may encounter instabilities in training during
+    knowledge transfer. RA-HVED [24] is the most recent
+    GAN-based approach using a region-of-interest attentive
+    discriminator to learn segmentation-relevant shared latent
+    representations. One limitation of GAN-based approaches
+    lies in unstable training, often resulting in less competitive
+    performance.
+       Given the limitations of knowledge distillation and generative
+    adversarial learning in feature fusion especially when dominant
+    modalities are missing, shared representation learning, to com-
+    plement missing information by sharing a spatial mapping across
+    modalities, becomes mainstream in incomplete multi-modality
+    brain tumor segmentation. Specifically, HeMIS [27] computed
+    variance statistics (i.e., mean and variance) to construct a uni-
+    form representation for segmentation, and U-HVED [28] em-
+    ployed a multi-modal variational auto-encoder (MVAE) [31]
+    to embed all observed modalities. RobustMseg [29] performed
+    fusion by feature disentanglement and modality re-weighting
+    via a gating strategy, and RFNet [30] performed region-aware
+    fusion using attention gating modules by exploring each modal-                    Fig. 2. Overview of M2 FTrans with incomplete modalities for brain
+    ity’s contribution to different tumor regions. Unfortunately, all                 tumor segmentation. The encoders ET 1c , ET 1 , and ET 2 share the
+                                                                                      same architectures with EF lair .
+    these approaches fail to build global/remote dependencies across
+    modalities. In addition, MAML [42] used multiple U-Net ar-
+    chitectures with the same structure to extract the features of
+    different modalities, and in the final stage fused the extracted                  The idea of these methods motivates us to design a missing-
+    modality-specific features by convolutional weighting. It further                 modality-based mask transformer to achieve robust multi-modal
+    introduced a modality-aware mutual learning strategy to make                      feature fusion for brain tumor segmentation tasks with incom-
+    its architecture robust to incomplete/missing modality scenarios.                 plete modalities.
+    U-Net-MFI [43] introduced graph convolution networks for
+    incomplete brain tumor segmentation. It treated modalities as
+    graph nodes and indicated the presence or absence of each                                                   III. METHODOLOGY
+    modality through the introduced multi-modal code, which in                           The complete framework of M2 FTrans is presented in Fig. 2.
+    turn guided the model to adaptively fuse complementary modal-                     The key idea is to re-weight independent modalities from both
+    ities’ features in different incomplete/missing modality scenar-                  the spatial and channel dimensions, realized by spatial weight at-
+    ios. M3 AE [45] designed a two-stage architecture including                       tention (SWA) and channel-wise fusion transformers (CFT), and
+    self-supervised pre-training and self-distillation to reduce the                  introduce learnable fusion tokens for cross-modality interaction
+    parameters of convolutional neural networks for brain tumor                       realized by modality-masked fusion transformers (MMFT). In
+    segmentation against missing modalities. mmFormer [9] is the                      the following, we detail each component of M2 FTrans.
+    first work to introduce transformers to exploit both intra- and
+    inter-modality dependence for feature fusion. However, adopt-
+    ing vanilla mutual attention computation in mmFormer would                        A. Modality-Specific Feature Extraction
+    encounter difficulties with missing modality features.                               Let M ={Flair, T1c, T1, T2} denote the complete set of
+                                                                                      modalities. Given any 3D input modality path xm of each modal-
+                                                                                      ity m ∈ M and the ground-true annotation y, an independent
+    B. Masked Attention in Transformers                                               modality-specific encoder Em following 3D U-Net is trained to
+       Despite the remarkable success of pair-wise self-attention                     extract modality-specific features Fm ∈ Rc×h×w×d .
+    in transformers, its computation-extensive nature, and alterna-                      In typical multi-modality frameworks, features of different
+    tive solutions using masked attention have been proposed to                       modalities are directly fused and fed to a decoder for seg-
+    make self-attention more focused on specific regions/features.                    mentation. The decoder tends to select the most discriminative
+    Mask2Former [8] effectively constrains cross-attention to local-                  modality as the main modality for brain tumor segmentation,
+    ized regions, thereby enabling the Transformer to efficiently pro-                which would suffer from severe performance degradation espe-
+    cess high-dimensional output. Zorro [32] approach has demon-                      cially when the main modality is missing. To avoid modality
+    strated impressive performance in audio classification tasks by                   bias and balance different modalities, a shared decoder Dreg is
+    employing a meticulously designed mask transformer. They                          introduced for regularization as illustrated in Fig. 2. In this way,
+    strategically divide the information flow into uni-modal and                      modality-specific features are projected to a shared latent space,
+    multi-modal streams, subsequently generating corresponding                        and each modality is trained separately for segmentation so as
+    outputs through comparative analysis and supervised guidance.                     to reduce the negative influence of missing modalities. The four
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+     382                                                              IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 28, NO. 1, JANUARY 2024
+
+
+
+
+     Fig. 3. Attention mechanisms in M2 FTrans for modality fusion and re-weighting, including modality-masked fusion transformers for cross-modality
+     feature fusion of accessible modalities, spatial weight attention for re-weighting modality-specific features, and channel-wise fusion transformers for
+     cross-modality feature fusion along the channel dimension among accessible modalities.
+
+
+
+
+     encoders and the shared decoder are trained by                                    all accessible modality-specific tokens through self-attention
+                                                                                      for inter-modality feature fusion. Specifically, given Z0 , it is
+               Lreg =         LDice (Dreg (Em (xm )), y)                               projected to Q, K, and V following vanilla self-attention. To
+                              m∈M                                                      deal with missing modalities, we build a binary attention mask
+                              + LW CE (Dreg (Em (xm )), y),                     (1)    M ∈ {0, 1}5 N ×5 N , corresponding to the pair-wise dependen-
+                                                                                       cies across tokens in Z0 . Given any position (i, j) in M, Mi,j is
+     where LDice and LW CE denote the Dice loss and the weighted                       to determine whether filter out the relationship between qi ∈ Q
+     cross-entropy loss respectively.                                                  and kj ∈ K is determined according to:
+                                                                                           r If qi and kj belong to the same existing modality, Mi,j = 1
+     B. Modality-Masked Fusion Transformer                                                    is set to refine the modality-specific features.
+                                                                                           r If qi belongs to the fusion tokens Ff usion and kj comes
+        Despite the effectiveness of transformers in capturing long-
+     range dependency for inter-modality feature exploration, di-                             from an existing/accessible modality, Mi,j = 1 is set to
+     rectly concatenating and projecting the features of different                            fuse modality-specific features by cross-attention.
+     modalities into queries (Q), keys (K), and values (V ) for self-
+                                                                                           r If either qi or kj comes from missing modalities, Mi,j = 0
+     attention calculation is quite sensitive to missing modalities [7],                      is set to avoid building impossible inter-modality depen-
+     [9]. Inspired by the learnable class tokens in ViT [7] to generate                       dency.
+     output embedding vectors by interacting with input tokens for                        According to Mi,j , modality-masked attention (MA) is writ-
+     classification, we introduce learnable fusion tokens for inter-                   ten as
+     modality feature fusion and propose a modality-masked fusion                                                                             
+                                                                                                                                     qi (kj )T
+     transformer (MMFT) to deal with missing modalities as shown                                                          Mi,j exp √
+     in Fig. 3.                                                                                                                          c/H
+                                                                                                MA(Q, K, i, j) =                                     , (3)
+        Given the modality-specific features Fm ∈ Rc×h×w×d of each                                                                       qi (kj  )T
+     modality m ∈ M produced by the corresponding encoder Em ,                                                           
+                                                                                                                        j ,M  =1 exp      √
+                                                                                                                                 i,j               c/H
+     we reshape it into Fm ∈ RN ×c where N = h × w × d, and in-
+     troduce learnable fusion tokens Ff usion ∈ RN ×c . Then, Fm and                   where H is the number of heads in multi-head modality-
+     Ff usion are concatenated into Fmulti ∈ R5N ×c . After combined                   masked attention (MHMA) implemented by concatenation just
+     with learnable positional embeddings P E ∈ R5N ×c , the feature                   like vanilla self-attention in ViT [7]. Through a feed-forward
+     embeddings Z0 , written as                                                        network (FFN), the original feature embeddings Z0 after one
+                                                                                       MMFT layer are written as
+                              Z0 = Fmulti + P E,                               (2)
+                                                                                                            Z0 ← MA(Q, K) · V,
+     would be fed to MMFT.
+        The core component of MMFT is modality-masked atten-                                                Z1 ← MHMA (Z0 ) + Z0 ,
+     tion to make modality-specific tokens focus only on interact-
+     ing within each modality and the fusion tokens interact with                                           Z1 ← FFN (LN (Z1 )) + Z1 ,                           (4)
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+    SHI et al.: M2 FTRANS: MODALITY-MASKED FUSION TRANSFORMER                                                                                                   383
+
+
+
+    where LN is layer normalization. Through L1 MMFT layers,                          features F̂f usion ∈ Rc×h×w×d after MMFT are reshaped into
+    the learnable fusion tokens Ff usion ∈ RN ×c are updated and                      Ẑ0 ∈ Rc×N and projected into Q. As attention is channel-wisely
+    reshaped to F̂f usion ∈ Rc×h×w×d possessing cross-modality in-                    computed and the original spatial information will be lost if
+    formation, and the modality-specific feature tokens Fm ∈ RN ×c                    performing a fully connected layer along the spatial dimension
+    are updated and reshaped to F̂m ∈ Rc×h×w×d containing more                        for projection, we adopt convolutional locally-connected projec-
+    global features within each modality.                                             tion grouped by each modality in the channel dimension. The
+                                                                                      projection process is formulated as
+    C. Spatial Weight Attention                                                                               
+                                                                                                    Q = Ψq Ẑ0 ,
+       In modality-masked attention, tokens of different modalities
+                                                                                                                                    
+    are treated with equal importance, where each row correspond-                                                        
+                                                                                                    K = Concat Ψm   k   Z 0
+                                                                                                                           m
+                                                                                                                               , m ∈ M   ,
+    ing to each fusion token of the attention matrix (i.e., the last rows
+    of the modality-masked attention matrix as illustrated in Fig. 3)                                                               
+    model the relationship/similarity between the fusion token and                                  V = Concat Ψm   v   Z0m , m ∈ M ,             (6)
+    tokens from existing modalities. However, modalities, as well
+    as tokens belonging to the same modality, can contribute dif-                     where Ψα∈{q,k,v} is expressed as:
+    ferently to feature fusion. Including all modality-specific tokens
+    equally to update the fusion tokens can be counter-productive.                                     Ψα∈{q,k,v} (·) = φα (ψα (ϕα (·))) ,                      (7)
+    Therefore, it is necessary to re-weight tokens from accessible                    where φα and ϕα correspond to point-wise convolution with a
+    modalities for better feature fusion. As discussed in [33], given                 convolution kernel size of 1 to map each token to a corresponding
+    a self-attention matrix, the column vectors can somewhat reflect                  feature preview, and ψα corresponds to depth-wise convolution
+    the importance of individual tokens. Inspired by this, we propose                 with a convolution kernel size of 3 to map each token to a local
+    spatial weight attention for weighted cross-attention between                     interval.
+    fusion tokens and modality-specific tokens and gradually exploit                     Similar to modality-masked attention, we introduce a binary
+    important tokens in each modality along the spatial dimension                     attention mask G ∈ {0, 1}c×4c along the channel dimension,
+    as illustrated in Fig. 3.                                                         when performing channel-wise attention calculation. Given any
+       Specifically, given L modality-masked fusion layers as de-                     position (i, j), Gi,j ∈ G corresponds to the relationship between
+    scribed above, the modality-masked attention matrix of the first                  qi and kj in Q and K respectively. If kj corresponds to a missing
+    layer is used for token importance modeling. It is based on the                   modality, then Gi,j is set to 0. Otherwise, Gi,j is set to 1. Based
+    observation that self-attention matrices are more likely to be uni-               on this, channel-wise masked attention (CMA) is calculated by
+    form in deep layers [34]. Given the computed modality-masked                                                                               
+    attention matrix MA1 , the weight of each token j is calculated                                                                    q (k )T
+                                                                                                                          Gi,j exp i √Nj
+    by summing over the column vectors, namely                                                CMA(Q, K, i, j) =                                       , (8)
+                                                                                                                                          qi (kj  )T
+                                                                                                                                              √
+                            
+                             5N                                                                                         
+                                                                                                                       j ,Gi,j  =1 exp         N
+              Col(j) =                    MA1 (i, j), j ∈ [1, 4N ],           (5)
+                            H i=4N +1                                                 where N = h × w × d. Following CMA, Ψo with the same
+    where H is the number of modality-masked attention heads.                         structure as Ψα∈{q,k,v} is adopted for projection, namely
+    After calculating Col ∈ R1×4 N for all modalities, token weights
+    of each modality m ∈ M are obtained via slicing, i.e., Colm =                                      Ẑ0 ← Ψo (CMA(Q, K) · V ) + Ẑ0 .                        (9)
+    Split(Col) ∈ R1×N . Then, Colm is reshaped to the same size                       In terms of feed-forward, we add a convolutional kernel of group
+    as F̂m to indicate spatial importance Im ∈ R1×h×w×d , and                         convolution of size 3 between two fully connected layers in the
+    modality-specific features F̂m are re-weighted and updated to                     channel dimension to obtain richer local feature information and
+    Fm = F̂m  Im where  is element-wise multiplication. Not-                       update the original fusion features Ẑ0 into Z1 through one CFT
+    ing that, for missing modalities, Im is set to zero and spatial                   layer, namely
+    weight attention is applied to the skip connections of all stages                                                  
+    by upsampling.                                                                                        Z1 ← FFN Ẑ0 + Ẑ0 ,                   (10)
+
+    D. Channel-Wise Fusion Transformer                                                where  FFN is the feed-forward network. After L2 CFT layers,
+                                                                                      the fusion features F̂f usion ∈ Rc×h×w×d are further enhanced
+       Though spatial redundancy among tokens is alleviated
+    through spatial weight attention, there may exist redundancy                      into Ff usion ∈ Rc×h×w×d based on the spatially and channel-
+    along the channel dimension, i.e., across feature maps of each                    wisely re-weighted modality-specific features.
+    token. To address this, channel-wise fusion transformers (CFT)
+    are constructed between fusion tokens and modality-specific                       E. Decoding With Deep Supervision
+    tokens as described in Fig. 3. Specifically, given the enhanced
+                                                                                         For decoding and segmentation, a five-stage decoder Df usion
+    modality-specific features Fm ∈ Rc×h×w×d of each modality                        with a similar structure as Dreg is adopted, consisting of multi-
+    m ∈ M after both MMFT and SWA, they are first reshaped                            ple convolutional blocks stacked together. The main difference
+    along the spatial dimension to Z0m ∈ Rc×N and concatenated                       between Df usion and Dreg lies in the skip connections where
+    as Z0 = Concat(Z0m , m ∈ M ) ∈ R4c×N . Then, Z0 is projected                   features from the encoders would go through spatial weight at-
+    into K and V for self-attention calculation. Similarly, the fusion                tention and channel-wise masked attention before concatenation
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+     384                                                              IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 28, NO. 1, JANUARY 2024
+
+
+
+     in Df usion as shown in Fig. 3. Specifically, given the modality-                 introduced to discard modalities and simulate various missing-
+     specific features from encoders, modality-masked fusion trans-                    modality cases. For training, each volume was randomly cropped
+     formers (MMFT), spatial weight attention, and channel-wise                        to 80×80×80 pixels and augmented by random rotation, inten-
+     fusion transformers are sequentially applied to learn high-quality                sity change, and mirror flip.
+     fusion features, namely F̂f usion and Ff usion . Then, the fused                    For the positional embedding in M2 FTrans, we follow the use
+     features are concatenated, upsampled, and fed to channel-wise                     of learnable positional embeddings in mmFormer’s Inter-modal
+     fusion transformers to interact with the re-weighted skip connec-                 Transformers, which are also added for the learnable fusion
+     tion features from encoders according to spatial weight attention.                tokens just like a larger-size class token in ViT.
+     Starting from the bottom two layers, the fused features would be
+     upsampled and concatenated with the re-weighted skip connec-
+                                                                                       B. Comparison With SOTA Approaches
+     tion features progressively till the final output layer. Df usion is
+     trained by a segmentation loss,                                                      Based on the availability of source codes and data splits,
+                                                                                       five state-of-the-art approaches, adopting the same publicly-
+           Lseg = LDice (Df usion (Concat(Em (xm ))), y)                               available data splits for incomplete multi-modality brain tumor
+                    + LW CE (Df usion (Concat(Em (xm ))), y) .                (11)     segmentation, are included for comparison, including CNN-
+                                                                                       based (i.e., HeMIS [27], U-HVED [28], RobustMSeg [29], and
+        To stabilize the training process and regularize the fusion                    RFNet [30]) and transformer-based (i.e., mmFormer [9]).
+     features, deep supervision is adopted and trained by                                  1) Quantitative Comparison: Quantitative comparison re-
+                                                                                       sults under all fifteen multi-modality combinations on the
+                             5
+                                                                                      BraTS2018 dataset are summarized in Table I. Among the
+                    Lds =          LDice (U p2l−1 (F̂fl usion ), y)                    comparison approaches, RFNet achieves the best overall seg-
+                             l=1                                                       mentation performance for WT, TC, and ET, outperforming
+                                                                                       mmFormer under 40 out of 45 modality settings and achieving
+                             + LW CE (U p2l−1 (F̂fl usion ), y),              (12)     an average increase of 0.66%, 1.48%, and 0.85% in DSC re-
+                                                                                       spectively. Comparatively, M2 FTrans consistently outperforms
+     where U p2l−1 represents 2l−1 × upsampling and F̂fl usion denotes                 both RFNet and mmFormer under all 45 modality settings for
+     the fusion features from the l-th stage of Df usion .                             WT, TC, and ET respectively, leading to an average increase of
+                                                                                       0.94%, 1.38%, and 4.58% in DSC compared to RFNet and an
+     F. Overall Loss                                                                   average increase of 1.60%, 2.86%, and 5.43% in DSC compared
+                                                                                       to mmFormer.
+        The overall loss includes the segmentation regularization loss                    Similar observations are found on the BraTS2020 dataset as
+     Lreg for modality-specific feature extraction, the deep supervi-                  summarized in Table II. Among the comparison approaches,
+     sion loss Lds , and the final segmentation loss Lseg , written as                 RFNet achieves better segmentation performance across all three
+                                                                                       tumor types compared to mmFormer, leading to an average
+                                                                                       increase of 0.83%, 0.50%, and 0.48% in DSC respectively.
+                            L = Lseg + Lreg + Lds .                           (13)
+                                                                                       M2 FTrans consistently outperforms other approaches under all
+                                                                                       45 modality settings (i.e., 15 for each tumor type) with an average
+                                   IV. EVALUATION                                      increase of 1.02%, 1.18%, and 4.98% in DSC compared to
+                                                                                       RFNet and 1.85%, 1.68%, and 5.46% against mmFormer for
+     A. Experimental Setup
+                                                                                       WT, TC, and ET respectively.
+         1) Datasets: Two datasets from the Multimodal Brain Tu-                          One interesting observation across both datasets is that the
+     mor Segmentation Challenge (BRATS) [35] are adopted for                           more difficult the tumor type is to segment (e.g., WT < TC<ET),
+     evaluation, namely BRATS2018 and BRATS2020, both of                               the more performance gains M2 FTrans achieves. It further val-
+     which contain data from four MRI modalities including Flair,                      idates the effectiveness of M2 FTrans in exploiting richer cross-
+     T1c, T1, and T2. Following [28], [29], [30], we excised the black                 modality information which is more beneficial for challenging
+     background regions outside the brain and normalized each MRI                      cases. In addition, as summarized in Tables I and II, M2 FTrans
+     modality to zero mean and unit variance. For a fair comparison                    achieves statistically significant (i.e. all p-value scores being
+     on the BRATS2018 dataset consisting of 285 training samples,                      lower than 0.05) performance improvements against other ap-
+     we used the same data split lists in [28], [30] and split the data                proaches on both datasets, validating its stability under various
+     into 199, 29, and 57 subjects for training, validation, and test                  modality settings.
+     respectively. In terms of the BRATS2020 dataset containing 369                       In addition to the Dice coefficient, Hausdorff distance is
+     training samples, we split the data into the same 219, 50, and                    included for shape evaluation on both datasets as summarized
+     100 subjects for training, validation, and test respectively by                   in Table III. Compared to other approaches, M2 FTrans achieves
+     strictly following [30]. For both datasets, the Dice similarity                   the best performance on shape preservation, which is crucial in
+     coefficient (DSC) and the Hausdorff distance (HD) are utilized                    clinical diagnosis. Statistical analysis indicates that the perfor-
+     for evaluation.                                                                   mance improvements of M2 FTrans are statistically significant
+         2) Implementation Details: The framework was imple-                           (i.e., all p-value scores being lower than 0.05).
+     mented in Pytorch and trained using an AdamW [36] optimizer                           2) Qualitative Comparison: Qualitative results of mm-
+     with an initial learning rate of 2e-4, a weight decay of 1e-4, and                Former, RFNet, and M2 FTrans under different modality com-
+     a batch size of 2 on two 24 G NVIDIA Geforce RTX 3090 GPUs                        binations are illustrated in Fig. 4. Given only one modality,
+     for 1000 epochs. Specifically, we adopted a warm-up learning                      though all three approaches encounter performance degradation,
+     rate adjustment strategy and a poly decay strategy with p = 0.9                   M2 FTrans achieves better segmentation performance, especially
+     during training. Following [28], [29], [30], modality masks were                  for ET. It validates the robustness of M2 FTrans in exploring
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+    SHI et al.: M2 FTRANS: MODALITY-MASKED FUSION TRANSFORMER                                                                                                   385
+
+
+
+                                                                        TABLE I
+                                           QUANTITATIVE COMPARISON RESULTS MEASURED IN DSC (%) ON BRATS2018
+
+
+
+
+                                                                      TABLE II
+                                    QUANTITATIVE COMPARISON RESULTS MEASURED IN DSC (%) ON THE BRATS2020 DATASET
+
+
+
+
+    Fig. 4. Qualitative results of mmFormer [9], RFNet [30], and the proposed M2 FTrans on BraTS2018 and BraTS2020. Detailed regions are zoomed
+    in for better visualization and comparison. In addition, the DSC scores of the three tumor types in each image are provided.
+
+
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+     386                                                              IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 28, NO. 1, JANUARY 2024
+
+
+
+
+     Fig. 5.   Qualitative segmentation results of M2 FTrans on BraTS2018 and BraTS2020 under all fifteen multi-modality settings.
+
+
+
+                                 TABLE III                                                                       V. ABLATION STUDY
+     QUANTITATIVE COMPARISON RESULTS MEASURED IN AVERAGE HAUSDORFF
+             DISTANCE (AVG. HD) ON BRATS2018 AND BRATS2020                             A. On Components of M2 FTrans
+                                                                                          For a more comprehensive evaluation, we conduct component
+                                                                                       -wise ablation studies as summarized in Table IV. Given only
+                                                                                       the encoders and decoder without additional regularization, the
+                                                                                       segmentation performance across three tumor types is far from
+                                                                                       satisfactory, worse than both RFNet and mmFormer accord-
+                                                                                       ing to the quantitative results in Table II. Through a shared
+                                                                                       decoder for regularization, intra-modality features are learned
+                                                                                       independently, which somewhat makes the decoder less biased
+                                                                                       to certain dominant modalities and improves the overall seg-
+                                                                                       mentation performance. With the introduction of MMFT for
+                                                                                       cross-modality feature fusion, significant performance gains are
+                                                                                       achieved especially for ET, validating its effectiveness. Coupling
+                                                                                       either SWA or CFT with MMFT for modality re-weighting is
+                                                                                       helpful, as it would better balance feature fusion in dealing
+                                                                                       with missing/incomplete modalities. After all, jointly utilizing
+                                                                                       all components achieves the best segmentation performance,
+                                                                                       leading to an average increase of 2.49%, 3.53%, and 6.99% in
+                                                                                       DSC for WT, TC, and ET respectively compared to the baseline.
+                                                                                       According to the component-wise complexity as summarized in
+                                                                                       Table IV, the backbone networks contribute most model param-
+     intra-modality information for segmentation. With the intro-                      eters and GFLOPs. Of different components, MMFT owns the
+     duction of more modalities, all approaches would benefit from                     most model parameters and the highest GFLOPs. Therefore,
+     additional information, among which M2 FTrans achieves the                        adopting a lightweight backbone is expected to significantly
+     best performance with better shape preservation, validating its                   improve the model efficiency of M2 FTrans, which is not the
+     effectiveness.                                                                    main focus of this work and will be explored in future work.
+        We further visualize the segmentation results of M2 FTrans                        In M2 FTrans, spatial weight attention is applied to all skip
+     under all fifteen modality settings as shown in Fig. 5. Given                     connections for re-weighting, while channel-wise fusion trans-
+     only one modality, T1c is the most informative modality for the                   formers are just introduced to the bottom two layers. To figure
+     segmentation of ET, while Flair seems more suitable for WT                        out how CFT works on different levels of skip connections, we
+     and TC. Under two-modality combinations, all segmentation                         conduct additional ablation studies as summarized in Table V.
+     results have been effectively improved, of which Flair and T1c                    Compared to the baseline, only applying SWA is slightly helpful,
+     obtain slightly better results. With the introduction of more                     leading to an average increase of 0.35% in Avg. DSC, while
+     modalities, segmentation results become more similar and stable                   jointly introducing one CFT to the bottom layer achieves much
+     under various modality combinations. The above results validate                   better results, leading to an average increase of 0.82% in Avg.
+     the effectiveness of M2 FTrans on cross-modality feature fusion.                  DSC. When applying CFT to the bottom two layers, the overall
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+    SHI et al.: M2 FTRANS: MODALITY-MASKED FUSION TRANSFORMER                                                                                                   387
+
+
+
+                                                                       TABLE IV
+                                                COMPONENT-WISE ABLATION STUDY OF M2 FTRANS ON BRATS2020
+
+
+
+
+                               TABLE V                                                                           TABLE VII
+     ABLATION STUDY ON WHERE TO USE CFT IN M2 FTRANS ON BRATS2020                     ABLATION STUDY ON THE NUMBER OF CFT LAYERS (I.E., L2 ) IN M2 FTRANS
+                                                                                                               ON BRATS2020
+
+
+
+
+                                TABLE VI                                              on the BraTS2020 dataset as summarized in Table VI. Intro-
+         ABLATION STUDY ON THE NUMBER OF MMFT LAYERS (I.E., L1 ) IN                   ducing a one-layer MMFT effectively outperforms the baseline
+                           2
+                         M FTRANS ON BRATS2020                                        with a large margin, leading to an average increase of 2.15%
+                                                                                      in Avg. DSC. One interesting observation is that introducing
+                                                                                      more MMFT layers would not necessarily bring significant
+                                                                                      performance gains. It is because training transformers is data-
+                                                                                      intensive and stacking more MMFT layers may not be helpful
+                                                                                      as deep layers can be uniform as discussed in [34]. In terms
+                                                                                      of model complexity, it is a natural observation that using more
+                                                                                      MMFT layers would introduce additional model parameters and
+                                                                                      GFLOPs as summarized in Table VI. It should be noted that
+                                                                                      compared to the baseline networks, model complexity brought
+                                                                                      by MMFT layers is relatively limited.
+                                                                                         Another important hyper-parameter is the number of channel-
+    segmentation performance is further improved. However, pro-                       wise fusion transformers, L2 . To figure out how it matters, we
+    gressively adding CFT to more skip connection layers would                        conduct ablation studies on L2 as summarized in Table VII.
+    degrade the segmentation performance. It is because the features                  As discussed in Section III.D, the main motivation of CFT is
+    from the upper layers are less discriminative, making it difficult                to reduce additional redundancy along the channel dimension
+    to re-weight feature maps along the channel dimension which in                    by re-weighting feature maps. Therefore, gradually introducing
+    turn affects the fusion features. In terms of model complexity,                   more CFT layers is helpful to learn more compact modality-
+    SWA would barely bring additional computation burdens. When                       specific features for fusion. However, using too many CFT layers
+    introducing CFT to more stages, model parameters would in-                        is harmful. It is because adding more CFT layers will continu-
+    crease relatively slower while the increase of GFLOPs is much                     ously re-weight feature maps along the channel dimension and
+    faster as summarized in Table V. This is because computation                      is more likely to lose spatial information.
+    on higher-resolution feature maps is far more complicated and                        Similar to MMFT layers, adopting more CFT layers would
+    will increase in a non-linear manner when introducing CFT to                      gradually increase both model complexity and GFLOPs as
+    more stages.                                                                      summarized in Table VII. One interesting observation is that
+                                                                                      adopting a one-layer CFT module is even more lightweight
+                                                                                      than the baseline. It is because we followed the use of skip
+    B. On Hyper-Parameters of M2 FTrans                                               connections in mmFormer for the stages without CFT. The
+       To further evaluate the performance of modality-masked                         decrease in Params indicates that using a one-layer CFT module
+    fusion transformers (MMFT), we conduct additional ablation                        at the bottom stage needs fewer parameters than mmFormer’s
+    studies by using different numbers of MMFT for comparison                         convolutional skip connection.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+     388                                                              IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 28, NO. 1, JANUARY 2024
+
+
+
+                                                                      TABLE VIII
+                              QUANTITATIVE COMPARISON WITH DEDICATED APPROACHES ON BRATS2018 MEASURED IN AVG. DSC (%)
+
+
+
+
+     C. Vs. Dedicated Approaches
+        In Section IV, we mainly focus on the state-of-the-art single-
+     model-based approaches for comparison, especially against the
+     most-advanced approach RFNet [30]. As discussed in Section II,
+     the most representative KD-based approaches, ACN [21] and
+     SMU-Net [23], trained a separate model for each modality
+     setting (i.e., 15 models in total) and achieved good segmentation
+     performance. For a more comprehensive evaluation, we further
+     compare M2 FTrans against ACN and SMU-Net. It should be
+     noted that ACN and SMU-Net adopt a much larger input size of
+     160 × 192 × 128 pixels while M2 FTrans uses a smaller input
+     size of 80 × 80 × 80 pixels in Section IV (the same as RFNet).
+     For a fair comparison, we increase the input size of M2 FTrans to
+     128 × 128 × 128 pixels (limited by GPU memories) and conduct
+     a comparison against ACN and SMU-Net. As both data splits
+     and evaluation methods of ACN and SMU-Net are different from                      Fig. 6. Comparison of different approaches on model efficiency. The
+     those in Section IV.A, we strictly follow the data splits and                     size of each circle indicates the number of model parameters (i.e.,
+     source code of SMU-Net to re-run M2 FTrans for comparison as                      Params) measured in millions. GFLOPs is the abbreviation of floating-
+                                                                                       point operations per second measured in billions.
+     summarized in Table VIII. It should be noted that the quantitative
+     results of both ACN and SMU-Net are from [23].
+        Despite using a smaller input size (i.e. 128 × 128 ×128 vs.
+                                                                                       E. Cross-Training Evaluation
+     160 × 192 × 128 pixels), M2 FTrans stably outperforms both
+     ACN and SMU-Net. Specifically, M2 FTrans achieves better                             For a more comprehensive evaluation on model generaliz-
+     segmentation performance under 39 out of 45 modality settings                     ability, we have conducted cross-training validation by directly
+     compared to ACN and under 38 out of 45 modality settings                          applying models trained on BraTS2018 to BraTS2020. As
+     against SMU-Net, leading to an average increase of 1.0%, 4.5%,                    BraTS2020 is a superset of BraTS2018, all BraTS2018 samples
+     and 2.1% for ACN and 0.4%, 3.4%, and 1.0% for SMU-Net in                          in BraTS2020 are excluded for generalizability evaluation and
+     the segmentation of WT, TC, and ET respectively. It should be                     performance comparison as summarized in Table IX. Com-
+     noted that we can expect more performance improvements given                      pared to all comparison approaches, M2 FTrans achieves the best
+     an even larger input size for M2 FTrans. The above comparison                     overall performance across all tumor types. More importantly,
+     results further validate the effectiveness of M2 FTrans in exploit-               compared to previous comparisons conducted on each dataset
+     ing richer cross-modality features and being robust to various                    separately, the performance gap between M2 FTrans and other
+     incomplete multi-modality scenarios.                                              approaches becomes more significant on model generalizability,
+                                                                                       demonstrating the robustness of M2 FTrans on unseen data.
+
+     D. On Model Efficiency                                                            F. Vs. More SOTA Approaches on BraTS2021
+        Model efficiency of different approaches is visualized in                         For a more comprehensive evaluation, we have conducted
+     Fig. 6. Compared to the best transformer-based method mm-                         additional experiments on the latest BraTS2021 dataset and
+     Former, M2 FTrans achieves better performance with fewer                          introduced more SOTA approaches for comparison, including
+     model parameters and similar GFLOPs. Compared to the best                         MAML [42], RA-HVED [44], U-Net-MFI [43], and M3 AE [45]
+     CNN-based approach MAML, M2 FTrans is of more model                               as summarized in Table X. Among comparison methods, RFNet
+     parameters but lower GFLOPs, due to the inherent property                         achieves the best performance on the segmentation of WT while
+     of transformers involving more model parameters. It should be                     MAML outperforms others on the segmentation of TC and ET.
+     noted that model efficiency is not the main focus of M2 FTrans                    In terms of shape preservation measured in HD as summarized
+     and can be further improved through lightweight designs.                          in Table X, M3 AE outperforms other comparison approaches.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+    SHI et al.: M2 FTRANS: MODALITY-MASKED FUSION TRANSFORMER                                                                                                      389
+
+
+
+                                TABLE IX                                              feature extraction of dominant modalities and in turn affect the
+      CROSS VALIDATION OF DIFFERENT APPROACHES WHEN APPLYING THE                      performance given more modalities. In addition, as discussed
+         MODELS TRAINED ON BRATS2018 DIRECTLY TO BRATS2020
+                                                                                      in Section V.F, model efficiency is not a major concern of
+                                                                                      M2 FTrans, which shall be carefully studied in our future work.
+                                                                                         According to the design of M2 FTrans, we believe it is widely
+                                                                                      extendible to a more general feature fusion task in both com-
+                                                                                      plete and incomplete multi-modality scenarios. For instance,
+                                                                                      M2 FTrans can be applied to text-image learning tasks by re-
+                                                                                      placing one encoder for text inputs. One main challenge is how
+                                                                                      to balance the feature/token dimensions across different types
+                                                                                      of modalities, which will be explored based on M2 FTrans in our
+                                                                                      future work.
+
+
+                                                                                                                  VI. CONCLUSION
+                                                                                         In this article, we present a novel framework named M2 FTrans
+                                                                                      for incomplete multi-modality brain tumor segmentation. For
+                                                                                      cross-modality feature fusion, a modality-masked fusion trans-
+                                                                                      former is designed to explore long-range dependency across
+                                TABLE X
+      QUANTITATIVE COMPARISON RESULTS MEASURED IN DSC (%) AND HD                      modalities while minimizing the negative influence of missing
+                           (MM) ON BRATS2021                                          modalities via masked self-attention. To reduce redundancy in
+                                                                                      modality-specific features, in addition to the regularization from
+                                                                                      a shared decoder, both spatial weight attention and channel-wise
+                                                                                      fusion transformer are proposed to re-weight each modality and
+                                                                                      its intra-modality features/tokens. In this way, the weights of
+                                                                                      modalities are more balanced, making M2 FTrans more robust
+                                                                                      to missing/incomplete modalities. Extensive experiments on
+                                                                                      widely-used datasets demonstrate the superiority of M2 FTrans
+                                                                                      against the state-of-the-art approaches under various incomplete
+                                                                                      multi-modality settings.
+
+
+                                                                                                                ACKNOWLEDGMENT
+                                                                                        The computation is completed in the HPC Platform of
+                                                                                      Huazhong University of Science and Technology.
+
+
+                                                                                                                       REFERENCES
+                                                                                       [1] M. Havaei et al., “Brain tumor segmentation with deep neural networks,”
+                                                                                           Med. Image Anal., vol. 35, pp. 18–31, 2017.
+                                                                                       [2] F. Isensee, P. F. Jaeger, S. AA. Kohl, J. Petersen, and K. H. Maier-Hein,
+                                                                                           “nnU-Net: A self-configuring method for deep learning-based biomedical
+                                                                                           image segmentation,” Nature Methods, vol. 18, no. 2, pp. 203–211, 2021.
+                                                                                       [3] W. Wang, C. Chen, M. Ding, H. Yu, S. Zha, and J. Li, “TransBTS: Mul-
+                                                                                           timodal brain tumor segmentation using transformer,” in Proc. MICCAI,
+                                                                                           2021, pp. 109–119.
+                                                                                       [4] D. Zhang et al., “Exploring task structure for brain tumor segmentation
+                                                                                           from multi-modality MR images,” IEEE Trans. Image Process., vol. 29,
+                                                                                           pp. 9032–9043, 2020.
+                                                                                       [5] M. J. Graves and D. G. Mitchell, “Body MRI artifacts in clinical practice: A
+    Comparatively, M2 FTrans consistently achieves superior per-                           physicist’s and radiologist’s perspective,” J. Magn. Reson. Imag., vol. 38,
+    formance under all modality settings for all tumor types, out-                         no. 2, pp. 269–287, 2013.
+    performing both RFNet and MAML. In addition, statistical                           [6] A. Vaswani et al., “Attention is all you need,” in Proc. NeurIPS, 2017,
+    analysis in Table X validates the effectiveness of M2 FTrans on                        pp. 5998–6008.
+                                                                                       [7] A. Dosovitskiy et al., “An image is worth 16x16 words: Transformers for
+    performance improvement.                                                               image recognition at scale,” in Proc. Int. Conf. Learn. Representations,
+                                                                                           2021.
+    G. Limitations and Future Work                                                     [8] B. Cheng, I. Misra, A. G. Schwing, A. Kirillov, and R. Girdhar, “Masked-
+                                                                                           attention mask transformer for universal image segmentation,” in Proc.
+      Based on the quantitative results on BraTS2018, BraTS2020,                           IEEE/CVF Conf. Comput. Vis. Pattern Recognit., 2022, pp. 1290–1299.
+    and BraTS2021, we find that performance improvements of                            [9] Y. Zhang et al., “mmFormer: Multimodal medical transformer for incom-
+    M2 FTrans are more significant given fewer modalities. On the                          plete multimodal learning of brain tumor segmentation,” in Proc. Int. Conf.
+                                                                                           Med. Image Comput. Comput.-Assist. Interv., 2022, pp. 107–117.
+    one hand, it validates the effectiveness of M2 FTrans on re-                      [10] S. Chen, C. Ding, and M. Liu, “Dual-force convolutional neural net-
+    balancing modalities, especially for non-dominant modalities.                          works for accurate brain tumor segmentation,” Pattern Recognit., vol. 88,
+    On the other hand, it indicates that M2 FTrans may affect the                          no. 90–100, 2019.
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+     390                                                               IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 28, NO. 1, JANUARY 2024
+
+
+
+     [11] Ö. Çiçek, A. Abdulkadir, S. S. Lienkamp, T. Brox, and O. Ronneberger,         [28] R. Dorent, S. Joutard, M. Modat, S. Ourselin, and T. Vercauteren, “Hetero-
+          “3D U-Net: Learning dense volumetric segmentation from sparse annota-              modal variational encoder-decoder for joint modality completion and seg-
+          tion,” in Proc. 19th Int. Conf. Med. Image Comput. Comput.-Assist. Interv.,        mentation,” in Proc. 22nd Int. Conf. Med. Image Comput. Comput.-Assist.
+          2016, pp. 424–432.                                                                 Interv., 2019, pp. 74–82.
+     [12] L. Fidon et al., “Scalable multimodal convolutional networks for brain        [29] C. Chen, Q. Dou, Y. Jin, H. Chen, J. Qin, and P. -A. Heng, “Robust mul-
+          tumour segmentation,” in Proc. 20th Int. Conf. Med. Image Comput.                  timodal brain tumor segmentation via feature disentanglement and gated
+          Comput.-Assist. Interv., 2017, pp. 285–293.                                        fusion,” in Proc. 22nd Int. Conf. Med. Image Comput. Comput.-Assist.
+     [13] K. Zou, X. Yuan, X. Shen, M. Wang, and H. Fu, “TBraTS: Trusted brain               Interv., 2019, pp. 447–456.
+          tumor segmentation,” in Proc. Int. Conf. Med. Image Comput. Comput.-          [30] Y. Ding, X. Yu, and Y. Yang, “RFNet: Region-aware fusion network for
+          Assist. Interv., 2022, pp. 503–513.                                                incomplete multi-modal brain tumor segmentation,” in Proc. IEEE/CVF
+     [14] A. Hatamizadeh et al., “UNETR: Transformers for 3d medical image                   Int. Conf. Comput. Vis., 2021, pp. 3975–3984.
+          segmentation,” in Proc. IEEE/CVF Winter Conf. Appl. Comput. Vis., 2022,       [31] D. Khattar, J. S. Goud, M. Gupta, and V. Varma, “MVAE: Multimodal
+          pp. 574–584.                                                                       variational autoencoder for fake news detection,” in Proc. World Wide
+     [15] H. -Y. Zhou, J. Guo, Y. Zhang, L. Yu, L. Wang, and Y. Yu, “nnFormer:               Web Conf., 2019, pp. 2915–2921.
+          Volumetric medical image segmentation via a 3D transformer,” IEEE             [32] A. Recasens et al., “Zorro: The masked multimodal transformer,” 2023,
+          Trans. Image Process., vol. 32, pp. 4036–4045, 2023.                               arXiv:2301.09595.
+     [16] H. Peiris, M. Hayat, Z. Chen, G. Egan, and M. Harandi, “A robust              [33] Y. Liu, H. Wang, Z. Chen, K. Huangliang, and H. Zhang, “TransUNet
+          volumetric transformer for accurate 3 D tumor segmentation,” in Proc. Int.         : Redesigning the skip connection to enhance features in medical image
+          Conf. Med. Image Comput. Comput.-Assist. Interv., 2022, pp. 162–172.               segmentation,” Knowl. Based Syst., vol. 256, 2022, Art. no. 109859.
+     [17] Z. Xing, L. Yu, L. Wan, T. Han, and L. Zhu, “NestedFormer: Nested             [34] H. Touvron, M. Cord, A. Sablayrolles, G. Synnaeve, and H. Jégou, “Going
+          modality-aware transformer for brain tumor segmentation,” in Proc. Int.            deeper with image transformers,” in Proc. IEEE/CVF Int. Conf. Comput.
+          Conf. Med. Image Comput. Comput.-Assist. Interv., 2022, pp. 140–150.               Vis., 2021, pp. 32–42.
+     [18] G. Hinton, O. Vinyals, and J. Dean, “Distilling the knowledge in a neural     [35] B. H. Menze et al., “The multimodal brain tumor image segmenta-
+          network,” 2015, arXiv:1503.02531.                                                  tion benchmark (BRATS),” IEEE Trans. Med. Imag., vol. 34, no. 10,
+     [19] S. Vadacchino, R. Mehta, N. M. Sepahvand, B. Nichyporuk, J. J. Clark, and          pp. 1993–2024, Oct. 2015.
+          T. Arbel, “Had-Net: A hierarchical adversarial knowledge distillation net-    [36] I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,” in
+          work for improved enhanced tumour segmentation without post-contrast               Proc. Int. Conf. Learn. Representations, 2019.
+          images,” in Proc. Med. Imag. Deep Learn., 2021, pp. 787–801.                  [37] Y. Liu, F. Mu, Y. Shi, and X. Chen, “SF-Net: A multi-task model for brain
+     [20] Q. Wang, L. Zhan, P. Thompson, and J. Zhou, “Multimodal learning                   tumor segmentation in multimodal MRI via image fusion,” IEEE Signal
+          with incomplete modalities by knowledge distillation,” in Proc. 26th ACM           Process. Lett., vol. 29, pp. 1799–1803, 2022.
+          SIGKDD Int. Conf. Knowl. Discov. Data Mining, 2020, pp. 1828–1838.            [38] Z. Zhu et al., “Brain tumor segmentation based on the fusion of deep
+     [21] Y. Wang et al., “ACN: Adversarial co-training network for brain tumor              semantics and edge information in multimodal MRI,” Inf. Fusion, vol. 91,
+          segmentation with missing modalities,” in Proc. 24th Int. Conf. Med. Image         pp. 376–387, 2023.
+          Comput. Comput. Assist. Interv., 2021, pp. 410–420.                           [39] Q. D. Pham et al., “Segtransvae: Hybrid CNN-transformer with regular-
+     [22] Q. Yang, X. Guo, Z. Chen, P. Y. M. Woo, and Y. Yuan, “D2 -Net: Dual                ization for medical image segmentation,” in Proc. IEEE 19th Int. Symp.
+          disentanglement network for brain tumor segmentation with missing                  Biomed. Imag., 2022, pp. 1–5.
+          modalities,” IEEE Trans. Med. Imag., vol. 41, no. 10, pp. 2953–2964,          [40] K. Zou et al., “Tbrats: Trusted brain tumor segmentation,” in Proc. Int.
+          Oct. 2022.                                                                         Conf. Med. Image Comput. Comput.-Assist. Interv., 2022, pp. 503–513.
+     [23] R. Azad, N. Khosravi, and D. Merhof, “SMU-Net: Style matching U-net           [41] J. Zhao et al., “Uncertainty-Aware Multi-Dimensional Mutual Learning for
+          for brain tumor segmentation with missing modalities,” in Proc. Int. Conf.         Brain and Brain Tumor Segmentation,” IEEE J. Biomed. Health Inform.,
+          Med. Imag. Deep Learn., 2022, pp. 48–62.                                           vol. 27, no. 9, pp. 4362–4372, Sep. 2023.
+     [24] S. Jeong, H. Cho, J. Kwon, and H. Park, “Region-of-interest attentive         [42] Y. Zhang et al., “Modality-aware mutual learning for multi-modal med-
+          heteromodal variational encoder-decoder for segmentation with missing              ical image segmentation,” in Proc. 24th Int. Conf. Med. Image Comput.
+          modalities,” in Proc. Asian Conf. Comput. Vis., 2022, pp. 132–148.                 Comput. Assist. Interv., 2021, pp. 589–599.
+     [25] A. Sharma and G. Hamarneh, “Missing MRI pulse sequence synthesis              [43] Z. Zhao, H. Yang, and J. Sun, “Modality-adaptive feature interaction for
+          using multi-modal generative adversarial network,” IEEE Trans. Med.                brain tumor segmentation with missing modalities,” in Proc. Int. Conf.
+          Imag., vol. 39, no. 4, pp. 1170–1183, Apr. 2020.                                   Med. Image Comput. Comput. Assist. Interv., 2022, pp. 183–192.
+     [26] B. Yu, L. Zhou, L. Wang, J. Fripp, and P. Bourgeat, “3D cGAN based            [44] S. Jeong, H. Cho, J. Kwon, and H. Park, “Region-of-interest attentive
+          cross-modality MR image synthesis for brain tumor segmentation,” in                heteromodal variational encoder-decoder for segmentation with missing
+          Proc. IEEE 15th Int. Symp. Biomed. Imag., 2018, pp. 626–630.                       modalities,” in Proc. Asian Conf. Comput. Vis., 2022, pp. 3707–3723.
+     [27] M. Havaei, N. Guizard, N. Chapados, and Y. Bengio, “Hemis: Hetero-            [45] H. Liu et al., “M3AE: Multimodal representation learning for brain
+          modal image segmentation,” in Proc. 19th Int. Conf. Med. Image Comput.             tumor segmentation with missing modalities,” in Proc. AAAI, 2023,
+          Comput.-Assist. Interv., 2016, pp. 469–477.                                        pp. 1657–1665.
+
+
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:29 UTC from IEEE Xplore. Restrictions apply.
+

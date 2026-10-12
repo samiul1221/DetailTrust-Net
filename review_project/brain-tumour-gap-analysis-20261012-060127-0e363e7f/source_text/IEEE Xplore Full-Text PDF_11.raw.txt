@@ -1,0 +1,1005 @@
+IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 30, NO. 3, MARCH 2026 2455
+M2
+SegMamba: Mamba-Based Incomplete
+Multimodal Learning for Brain Tumor
+Segmentation With Few Samples
+Xinyue Zhang , Ali Bahri, Christian Desrosiers , Hui Liu , and Fangxun Bao
+Abstract—The accurate segmentation of brain tumors
+plays an important role in clinical diagnosis and treatment.
+Multimodal magnetic resonance imaging (MRI) can provide
+rich and complementary information for accurate brain tu-
+mor segmentation. However, the common problems of in-
+complete modalities and small samples in clinical practice
+seriously affect the performance of multimodal segmen-
+tation. In this work, we design a new framework, named
+M2
+SegMamba, using Mamba and Masked Autoencoder net-
+works for both supervised and self-supervised learning,
+aimed at handling small sample brain tumor segmenta-
+tion under various incomplete multimodality settings. We
+construct a masking strategy suitable for multimodal brain
+tumors to precisely extract image features, which serves as
+the foundation for image segmentation. By fully leveraging
+the capabilities of the Mamba network, we design a multi-
+traversal method to facilitate the interaction between inter-
+modal and cross-modal image features. Meanwhile, the in-
+troduction of TSmamba in skipping connections efficiently
+integrates multimodal features. Auxiliary regularizers are
+introduced in both the encoder and decoder to further en-
+hance the model’s robustness to incomplete modalities. We
+conducted experiments on the BraTS 2018 and BraTS 2020
+datasets, and the results demonstrate that our method out-
+performs state-of-the-art brain tumor segmentation meth-
+ods on most subsets of missing modalities.
+Index Terms—Brain tumor segmentation, hetero-modal
+learning, state-space model, masked image modeling.
+Received 15 April 2025; revised 29 July 2025; accepted 10 August
+2025. Date of publication 20 August 2025; date of current version 6
+March 2026. This work was supported in part by the National Key R&D
+Program of China under Grant 2021YFA1000202, in part by the National
+Natural Science Foundation of China under Grant 62372269, and in part
+by the Natural Science Foundation of Shandong Province under Grant
+ZR2022MF245. (Corresponding author: Christian Desrosiers.)
+Xinyue Zhang and Fangxun Bao are with the School of Mathemat-
+ics, Shandong University, Jinan 250100, China (e-mail: 201911828@
+mail.sdu.edu.cn; fxbao@sdu.edu.cn).
+Ali Bahri and Christian Desrosiers are with the Department of Soft-
+ware and IT Engineering, Ecole de technologie supérieure, Montreal,
+QC H3C 1K3, Canada (e-mail: ali.bahri.1@ens.etsmtl.ca; christian.
+desrosiers@etsmtl.ca).
+Hui Liu is with the Department of Computer & Artifical Intelligence,
+Shandong University of Finance and Economics, Jinan 250014, China
+(e-mail: liuh_lh@sdufe.edu.cn).
+The code is available at: https://github.com/xin131419/M2SegMamba.
+git.
+Digital Object Identifier 10.1109/JBHI.2025.3600652
+I. INTRODUCTION
+SEGMENTING brain tumors like gliomas in multimodal
+MRI, which involves distinguishing cancerous regions—
+such as the whole tumor, core tumor, and enhanced tumor—from
+healthy brain tissue, is a vital step for diagnosis and treatment.
+However, the inherent heterogeneity of tumors, in terms of
+appearance, shape, and varying intensity profiles across mul-
+timodal MRI scans (e.g., Fig. 1), poses a significant challenge
+for this task [1]. Furthermore, due to differences in scanning
+protocols, and patient-related limitations, it is often impossible
+to obtain a complete set of MRI sequences for segmentation.
+This has prompted researchers to develop hetero-modal learning
+methods [2], [3], [4], [5], [6] which can handle cases where any
+subset of modalities is not available at inference.
+In recent years, Vision Transformers (ViTs) have gained in-
+creasing popularity for their ability to model global interactions
+in images and seamlessly integrate different input modalities.
+Unlikeconvolutionalneuralnetworks(CNN)whichextractlocal
+features using convolution filters, ViTs represent images as a
+set of patch tokens and combine information across tokens via
+their self-attention mechanism [7]. Several studies in medical
+imaging have explored the potential of ViTs for multimodal
+brain tumor segmentation. Zhang et al. [3] proposed a hybrid
+architecture called mmFormer, where available modalities are
+first processed separately by a sequence of CNN and ViT blocks,
+and then combined with a modality-correlated encoder based
+on self-attention. Li et al. [8] trained a CNN with deformable
+convolutions and cross-attention to extract and combine features
+from a potentially incomplete set of modalities. The proposed
+model, named SRMNet, comprises two jointly-trained decoders,
+one predicting the segmentation mask of tumor regions, and the
+other reconstructing input images. In their M2
+FTrans method,
+Shi et al. [9] enhanced cross-modality interaction and robustness
+to missing modalities by introducing learnable fusion tokens and
+computing masked self-attention.
+Although the self-attention mechanism in ViTs enables mod-
+eling global dependencies in images, its quadratic complexity
+with respect to the number of tokens restricts its scalability for
+large inputs. This challenge is especially critical in multimodal
+segmentation where processing multiple 3D scans is required.
+State Space Model (SSM) [10], [11], [12] have recently emerged
+as an efficient alternative to Transformers, offering a unique
+capability to model global relationships with linear complexity.
+2168-2194 © 2025 IEEE. All rights reserved, including rights for text and data mining, and training of artificial intelligence and similar technologies.
+Personal use is permitted, but republication/redistribution requires IEEE permission. See https://www.ieee.org/publications/rights/index.html
+for more information.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:34 UTC from IEEE Xplore. Restrictions apply.
+2456 IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 30, NO. 3, MARCH 2026
+The Mamba model [13], in particular, has demonstrated signif-
+icant promise across various visual understanding tasks [14],
+[15], [16], [17]. Although recent studies have explored the
+effectiveness of Mamba for medical image segmentation [18],
+[19], [20], [21], its application to hetero-modal scenarios with
+missing modalities remains unexplored.
+In this paper, we bridge this gap by introducing the first
+Mamba-based approach for multimodal brain segmentation,
+capable of handling missing modalities. Our method harnesses
+the efficiency of SSMs like Mamba to integrate information from
+multiple 3D scans while minimizing computational and memory
+overhead. Furthermore, to address the challenge of obtaining
+expert annotations for medical image segmentation, we propose
+a self-supervised learning strategy, which significantly reduces
+the need for labeled data during training. Using this strategy, our
+method achieves state-of-art performance across scenarios with
+varying degrees of labeled data scarcity.
+The main contributions of our work are listed as follows:
+1) We present M2
+SegMamba, the first Mamba-based
+method for 3D multimodal image segmentation with
+missing modalities. Our method effectively captures
+global interactions within entire images and across dif-
+ferent modalities, while minimizing computational and
+memory requirements.
+2) We introduce a novel self-supervised pre-training strategy
+that utilizes image masking to enhance the robustness of
+our method, particularly when only a limited number of
+labeled samples are available. To the best of our knowl-
+edge, this is the first study to investigate this strategy
+within a Mamba-based segmentation model.
+3) We assess our M2
+SegMamba method through compre-
+hensive experiments across a diverse set of scenarios,
+varying in available modalities and amounts of labeled
+data. Our findings highlight the robustness and superior
+performance of M2
+SegMamba in comparison to existing
+approaches.
+II. RELATED WORK
+A. Multimodal Brain Tumor Segmentation
+The methods proposed for this fundamental task in medical
+image analysis can be broadly categorized into two types: those
+that require the complete set of modalities and those capable of
+handling missing modalities. Methods in the first category, typ-
+ically based on CNNs [22], [23] or ViTs [24], [25], [26], adhere
+to the conventional image segmentation pipeline, maintaining
+the same input during both training and inference. Conversely,
+the second category of approaches tackles the challenge of
+hetero-modal learning, where any subset of modalities may be
+missing during training or inference. A solution to this prob-
+lem uses knowledge distillation to transfer the knowledge of a
+model trained with the full set of modalities to one that takes a
+subset of these modalities as input [6], [27], [28]. However, this
+approach can be costly to implement in practice, as a separate
+model is needed for each possible subset of missing modalities.
+Another strategy employs a generative model to synthesize the
+missing modalities. For example, Huang et al. [29] proposed a
+context-aware generative adversarial network (CoCa-GAN),
+based on an encoder-decoder architecture, where the decoder
+generates the missing target modality. One limitation of this
+strategy is that it requires training a separate generative network
+for each modality and is highly sensitive to the quality of the
+generated images.
+Rather than learning modality-specific networks, another
+group of methods focuses on developing a unified model ca-
+pable of directly handling missing modalities. For example, the
+HeMIS model by Havaei et al. [2] integrates feature embed-
+dings from an arbitrary set of modalities by calculating their
+mean and variance. Ding et al. [5] proposed the Region-aware
+Fusion Network (RFNet), which learns a probability map to
+segment multimodal features into distinct regions and applies
+attention weights within each region to dynamically adjust the
+contributions of different image modalities.
+B. State Space Models
+State Space Models (SSMs) [30] have gained increasing
+attention as sequence-to-sequence models for their ability to
+efficiently capture long-range dependencies while supporting
+parallel training. Compared to the self-attention mechanism in
+Transformers, which computes an attention weight for each
+pair of input tokens, SSMs model the interdependence between
+tokens through latent state variables that are updated sequen-
+tially. Mamba [13], a widely used SSM, enhanced the struc-
+tured state-space sequence (S4) model [31] by incorporating
+a data-dependent selection mechanism. Adapting this model
+to vision tasks, VMamba [32] designed a Cross-Scan Module
+(CSM) that extends 1D selective scanning to the domain of 2D
+images. Similarly, Vision Mamba [33] introduced Vim blocks
+that combine positional embeddings with bidirectional sequence
+modeling. CU-Mamba [34] proposed integrating a dual state
+space model framework into U-Net structure. It also adopted a
+Spatial SSM module for global context encoding as well as a
+Channel SSM component to retain channel-related features.
+Recent studies have introduced SSM-based models for med-
+ical image segmentation. Xing et al. [18] proposed SegMamba,
+an innovative 3D image segmentation model that efficiently
+captureslong-rangedependenciesacrosswhole-volumefeatures
+at multiple scales. Ma et al. [35] developed a hybrid CNN-SSM
+block, which combines the local feature extraction power of
+convolutional layers with the long-range dependency modeling
+capabilities of SSMs, enabling its application to both 2D and
+3D biomedical image segmentation. Our work builds upon
+these previous studies by introducing the first Mamba-based
+approach for 3D multimodal image segmentation in the presence
+of missing modalities.
+C. Masked Image Modeling
+Masked image modeling (MIM) is a self-supervised learning
+technique in computer vision that trains models by masking parts
+of the input—such as pixels, patches, or latent representations—
+and using the remaining visible context to predict the masked
+regions and learn meaningful representations [36]. Research
+in MIM primarily explores two approaches: comparing latent
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:34 UTC from IEEE Xplore. Restrictions apply.
+ZHANG et al.: M2
+SEGMAMBA: MAMBA-BASED INCOMPLETE MULTIMODAL LEARNING FOR BRAIN TUMOR SEGMENTATION WITH FEW 2457
+Fig. 1. Four modalities of brain tumor images and corresponding seg-
+mentation labels. In the segmentation results, different colors represent
+different brain tumor regions.
+representations and reconstructing the masked signals. The first
+approach involves comparing the original or weakly augmented
+input image with a version where parts of the image are masked
+and strongly augmented, enabling the model to learn robust
+features [37], [38]. The second approach revolves around mask-
+ing some information at any stage during the forward pass of
+the model and using the decoder to reconstruct the missing
+data [39], [40], [41]. BEiT [39] randomly masks some image
+patches and feeds them into the Transformer to recover the visual
+tokens using a well-trained tokenizer. He et al. [40] proposed
+an asymmetric encoder-decoder architecture that takes only a
+few visible tokens as input. This design accelerates the training
+process of MIM while keeping the computational cost relatively
+low. M3
+AE [42] follows this reconstruction-based strategy and
+enhances performance on multi-modal medical segmentation
+tasks by introducing an efficient self-distillation framework.
+In this work, we utilize Masked Image Modeling (MIM) to
+pre-train a network for brain tumor segmentation with incom-
+plete multimodal MRI data. By reconstructing masked segments
+of the network’s latent features, our method efficiently learns a
+more robust representation of multimodal images.
+III. METHOD
+Our Mamba-based approach for multimodal brain tumor seg-
+mentation with missing modalities comprises two key steps: 1)
+a pre-training phase focused on masked feature reconstruction
+(Fig. 2), and 2) a fine-tuning phase for optimizing the segmen-
+tation task (Fig. 4). Before outlining these two steps, we first
+provide some background information on Mamba, which serves
+as the context modeling component in our method.
+A. Preliminaries
+Mamba derives from SSMs [30] like S4 that implement a
+Linear Time-Invariant (LTI) system mapping a one-dimensional
+input signal x(t) ∈ R to an N-dimensional latent state h(t) ∈
+RN
+, and then projecting it onto a one-dimensional output signal
+y(t) ∈ R. This system can be expressed using a the following
+linear ordinary differential equation:
+h
+(t) = Ah(t) + Bx(t)
+y(t) = Ch(t) (1)
+where A ∈ RN×N
+is the state transition matrix, B ∈ RN×1
+is
+the input-to-state matrix, and C ∈ R1×N
+is the state-to-output
+matrix.
+To be compatible with deep learning frameworks, SSMs must
+undergo a discretization process that divides continuous time
+based on time scale parameter Δ ∈ R. A popular strategy for
+this process is the Zero-Order Hold (ZOH) rule, computing the
+discretized versions of A and B as
+A = exp(ΔA),
+B = (ΔA)−1
+(exp(ΔA) − I) ΔB. (2)
+This yields the following discretized system:
+ht = Aht−1 + Bxt,
+yt = Cht. (3)
+Since A and B are linear operators, the recurrent formulation
+of (3) can be unrolled into single convolution with kernel K ∈
+RL
+, where L is the input length, enabling parallel computations:
+y = x  K, K =
+
+CB, CAB, . . . , CA
+L−1
+B
+
+. (4)
+Although efficient, time-invariant models lack the capacity to
+selectively emphasize or ignore specific parts of the input. To
+enhance content-aware reasoning, Mamba [13] introduced a
+time-variant model called Selective SSM, in which the param-
+eters B, C, and Δ dynamically adjust based on the input. It
+also introduced several strategies, such as parallel scanning and
+kernel fusion, to enhance computational efficiency.
+B. Masked Image Reconstruction Pre-Training
+As shown in Fig. 2, we utilize a 3D autoencoder architecture
+in the pre-training stage to capture both local and contextual
+features through multimodal image reconstruction. Unlike stan-
+dard autoencoders, which consist of a symmetric encoder and
+decoder, our architecture has a dedicated encoder for each
+modality. These modality-specific encoders integrate convo-
+lutional and Mamba blocks to effectively capture both local
+and global interactions within and across multimodal images,
+ensuring robust performance even in the presence of missing
+modalities.
+The features extracted by encoders are combined using our
+proposed multimodal traversal strategy, which processes 3D
+patches in different sequential orders accounting for both spatial
+position and modality. This enables the model to learn intra- and
+inter-modality dependencies between patches. For efficiency, a
+single convolutional decoder is employed to reconstruct the im-
+ages across all modalities, including missing ones, from the out-
+puts of multimodal traversals. Finally, to capture robust features
+that encode structural information across multiple modalities,
+we employ a multimodal masking strategy that randomly masks
+patch features both within and across different image modalities.
+The following subsections provide a detailed explanation of
+these components of our method.
+1) Modality-Specific Image Encoder: As shown in Fig. 2, we
+employ a hybrid architecture for the modality-specific encoders,
+integrating a 3D convolutional head to extract local context
+features from 3D images and a Mamba tail to capture global
+dependencies across 3D patches.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:34 UTC from IEEE Xplore. Restrictions apply.
+2458 IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 30, NO. 3, MARCH 2026
+Fig. 2. The overall framework of the 3D multimodal pre-training mask reconstruction network for brain tumors. Each modality has a dedicated
+specific encoder. After the masking strategy and multiple traversals, the fused features are input into the feature sharing decoder to activate its
+reconstruction capability.
+Fig. 3. Multi-traversal methods across modalities. Each color represents a different modality.
+Our convolutional head, inspired by the 3D U-Net en-
+coder [43], consists of multiple stacked convolutional blocks,
+forming a five-stage encoder. Each stage consists of two
+instance-normalized 3 × 3 × 3 convolutional layers, followed
+by a ReLU activation. To transition between stages, we em-
+ploy convolutional layers with a stride of 2, which reduces the
+feature resolution while proportionally increasing the number
+of channels. Let M = {Flair, T1, T1c, T2} be the complete set
+of modalities. Given a 3D image Xm ∈ RH×W ×D
+of modality
+m ∈ M, having a width W, height H and depth D, we use
+convolutional head Ehead
+m (·) to extract local features as
+Fhead
+m = Ehead
+m (Xm) ∈ RC×H
+×W 
+×D
+. (5)
+Convolutional networks are inherently limited by their local-
+ized nature, which hampers their ability to effectively capture
+long-range dependencies. To address this challenge, we utilize
+Mamba blocks, which are designed to model long-range de-
+pendencies across features from different modalities. Toward
+this goal, we first flatten the features of each modality Fm
+to a shape of (C, L), where L = H
+× W
+× D
+. We then use
+these flattened features as input to the modality-specific Mamba
+encoder tail Etail
+m (·) to obtain the final encoder features for
+modality m:
+F̂m = Etail
+m (Fhead
+m ) ∈ RC×L
+(6)
+The function Etail
+m (·) is obtained from (1) to ensure global
+modeling capability while improving computational efficiency.
+Feeding the flattened modality features into Mamba not only
+reducescomputationaloverheadbutalsoenablesamoreefficient
+capture of long-range dependencies in the entire image, making
+it more suitable for large-scale 3D medical image multimodal
+feature fusion.
+2) Multimodal Masking Strategy: Inspired by Masked Image
+Modeling (MIM) [36], we mask the latent features of randomly
+selected tokens across different modalities, and train the de-
+coder to reconstruct the corresponding patches. This approach
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:34 UTC from IEEE Xplore. Restrictions apply.
+ZHANG et al.: M2
+SEGMAMBA: MAMBA-BASED INCOMPLETE MULTIMODAL LEARNING FOR BRAIN TUMOR SEGMENTATION WITH FEW 2459
+Fig. 4. The fine-tuning framework designed for brain tumor segmentation.
+encourages the encoder to learn robust features that capture both
+intra- and inter-modality dependencies, effectively distinguish-
+ing between healthy brain tissue and tumors—enhancing per-
+formance in the downstream segmentation task.
+Our multimodal masking strategy differs from the traditional
+approach which randomly selects tokens with a mask ratio of
+γ and then replaces these tokens with an empty or learnable
+[masked] token [41]. This standard approach is ineffective
+in our case because information across modalities is highly
+correlated (see Fig. 1). As a result, a masked patch in one
+modality can be easily reconstructed using the corresponding
+patches from other modalities. To alleviate this problem, we
+propose a cross-modal masking strategy which simultaneously
+masks the same token (i.e., corresponding to the same patch
+position) across all modalities.
+Additionally, to better align the pre-training step with the
+downstream application where entire modalities may be miss-
+ing, we also apply a modality-wise masking strategy where all
+tokens of some modalities are masked. Let δm ∈ {0, 1} be an
+indicator variable such that δm = 0 if modality m is masked,
+else δm = 1. The masked features are obtained as
+Fm = δm · Mask(F̂m, Mγ), m ∈ M (7)
+where Mγ ∈ {0, 1}L
+is the cross-modal mask common for all
+modalities, and Mask(·) is a function replacing masked tokens
+by learnable tokens.
+The resulting masked features are fed to the Multimodal
+Traversal Strategy part of the network for feature fusion. Finally,
+the decoder receives all tokens—including the learnable masked
+tokens and encoded visible patches from all modalities—to
+reconstruct the multimodal image.
+3) Multimodal Traversal Strategy: The original Mamba
+block, designed for processing 1D sequences, lacks the spa-
+tial awareness needed for vision tasks. To address this, exten-
+sions for image processing [32], [33] introduce a 2D traver-
+sal method, such as scanning image patches row-by-row or
+column-by-column in both forward and reverse directions. Our
+multimodal traversal strategy, depicted in Fig. 3, further extends
+this approach by additionally traversing token across different
+modalities.
+Denote as Fi
+m the features of the i-th token for modality m,
+with i ∈ {1, . . . , L} and m ∈ M. We traverse tokens following
+four different scanning routes:
+r TMB1: Tokens of the four modalities are concatenated
+directly:
+FTMB1 = [F1
+Flair, F2
+Flair, . . . , FL
+Flair,
+F1
+T1c, F2
+T1c, . . . , FL
+T1c,
+F1
+T1, F2
+T1, . . . , FL
+T1,
+F1
+T2, F2
+T2, . . . , FL
+T2] (8)
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:34 UTC from IEEE Xplore. Restrictions apply.
+2460 IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 30, NO. 3, MARCH 2026
+r TMB2: Tokens of the four modalities are concatenated in
+reverse order:
+FTMB2 = [FL
+T2, FL−1
+T2 , . . . , F1
+T2,
+FL
+T1, FL−1
+T1 , . . . , F1
+T1,
+FL
+T1c, FL−1
+T1c , . . . , F1
+T1c,
+FL
+Flair, FL−1
+Flair , . . . , F1
+Flair] (9)
+r TMB3: Tokens are selected in an interleaved manner from
+the four modalities:
+FTMB3 = [F1
+Flair, F1
+T1c, F1
+T1, F1
+T2,
+F2
+Flair, F2
+T1c, F2
+T1, F2
+T2,
+. . . ,
+FL
+Flair, FL
+T1c, FL
+T1, FL
+T2] (10)
+r TMB4: Tokens are selected in an interleaved manner from
+the four modalities, and reversed:
+FTMB4 = [FL
+T2, FL
+T1, FL
+T1c, FL
+Flair,
+FL−1
+T2 , FL−1
+T1 , FL−1
+T1c , FL−1
+Flair ,
+. . . ,
+F1
+T2, F1
+T1, F1
+T1c, F1
+Flair] (11)
+Each traversal extracts distinct output features from SSMs,
+which are then added to form the decoder’s input. Note that,
+to ensure consistency, tokens must be reordered in a uniform
+manner before summation.
+4) Shared Feature Decoder: Unlike traditional MIM ap-
+proaches [41] that typically use an MLP for direct dimensional
+projection, we utilize a 3D convolutional decoder to reconstruct
+multimodal images. Specifically, we reshape the concatenated
+features produced by the multimodal traversals into a low-
+resolution 3D image (4D tensor with three spatial dimensions
+and one channel dimension) Z. A sequence of up-convolution
+blocks, each composed of two consecutive 3 × 3 × 3 convolu-
+tion layers and an upsampling layer, is then employed to progres-
+sively restore the spatial resolution from the high-dimensional
+latent space to the original image space. Denoting as Drec the
+convolutional decoder used in the pre-training step, the predicted
+reconstruction can be expressed as
+X̂ = Drec(Z) ∈ R|M|×H×W ×D
+(12)
+Let Ω = {1, . . . , H × W × D} be the set of voxel indexes. The
+encoder and reconstruction decoder are trained without labeled
+data by minimizing the mean squared reconstruction error, as
+follows:
+Lrec =
+1
+|M| × |Ω|
+|M|
+
+m=1
+|Ω|
+
+i=1
+(x̂m,i − xm,i)2
+(13)
+where x̂m,i is the reconstruction of modality m for voxel i.
+C. Segmentation Fine-Tuning
+The self-supervised pre-training step, outlined in
+Section III-B, leverages contextual and structural information
+to extract meaningful features, enabling effective learning of the
+downstream segmentation task with minimal annotated data. In
+this section, we detail how the pre-trained encoder is utilized to
+construct the final network for brain tumor image segmentation.
+1) Segmentation Network: As shown in Fig. 4, several im-
+portant changes are made to the architecture in the segmentation
+fine-tuning step. First, the reconstruction decoder is replaced
+by a segmentation decoder Dseg which is also composed of
+convolutional blocks. Following segmentation networks like 3D
+U-Net [43], we also introduce skip connections between the
+encoder and decoder to preserve fine details for segmentation.
+In our architecture, each modality has a separate encoder,
+while a single decoder processes the combined features. This
+setup prevents the use of standard skip connections designed for
+symmetric encoder-decoder models. We solve this problem us-
+ing tri-orientated spatial Mamba (TSMamba) blocks [18] in each
+layer encoder output feature fusion, which effectively integrate
+features from different modalities within each skip connection.
+A TSMamba block consists of a gated spatial convolution mod-
+ule (GSC), a tri-orientated Mamba module (ToM), and an MLP
+layer. The GSC module transforms this input using convolution
+blocks and a residual connection. The ToM module then tiles
+the 3D input features into three sequences, corresponding to the
+forward (zf ), reverse (zr), and inter-slice (zs) directions, and
+processes each of them with Mamba.
+2) Auxiliary Regularizers: In brain tumor segmentation,
+some MRI sequences, such as FLAIR, provide more discrim-
+inative information than others. Consequently, the model may
+over-rely on these modalities, leading to significant accuracy
+degradation when they are unavailable. To mitigate this and pro-
+mote balanced learning across all modalities, as shown in Fig. 4,
+we incorporate auxiliary regularizers inspired by those in [3].
+To regularize separate convolutional encoders, we first up-
+sample their outputs using a shared decoder having the same
+architecture as the convolutional decoder at the end of our net-
+work. We then encourage the segmentation for each modality m
+to match the ground-truth labels using a regularization loss Lm
+reg.
+Similarly, we regularize the decoder of our model by progres-
+sively upsampling the feature maps in each of its layer through
+deconvolution, and then obtaining dense predictions from the
+upsampled features with an additional softmax layer. The deep
+supervision loss for layer , denoted as L
+DS, measures the error
+between the ground truth segmentation and the prediction at this
+layer.
+D. Loss Functions
+The overall objective for fine-tuning the segmentation model
+combines the modality-specific regularization losses Lm
+reg, the
+deep supervision losses L
+DS, and the final segmentation loss
+Lseg:
+Ltotal = Lseg + λreg
+|M|
+
+m=1
+Lm
+reg + λDS
+Ldec
+
+=1
+L
+DS. (14)
+Here, Ldec is the number of decoder layers and λreg, λDS are
+hyper-parameters controlling the relative weight of each loss
+term. For Lm
+reg, L
+DS, and Lseg, we use a combination of weighted
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:34 UTC from IEEE Xplore. Restrictions apply.
+ZHANG et al.: M2
+SEGMAMBA: MAMBA-BASED INCOMPLETE MULTIMODAL LEARNING FOR BRAIN TUMOR SEGMENTATION WITH FEW 2461
+TABLE I
+QUANTITATIVE RESULTS OF DIFFERENT METHODS ON BRATS2018 DATASET
+cross-entropy (WCE) and Dice loss to measure the loss for each
+sample in the batch.
+L = LWCE + LDice (15)
+Denoting as Y, Ŷ ∈ [0, 1]|Ω|×K
+the ground-truth and predicted
+segmentation for image X, where K is the number of segmen-
+tation classes, these losses can be expressed as
+LWCE = −
+K
+
+k=1
+wk
+|Ω|
+
+i=1
+yik log(ŷik) (16)
+wk = 1 −
+|Ω|
+i=1 yik
+K
+k=1
+|Ω|
+i=1 yik
+(17)
+LDice = 1 −
+1
+K
+K
+
+k=1
+2
+|Ω|
+i=1 yikŷik
+|Ω|
+i=1 yik +
+|Ω|
+i=1 ŷik + 
+, (18)
+where wk denotes the weight of the kth class and  = 10−7
+is
+used to avoid division by zero.
+IV. EXPERIMENTS AND RESULTS
+A. Dataset and Implementation
+1) Dataset: The experiments were conducted using two
+datasets of the multimodal Brain Tumor Segmentation (BraTS)
+challenge [44]: BraTS 2018 and BraTS 2020. These datasets
+comprise four MRI modalities: Flair, T1c, T1, and T2. The
+BraTS 2018 dataset includes 190 training cases and 95 valida-
+tion cases, while the BraTS 2020 dataset contains 246 training
+cases and 123 validation cases. To simulate a few-shot learning
+scenario, the segmentation model training was performed using
+10% of the available training data (results for different training
+data ratios are reported in Table V). All images from each
+modality were preprocessed by normalizing and resizing them
+to a uniform resolution of 128 × 128 × 128. The performance
+of the proposed method was evaluated based on segmentation
+results for the whole tumor (WT), tumor core (TC), and en-
+hancing tumor (ET) regions. The Dice similarity coefficient
+was employed as the primary metric to quantitatively assess
+segmentation accuracy.
+2) Implementation Details: All images in the training set
+(100%) are used for the unsupervised pre-training step, ignoring
+the labels of these images. Optimization was performed with
+Adam with a learning rate of 1 × 10−4
+, a batch size of 2, and a
+total of 300 training epochs. For fine-tuning, we used an initial
+learning rate of 2 × 10−4
+, a weight decay of 1 × 10−4
+, a batch
+size of 1, and a total of 1,000 training epochs.
+For the main experiments, we set the mask ratio empirically
+to γ = 87.5%. The impact of this ratio is later investigated in
+Section IV-C2.
+B. Comparison With State-of-The-Art
+In this section, we compare our method with state-of-the-art
+brain tumor segmentation models, including RFNet [5], mm-
+Former [3], SRMNet [8], and M2
+FTrans [9]. Tables I and II
+present the quantitative comparison results across 15 different
+multimodal combinations, for the BraTS 2018 and BraTS 2020
+datasets. The best and second-best results for each modality
+setting are highlighted in bold and underlined, respectively.
+The proposed models (Supervised Baseline without pre-
+training, as well as our M2
+SegMamba model with pre-training
+and fine-tuning), demonstrate outstanding performance across
+all combinations. On the BraTS 2018 dataset, RFNet, which
+utilizes CNNs to implement a region-aware fusion module,
+achieves strong results. Compared to RFNet, our method yields
+average improvements of 1.14%, 2.30%, and 0.97% for WT, TC,
+and ET, respectively. Similarly, when compared to the baseline
+method mmFormer, the average gains are 1.67%, 3.83%, and
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:34 UTC from IEEE Xplore. Restrictions apply.
+2462 IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 30, NO. 3, MARCH 2026
+TABLE II
+QUANTITATIVE RESULTS OF DIFFERENT METHODS ON BRATS2020 DATASET
+2.08%. M2
+FTrans, a more recent self-attention-based approach
+incorporating learnable fusion tokens and masked self-attention,
+is also outperformed by our method, with average improvements
+of 1.58%, 3.05%, and 2.33%.
+The segmentation results on the BraTS 2020 dataset also
+demonstrate consistent improvements, with average increases
+of 1.32%, 4.71%, and 3.00% compared to RFNet, and 1.97%,
+4.71%, and 2.74% compared to mmFormer. These results vali-
+datethestabilityofourproposedmethodacrossvariousmodality
+settings. Furthermore, fine-tuning after pre-training yields addi-
+tional gains over the Supervised Baseline, with improvements of
+0.93%, 1.14%, and 0.92% in WT, TC, and ET for BraTS 2018,
+and 1.14%, 2.18%, and 1.37% for BraTS 2020. This per-
+formance boost is primarily attributed to the self-supervised
+pre-training mask strategy, which effectively enhances feature
+representation learning for brain tumor images.
+Figs. 5 and 6 present the qualitative comparison results of
+various modality combinations—including one, two, three, and
+all modalities—for the BraTS 2018 and BraTS 2020 datasets.
+These results underscore the benefits of incorporating multi-
+ple modalities into segmentation models, and demonstrate that
+our method consistently produces visually superior segmen-
+tations across all modality combinations compared to other
+approaches. Although all methods effectively segment brain
+tumors, noticeable differences exist. For the BraTS 2018 dataset,
+all approaches achieve relatively accurate segmentation of the
+peritumoral edema (ED), but our proposed method demonstrates
+superior performance in segmenting the tumor core. As the
+number of modalities increases, the segmentation accuracy of
+our method across all tumor regions closely aligns with the
+ground truth. Similarly, for the BraTS 2020 dataset, our method
+maintains strong segmentation performance. The red detail box
+in the lower-left corner magnifies the blue box region, further
+highlighting our method’s superior accuracy in segmenting the
+ED region.
+TABLE III
+ABLATION STUDY ON THE MAIN COMPONENTS OF OUR NETWORK
+C. Ablation Study
+We conducted ablation experiments on the BraTS 2018
+dataset to evaluate the impact of the proposed model’s individ-
+ual components, the mask ratio employed in pre-training, the
+amount of labeled data for segmentation fine-tuning, and our
+model’s computational efficiency for increasing input sizes.
+1) Network Components: The effectiveness of each compo-
+nent in our network is validated in TableIII. Specifically, we used
+mmFormer as base architecture and modified it by replacing
+the ViT blocks of its encoder by our Mamba blocks, adding
+the multimodal traversal, and/or incorporating skip connections
+via TSMamba blocks. As can be seen, using Mamba blocks in
+the encoder improves the segmentation of all tumor regions,
+with a highest DSC improvement of 0.95% obtained for TC.
+Adding the proposed multimodal traversal further boosts per-
+formance by 0.74% on average for the three tumor regions.
+This highlights the traversal’s ability to effectively extract and
+integrate feature information from multiple modalities, resulting
+in more robust and accurate predictions. Moreover, incorpo-
+rating skip connections using TSMamba blocks strengthens
+the connection between the network’s encoder and decoder,
+resulting in another 1.10% DSC increase averaged over all tumor
+regions. Lastly, the combination of these three elements achieves
+optimal segmentation performance, improving WT, TC, and
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:34 UTC from IEEE Xplore. Restrictions apply.
+ZHANG et al.: M2
+SEGMAMBA: MAMBA-BASED INCOMPLETE MULTIMODAL LEARNING FOR BRAIN TUMOR SEGMENTATION WITH FEW 2463
+Fig. 5. Comparison of segmentation results of the BraTS 2018 dataset between our method and existing methods with different numbers of
+missing modalities. Here, Baseline (ours) is the segmentation result without pre-training parameters, and M2SegMamba (ours) is the fine-tuned
+segmentation result with pre-training parameters.
+Fig. 6. Comparison of segmentation results of the BraTS 2020 dataset between our method and existing methods with different numbers of
+missing modalities.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:34 UTC from IEEE Xplore. Restrictions apply.
+2464 IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 30, NO. 3, MARCH 2026
+TABLE IV
+RESULTS FOR DIFFERENT MASK RATIOS USED IN PRE-TRAINING
+TABLE V
+PERFORMANCE COMPARISON ON DIFFERENT TRAINING RATIOS USING THE
+BRATS2018 DATASETS
+ET by 0.74%, 2.69%, and 1.16% compared to the baseline,
+respectively.
+2) Mask Ratio in Pre-Training: We conducted experiments
+using different mask ratios in self-supervised pre-training to
+investigate the impact of this hyperparameter on segmentation
+performance. As shown in Table IV, our masking strategy im-
+proves segmentation results across all mask ratios. In general,
+using a higher mask ratio enhances downstream performance by
+compelling the network to learn both intra- and inter-modality
+dependencies more effectively during pre-training.
+3) Amount of Labeled Data for Fine-Tuning: To thoroughly
+evaluate our model’s generalization capability, we conducted
+experiments using varying proportions of the training set—
+10%, 50%, and 100%—and compared both pretrained and non-
+pretrained versions of our method against the baseline model
+(mmFormer). In addition, to improve the fairness and complete-
+ness of the comparison, we incorporated M3
+AE, a representa-
+tive pretrain-finetune method for multi-modal medical image
+modeling, as an additional baseline. This allows for a more
+comprehensive evaluation of our self-supervised pretraining
+strategy under comparable conditions.
+Table V presents the comparison results, demonstrating
+that our method consistently outperforms others in segmenta-
+tion across various training data ratios. Notably, for the self-
+supervised pretrained model, overall segmentation performance
+improves, with the most significant gains observed on small
+size datasets. This highlights the effectiveness of our proposed
+pretraining approach for few shot segmentation tasks.
+Fig. 7. Model efficiency comparison of pre-training.
+4) Model Efficiency: To assess the efficiency of our Mamba-
+based method, for increasing input image sizes, we compared it
+to the mmFormer baseline, which utilizes ViT blocks. As shown
+in Fig. 7, our method’s memory usage grows significantly slower
+than mmFormer, reducing memory consumption by over 40%
+for the largest image size of 240. By leveraging the Mamba-
+based architecture, our model minimizes redundant computa-
+tions and optimizes resource allocation, making it especially
+well-suited for high-resolution medical image processing tasks
+V. DISCUSSION AND CONCLUSION
+To address the problems of missing modalities and few-shot
+scenarios in clinical practice, we propose a novel Mamba-based
+framework named M2
+SegMamba for few-shot and incomplete
+multimodal brain tumor image segmentation. Our approach
+innovatively integrates Masked Image Modeling with 3D mul-
+timodal brain tumor segmentation, showing great potential in
+small-sample scenarios. Leveraging the advantages of Mamba
+for long-sequence modeling, we design Mamba-based network,
+which further enhance the segmentation accuracy of the net-
+work. Compared to Transformer-based methods, our approach
+maintains excellent inference efficiency. Experiments on the
+BraTS 2018 and BraTS 2020 datasets validate the effectiveness
+of our proposed method. Clinically, M2
+SegMamba’s ability to
+perform with limited data and incomplete modalities highlights
+its potential as a practical tool for real-world applications, espe-
+cially in resource-constrained healthcare environments.
+While our proposed M2
+SegMamba framework has demon-
+strated robust performance in the challenging settings of few-
+shot and incomplete multimodal segmentation tasks, the model
+still exhibits certain performance variations under specific con-
+ditions, highlighting areas for potential improvement. For in-
+stance, segmentation accuracy may vary across different tumor
+subregions when critical imaging modalities are absent. These
+differences likely stem from the inherent heterogeneity of tumor
+structures and the diverse information content across imaging
+modalities. In addition, while this study focuses on MRI-based
+segmentation, the modular architecture and adaptive multimodal
+traversal strategy of M2
+SegMamba indicate its potential for
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:34 UTC from IEEE Xplore. Restrictions apply.
+ZHANG et al.: M2
+SEGMAMBA: MAMBA-BASED INCOMPLETE MULTIMODAL LEARNING FOR BRAIN TUMOR SEGMENTATION WITH FEW 2465
+extension to other imaging modalities. Future work will focus on
+enhancing model robustness in low-information scenarios and
+exploring its applicability to broader imaging domains.
+Insummary,thecurrentstudylaysapromisingfoundation,but
+further investigations are required to fully unlock the versatility
+and scalability of the framework across diverse medical imaging
+scenarios. Building upon the encouraging results presented here,
+future work will focus on extending the applicability of this
+framework beyond its current scope, addressing a broader range
+of real-world clinical challenges and datasets.
+REFERENCES
+[1] T. Zhou, S. Ruan, and S. Canu, “A review: Deep learning for medical
+image segmentation using multi-modality fusion,” Array, vol. 3, 2019,
+Art. no. 100004.
+[2] M. Havaei, N. Guizard, N. Chapados, and Y. Bengio, “HeMIS: Hetero-
+modal image segmentation,” in Proc. 19th Int. Conf. Med. Image Comput.
+Comput.-Assist. Intervention, 2016, pp. 469–477.
+[3] Y. Zhang et al., “mmFormer: Multimodal medical transformer for in-
+complete multimodal learning of brain tumor segmentation,” in Proc.
+25th Int. Conf. Med. Image Comput. Comput.-Assist. Intervention, Berlin,
+Heidelberg: Springer, 2022, pp. 107–117.
+[4] Q. Zhou, H. Zou, F. Luo, and Y. Qiu, “RHViT: A robust hierarchical
+transformer for 3D multimodal brain tumor segmentation using biased
+masked image modeling pre-training,” in Proc. IEEE Int. Conf. Bioinf.
+Biomed., 2023, pp. 1784–1791.
+[5] Y. Ding, X. Yu, and Y. Yang, “RFNet: Region-aware fusion network for
+incomplete multi-modal brain tumor segmentation,” in Proc. IEEE/CVF
+Int. Conf. Comput. Vis., 2021, pp. 3955–3964.
+[6] Y. Wang et al., “ACN: Adversarial co-training network for brain tumor
+segmentationwithmissingmodalities,”inProc.24thInt.Conf.Med.Image
+Comput. Comput.-Assist. Intervention, Berlin, Heidelberg: Springer, 2021,
+pp. 410–420.
+[7] A. Dosovitskiy et al., “An image is worth 16 x 16 words: Transformers for
+image recognition at scale,” 2020, arXiv:2010.11929.
+[8] Z. Li, Y. Zhang, H. Li, Y. Chai, and Y. Yang, “Deformation-aware and
+reconstruction-driven multimodal representation learning for brain tumor
+segmentation with missing modalities,” Biomed. Signal Process. Control,
+vol. 91, 2024, Art. no. 106012.
+[9] J. Shi, L. Yu, Q. Cheng, X. Yang, K. -T. Cheng, and Z. Yan, “M2FTrans:
+Modality-masked fusion transformer for incomplete multi-modality brain
+tumor segmentation,” IEEE J. Biomed. Health Inform., vol. 28, no. 1,
+pp. 379–390, 2023.
+[10] A. Gu, K. Goel, and C. Ré, “Efficiently modeling long sequences with
+structured state spaces,” 2021, arXiv:2111.00396.
+[11] D. Y. Fu, T. Dao, K. K. Saab, A. W. Thomas, A. Rudra, and C. Ré, “Hungry
+hungry hippos: Towards language modeling with state space models,”
+2022, arXiv:2212.14052.
+[12] J. T. Smith, A. Warrington, and S. W. Linderman, “Simplified state space
+layers for sequence modeling,” 2022, arXiv:2208.04933.
+[13] A. Gu and T. Dao, “Mamba: Linear-time sequence modeling with selective
+state spaces,” 2023, arXiv:2312.00752.
+[14] Y. Liu et al., “VMamba: Visual state space model,” 2024,
+arXiv:2401.10166.
+[15] L. Zhu, B. Liao, Q. Zhang, X. Wang, W. Liu, and X. Wang, “Vision
+mamba: Efficient visual representation learning with bidirectional state
+space model,” 2024, arXiv:2401.09417.
+[16] Y. Shi, M. Dong, and C. Xu, “Multi-scale VMamba: Hierarchy in hierarchy
+visual state space model,” in Proc. Adv. Neural Inf. Process. Syst., vol. 37,
+2024, pp. 25687–25708.
+[17] A. Hatamizadeh and J. Kautz, “MambaVision: A hybrid mamba-
+transformer vision backbone,” 2024, arXiv:2407.08083.
+[18] Z. Xing, T. Ye, Y. Yang, G. Liu, and L. Zhu, “SegMamba: Long-range
+sequential modeling mamba for 3D medical image segmentation,” in
+Proc. Int. Conf. Med. Image Comput. Comput.- Assist. Intervention, 2024,
+pp. 578–588.
+[19] J. Ruan, J. Li, and S. Xiang, “VM-UNet: Vision mamba UNet for medical
+image segmentation,” 2024, arXiv:2402.02491.
+[20] Z. Wang, J.-Q. Zheng, Y. Zhang, G. Cui, and L. Li, “Mamba-UNet:
+UNet-like pure visual mamba for medical image segmentation,” 2024,
+arXiv:2402.05079.
+[21] M. Zhang, Y. Yu, S. Jin, L. Gu, T. Ling, and X. Tao, “VM-UNet-v2:
+Rethinking vision mamba unet for medical image segmentation,” in Proc.
+Int. Symp. Bioinf. Res. Appl., 2024, pp. 335–346.
+[22] F. Isensee, P. F. Jaeger, S. A. Kohl, J. Petersen, and K. H. Maier-Hein,
+“NNU-Net:Aself-configuring method for deep learning-based biomedical
+image segmentation,” Nature Methods, vol. 18, no. 2, pp. 203–211, 2021.
+[23] S. Chen, C. Ding, and M. Liu, “Dual-force convolutional neural net-
+works for accurate brain tumor segmentation,” Pattern Recognit., vol. 88,
+pp. 90–100, 2019.
+[24] W. Wang, C. Chen, M. Ding, H. Yu, S. Zha, and J. Li, “TransBTS:
+Multimodal brain tumor segmentation using transformer,” in Proc. 24th
+Int. Conf. Med. Image Comput. Comput.-Assist. Intervention, Berlin, Hei-
+delberg: Springer, 2021, pp. 109–119.
+[25] J. Li et al., “TransBTSV2: Towards better and more efficient volumetric
+segmentation of medical images,” 2022, arXiv:2201.12785.
+[26] H. -Y. Zhou et al., “nnFormer: Volumetric medical image segmentation via
+a 3D transformer,” IEEE Trans. Image Process., vol. 32, pp. 4036–4045,
+2023.
+[27] C. Chen, Q. Dou, Y. Jin, Q. Liu, and P. A. Heng, “Learning with privileged
+multimodal knowledge for unimodal segmentation,” IEEE Trans. Med.
+Imag., vol. 41, no. 3, pp. 621–632, Mar. 2022.
+[28] M. Hu et al., “Knowledge distillation from multi-modal to mono-modal
+segmentation networks,” in Proc. 23rd Int. Conf. Med. Image Comput.
+Comput.-Assist. Intervention, 2020, pp. 772–781.
+[29] P. Huang et al., “Common feature learning for brain tumor MRI synthesis
+by context-aware generative adversarial network,” Med. Image Anal.,
+vol. 79, 2022, Art. no. 102472.
+[30] A. Gu et al., “Combining recurrent, convolutional, and continuous-time
+models with linear state-space layers,” in Proc. Adv. Neural Inf. Process.
+Syst., vol. 34, 2021, pp. 572–585.
+[31] A. Gu, K. Goel, and C. Ré, “Efficiently modeling long sequences with
+structured state spaces,” 2021, arXiv:2111.00396.
+[32] y. Liu et al., “VMamba: Visual state space model,” in Proc. Adv. Neural
+Inf. Process. Syst., 2024, vol. 37, pp. 103031–103063.
+[33] L. Zhu, B. Liao, Q. Zhang, X. Wang, W. Liu, and X. Wang, “Vision
+mamba: Efficient visual representation learning with bidirectional state
+space model,” 2024, arXiv:2401.09417.
+[34] R.DengandT.Gu,“CU-mamba:Selectivestatespacemodelswithchannel
+learning for image restoration,” in Proc. IEEE 7th Int. Conf. Multimedia
+Inf. Process. Retrieval, 2024, pp. 328–334.
+[35] J. Ma, F. Li, and B. Wang, “U-Mamba: Enhancing long-range dependency
+for biomedical image segmentation,” 2024, arXiv:2401.04722.
+[36] V. Hondru, F. A. Croitoru, S. Minaee, R. T. Ionescu, and N. Sebe, “Masked
+image modeling: A survey,” 2024, arXiv:2408.06687.
+[37] S. Zhang, F. Zhu, R. Zhao, and J. Yan, “Contextual image masking mod-
+eling via synergized contrasting without view augmentation for faster and
+better visual pretraining,” in Proc. 11th Int. Conf. Learn. Representations,
+vol. 7, no. 9, 2023, p. 25.
+[38] Y. Lee, J. Willette, J. Kim, J. Lee, and S. J. Hwang, “Exploring the
+role of mean teachers in self-supervised masked auto-encoders,” 2022,
+arXiv:2210.02077.
+[39] H. Bao, L. Dong, S. Piao, and F. Wei, “BEiT: BERT pre-training of image
+transformers,” 2021, arXiv:2106.08254.
+[40] K. He, X. Chen, S. Xie, Y. Li, P. Dollár, and R. Girshick, “Masked
+autoencoders are scalable vision learners,” in Proc. IEEE/CVF Conf.
+Comput. Vis. Pattern Recognit., 2022, pp. 16000–1600 9.
+[41] Z. Xie et al., “SimMIM: A simple framework for masked image mod-
+eling,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit., 2022,
+pp. 9653–9663.
+[42] H. Liu, D. Wei, D. Lu, J. Sun, L. Wang, and Y. Zheng, “M3AE: Multimodal
+representation learning for brain tumor segmentation with missing modali-
+ties,” in Proc. AAAI Conf. Artif. Intell., 2023, vol. 37, no. 2, pp. 1657–1665.
+[43] Ö. Çiçek, A. Abdulkadir, S. S. Lienkamp, T. Brox, and O. Ronneberger,
+“3D U-Net: Learning dense volumetric segmentation from sparse anno-
+tation,” in Proc. 19th Int. Conf. Med. Image Comput. Comput.-Assist.
+Intervention, 2016, pp. 424–432.
+[44] B. H. Menze et al., “The multimodal brain tumor image segmenta-
+tion benchmark (BRATS),” IEEE Trans. Med. Imag., vol. 34, no. 10,
+pp. 1993–2024, Oct. 2015.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:12:34 UTC from IEEE Xplore. Restrictions apply.
+

@@ -1,0 +1,729 @@
+    IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 12, DECEMBER 2024                                                                  17779
+
+
+
+
+         Medical Transformer: Universal Encoder for 3-D
+                      Brain MRI Analysis
+                                 Eunji Jun , Seungwoo Jeong , Student Member, IEEE, Da-Woon Heo ,
+                                               and Heung-Il Suk , Senior Member, IEEE
+
+
+
+
+       Abstract— Transfer learning has attracted considerable atten-                                             I. I NTRODUCTION
+    tion in medical image analysis because of the limited number
+    of annotated 3-D medical datasets available for training data-
+    driven deep learning models in the real world. We propose
+    Medical Transformer, a novel transfer learning framework that
+                                                                                      M       EDICAL image analysis has progressed considerably
+                                                                                              in the past few years with the use of deep learning [1].
+                                                                                      However, building a large 3-D dataset for training deep
+    effectively models 3-D volumetric images as a sequence of 2-D                     learning models for medical imaging is challenging, given
+    image slices. To improve the high-level representation in 3-D-form                the difficulty of data acquisition and annotation. The lack
+    empowering spatial relations, we use a multiview approach that
+    leverages information from three planes of the 3-D volume, while                  of annotated data has prompted the development of transfer
+    providing parameter-efficient training. For building a source                     learning beyond traditional supervised learning, which enables
+    model generally applicable to various tasks, we pretrain the                      models to be trained using a small-scale available dataset.
+    model using self-supervised learning (SSL) for masked encoding                       For transfer learning in medical imaging, the standard
+    vector prediction as a proxy task, using a large-scale normal,                    approach was to pretrain the existing 2-D-based deep neural
+    healthy brain magnetic resonance imaging (MRI) dataset. Our
+    pretrained model is evaluated on three downstream tasks:                          architectures, e.g., ResNet [2] and DenseNet [3], using large-
+    1) brain disease diagnosis; 2) brain age prediction; and 3) brain                 scale natural image datasets such as ImageNet, and then
+    tumor segmentation, which are widely studied in brain MRI                         fine-tune the model on small-sized medical imaging data [4],
+    research. Experimental results demonstrate that our Medical                       [5]. This approach yields better performance than the random
+    Transformer outperforms the state-of-the-art (SOTA) transfer
+                                                                                      initial-based training strategy, especially when a small set
+    learning methods, efficiently reducing the number of parameters
+    by up to approximately 92% for classification and regression                      of samples is available, but the 3-D volume data were
+    tasks and 97% for segmentation task, and it also achieves good                    split into 2-D slices from three planes and pretrained by
+    performance in scenarios where only partial training samples are                  2-D models without recovering the 3-D-form representations,
+    used.                                                                             which inevitably caused the loss of the 3-D spatial information.
+       Index Terms— Brain age prediction, brain disease diagnosis,                    A later study [6] resolved this issue by exploiting the 3-D
+    brain tumor segmentation, deep learning, medical image analysis,                  publicly available models, e.g., recurrent neural networks,
+    structural MRI (sMRI), transfer learning, transformer.                            trained using the 3-D Kinetics dataset [7].
+                                                                                         However, despite having the same 3-D structure, it is
+      Manuscript received 9 July 2022; revised 29 January 2023 and 11 June
+    2023; accepted 8 August 2023. Date of publication 22 September 2023; date         worth emphasizing that the medical dataset of interest is
+    of current version 3 December 2024. This work was supported in part by            very different from the natural images benchmark datasets in
+    the National Research Foundation of Korea (NRF) grant funded by the Korea         computer vision. Medical imaging data focus on specific parts
+    Government [Ministry of Science and ICT (MSIT)] (Development of Deep
+    Learning Techniques for Data-Driven Medical Knowledge Graph Generation            of the body for clinical purposes, resulting in sophisticated
+    and Interpretable Multi-Modal Electronic Health Records Analysis) under           yet recurrent patterns. Learning a 3-D medical image network
+    Grant 2022R1A2C2006865; in part the Institute of Information and                  transferred from a natural scene video without considering
+    Communications Technology Planning and Evaluation (IITP) grant funded
+    by the Korea Government (MSIT) [(Part 2) Few-Shot Learning of Causal              this characteristic leads to a strong bias in medical image
+    Inference in Vision and Language for Decision Making] under Grant 2022-           analysis. Thus, it is necessary to create a source model
+    0-00959; and in part by the Department of Artificial Intelligence, Korea          for transfer learning by directly using the medical imaging
+    University, under Grant 2019-0-00079. (Corresponding author: Heung-Il Suk.)
+      Eunji Jun was with the Department of Brain and Cognitive Engineering,           datasets capable of learning subtle anatomical differences
+    Korea University, Seoul 02841, Republic of Korea. She is now with the             between samples in medical datasets.
+    Institute of Advanced Technology Development, Hyundai Motor Group,                   To build a source model directly from 3-D medical volume
+    Hwaseong-si, Gyeonggi-do 13529, Republic of Korea (e-mail: ejjun@
+    hyundai.com).                                                                     data, recent works have pretrained their models for target tasks
+      Seungwoo Jeong and Da-Woon Heo are with the Department of Artificial            such as brain parsing and organ segmentation using labeled
+    Intelligence, Korea University, Seoul 02841, Republic of Korea (e-mail:           datasets [8], [9]. However, these models have been pretrained
+    sw_jeong@korea.ac.kr; daheo@korea.ac.kr).
+      Heung-Il Suk is with the Department of Artificial Intelligence and the          for specific applications using only a small set of data and are
+    Department of Brain and Cognitive Engineering, Korea University, Seoul            therefore unsuitable to be used as the source model envisioned
+    02841, Republic of Korea (e-mail: hisuk@korea.ac.kr).                             in this study. Chen et al. [9] built a large-scale dataset from a
+      This article has supplementary downloadable material available at
+    https://doi.org/10.1109/TNNLS.2023.3308712, provided by the authors.              collection of eight annotated medical datasets and pretrained
+      Digital Object Identifier 10.1109/TNNLS.2023.3308712                            the 3-D residual network for the segmentation task. Although
+                            2162-237X © 2023 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                                          See https://www.ieee.org/publications/rights/index.html for more information.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:04 UTC from IEEE Xplore. Restrictions apply.
+    17780                                            IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 12, DECEMBER 2024
+
+
+
+    these fully supervised approaches may yield more powerful                               model the interslice dependencies via an attention
+    target models, they demand a substantial amount of annotation                           mechanism, thus empowering the representations to
+    efforts to obtain the source model.                                                     reflect global and holistic relations.
+       Accordingly, many works have adopted self-supervised                              4) Upon evaluating our pretrained model on brain disease
+    pretraining to learn image representations from unlabeled                               diagnosis, brain age prediction, and brain tumor seg-
+    medical imaging data [12], [14], [15], [16], [17]. For                                  mentation tasks, our Medical Transformer outperformed
+    example, [16], [17] introduced a proxy task for 3-D                                     the SOTA transfer learning methods, efficiently reducing
+    representation learning by recovering a rearranged and rotated                          the number of parameters by up to approximately 92%
+    Rubik’s cube. Taleb et al. [12] proposed a set of five 3-D                              for classification and regression tasks and 97% for
+    self-supervised learning (SSL) tasks that extend the existing                           segmentation task with relatively low inference times.
+    2D SSL tasks to a 3-D-form for medical imaging. More
+    recently, [14] devised an image restoration task from a mixture                                             II. R ELATED W ORK
+    of transformations to pretrain the model via self-supervision
+    without a labeled dataset. However, despite self-supervision,                     A. Transformers in Vision Models
+    the existing 3-D-based transfer learning frameworks require                          Many recent works have adopted transformers in vision
+    too many learnable parameters to be practically applicable to                     models. Vision transformer (ViT) [20] divided an image into
+    high-dimensional medical datasets.                                                16 × 16 patches and fed these patches into a transformer [21]
+       In this work, we propose a novel transfer learning                             by treating them as tokens. Despite the simple application of
+    framework, called Medical Transformer, which effectively                          a standard transformer, it showed comparable performance to
+    models a 3-D volumetric MR image as a sequence of 2-D                             the convolutional variants by capturing dense and repeatable
+    image slices. To make a high-level representation in 3-D-form                     patterns. However, ViT has a fatal drawback; it has a high
+    empowering spatial relations better, we take a multiview                          computation cost and requires large datasets to outperform the
+    approach that leverages plenty of information from three                          competing convolutional methods.
+    planes of the 3-D volume while providing parameter-                                  Our approach is similar to ViT in the sense that we use
+    efficient training. Specifically, since early studies [18], [19]                  the transformer as a means of dividing images into subsets
+    have already validated the effectiveness of this triplanar                        and modeling their dependencies. However, our approach takes
+    representation of 3-D medical images, a given 3-D volumetric                      advantage of the convolutional encoder and the transformer;
+    image is split into 2-D slices from three orthogonal planes                       the convolutional encoder extracts hierarchical spatial features,
+    (sagittal, coronal, and axial). Then, these 2-D image slices                      while the transformer extracts their relational features
+    are fed to the network as inputs. We first pretrain a                             taking into account interslice dependencies. In addition, the
+    backbone network consisting of a convolutional encoder                            spatial attention of the transformer focuses on important
+    and a transformer encoder for masked encoding vector                              slices, instead of treating each image slice equally, which
+    prediction that generates the encoding vectors of the randomly                    yields superior performances over 3-D-based competing
+    masked images, as our SSL proxy task. Then, after passing                         convolutional methods.
+    through the pretrained backbone network, the 2-D slice                               TransUNet [22] used a hybrid CNN-Transformer architec-
+    features are recovered into 3-D-form representations by their                     ture to exploit both high-resolution spatial information from
+    combinations and finally fed into the prediction network                          CNN features and the global context encoded by transformers.
+    for downstream tasks. To validate the effectiveness of our                        This encoding approach of first extracting spatial features with
+    Medical Transformer, we evaluated our pre-trained model                           CNN and then modeling the global context with a transformer
+    on three target tasks that are actively studied in brain                          is very similar to our proposed method. But TransUNet
+    magnetic resonance imaging (MRI) research, i.e., brain disease                    exploited a sequence of flattened 2-D patches as the input and
+    diagnosis, brain age prediction, and brain tumor segmentation,                    used a 2-D network that processes each 3-D medical image
+    and achieved remarkable performances for all three tasks in                       in a slice-by-slice manner. In addition, while TransUNet only
+    comparison to the respective state-of-the-art (SOTA) models.                      focuses on the spatial correlation between tokenized image
+       In summary, the main contributions of this work are as                         patches, our method encoded the whole 2-D slice image into
+    follows.                                                                          slicewise features and modeled their long-range dependencies
+       1) We propose a novel transfer learning framework that                         along the plane axis. Also, another big difference is the
+           takes a multiview approach to effectively model 3-D                        decoding part for generating a segmentation mask. TransUNet
+           volumetric images in the form of a sequence of 2-D                         decoded the hidden features using a cascaded upsampler that
+           image slices for high-level volumetric representations.                    consists of multiple upsampling steps via skip connections.
+       2) To the best of our knowledge, our study is the                              In contrast, our method aggregated slicewise features for
+           first to use the 2.5-D approach and later restore the                      restoring 3-D volumetric representation, retaining local spatial
+           3-D-form information for modeling 3-D contextual                           characteristics.
+           information while retaining local spatial characteristics                     In addition, Swin UNETR [23] was proposed to use a
+           in a parameter-efficient manner.                                           U-shaped network with a Swin Transformer as encoder and
+       3) We propose a novel backbone network as a source                             connect it to a CNN-based decoder at five different resolutions
+           model, which consists of a convolutional encoder and a                     by skip connections for the task of multimodal 3-D brain tumor
+           transformer encoder that extract the hierarchical spatial                  segmentation. Compared with our method, Swin UNETR
+           features of the 2-D slices for each plane, and further                     differs in the configurations of the encoders and decoders.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:04 UTC from IEEE Xplore. Restrictions apply.
+    JUN et al.: MEDICAL TRANSFORMER: UNIVERSAL ENCODER FOR 3-D BRAIN MRI ANALYSIS                                                                              17781
+
+
+
+                                                                                TABLE I
+                              S UMMARY OF R ELATED W ORKS IN T RANSFER L EARNING AND M EDICAL T RANSFORMER (O URS ) FOR
+                                   M ODELING A PPROACH , M ODALITY, S OURCE DATASET, P ROXY TASK , AND S UPERVISION
+
+
+
+
+       Similarly, TransBTS [24] also used transformer for medical                     14 million annotated images [30], [31]. Practically, their
+    image segmentation. TransBTS can model the long-range                             pretrained weights from 2-D models, such as ResNet [2]
+    dependencies in both the slice dimension and spatial                              and DenseNet [3], are fine-tuned on medical image analyses,
+    dimension simultaneously for volumetric segmentation. While                       including skin cancer identification [32], Alzheimer’s disease
+    TransUNet relies on pretrained ViT and ResNet models on                           (AD) diagnosis [33], and pulmonary embolism detection [34].
+    large-scale natural image datasets, i.e., ImageNet, TransBTS                      However, this strategy has limited applicability for 3-D
+    has a flexible network design and is trained from scratch on                      medical imaging modalities, e.g., computed tomography (CT)
+    the task-specific dataset without the dependency on pretrained                    and MRI, as it inevitably loses 3-D anatomical information.
+    weights. In contrast, Medical Transformer is well designed for                    Accordingly, to capture 3-D spatial information, [6] used
+    structural MRI (sMRI), relying on pretrained weights from                         inflated 3-D (I3D) [7] trained on the 3-D Kinetics dataset as
+    large-scale sMRI datasets, and works well for a variety of                        a feature extractor. However, despite the same 3-D structure,
+    sMRI-specific tasks while having a flexible network.                              there exists a large domain gap between temporal video
+                                                                                      data of natural scenes and medical data, which leads to
+    B. 2.5-D Modeling Approaches in Medical Imaging                                   improper modeling of medical contexts. To alleviate these
+                                                                                      limitations, recent works have tried to pretrain a source
+       To handle 3-D medical imaging data, either a 2-D approach                      model directly using 3-D medical volume data. For example,
+    is used to learn the 2-D context slice for a specific plane [25],                 NiftyNet [8] publicized the pretrained models, i.e., model zoo,
+    [26] or a 3-D approach is used to directly learn the 3-D                          for specific applications such as brain parcellation and organ
+    volumetric image [27], [28]. However, the former does not                         segmentation. However, these models were trained upon a
+    model 3-D contextual information well, while the latter                           small-scale dataset, making them unsuitable as source models
+    involves high computational costs and memory consumption.                         for transfer learning. For training the source model from a
+    Accordingly, 2.5-D approaches, e.g., training 2-D networks                        large-scale dataset, [9] aggregated eight annotated medical
+    from three orthogonal planes and finally combining the results,                   datasets and used them to pretrain a 3-D residual network
+    have been proposed. Various methods exist depending on                            for a segmentation task.
+    how the results are combined. For example, [29] applied 3-D                          These aforementioned fully supervised pretraining
+    isotropic Gaussian filtering to propagate the 2-D slice-based                     approaches demand massive, high-quality annotated datasets
+    probabilities to 3-D by taking local 3-D neighborhoods into                       to obtain the source models for transfer learning. In contrast,
+    account. Roth et al. [18] and Prasoon et al. [19] obtained a                      our proposed method uses an SSL framework without the
+    combined output by concatenating the outputs of the final                         need for labeled datasets in 3-D medical image analysis.
+    layer in three independent CNNs and feeding the result into a
+    softmax classifier. However, these methods have limitations in                    D. Self-Supervised Pretraining
+    that these planewise features are not effectively integrated at a
+    higher level; they are simply concatenated without providing                         SSL has recently gained attention in the field of medical
+    volumetric features. In contrast, our proposed 2.5-D method                       imaging, aiming at learning image representation from
+    provides volumetric features by combining slicewise features                      unlabeled data [12], [14], [15], [16], [17]. The key challenge
+    from three planes. This enables modeling 3-D contextual                           for SSL is to define a suitable proxy task from the unlabeled
+    information, retaining local spatial characteristics by fully                     dataset. For example, proxy tasks in computer vision include
+    integrating all the features from three planes. Consequently,                     colorization that recovers a colored image from a gray-scale
+    it can be applied to various downstream tasks including                           image [35], [36], image restoration that restores the shuffled
+    volumetric tasks such as segmentation.                                            small regions within an image to their original position in
+                                                                                      the image [37], and contrastive learning [38]. In the medical
+                                                                                      imaging domain, [16], [17] introduced a proxy task of 3-D
+    C. Fully Supervised Pretraining                                                   representation learning by recovering a rearranged and rotated
+      As there are few annotated datasets in the medical imaging                      Rubik’s cube. Taleb et al. [12] proposed a set of five 3-D
+    domain, modern approaches have used the pretrained model                          self-supervised tasks for medical imaging, namely, contrastive
+    that is trained using the ImageNet dataset containing over                        predictive coding, rotation prediction, jigsaw puzzles, relative
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:04 UTC from IEEE Xplore. Restrictions apply.
+    17782                                              IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 12, DECEMBER 2024
+
+
+
+
+    Fig. 1. Schematic of the proposed medical transformer. The double-line of the transformer encoder indicates that the input data of three planes share one
+    transformer encoder, where each plane is distinguished through segment encoding.
+
+    patch location, and exemplar networks. Zhou et al. [14] have                      2) pretraining the transformer encoder for a masked encoding
+    developed a transfer learning framework, called Model                             vector prediction as our proxy task of SSL for interslice
+    Genesis, to learn general image representation by recovering                      dependencies from slicewise features; and 3) fine-tuning the
+    the original subvolumes of images from their transformed ones                     backbone and prediction network for downstream medical
+    derived from nonlinear transformation, local shuffling, outer                     tasks.
+    cutout, and inner cutout.
+       Our approach differs from the previous self-supervised                         A. Notations
+    approaches in obtaining the encoding vector in the representa-                       In this work, we use a multiview approach that regards a
+    tion space, while many related works used an image restoration                    3-D volume image as 2-D slice images from three planes,
+    for a proxy task that recovers the transformed images in                          i.e., coronal, sagittal, and axial. Given a 3-D volume MRI
+    the input space. Our masked encoding vector prediction                            image X ∈ Rw×d×h , we denote a set of 2-D slice images
+                                                                                                                       p         p
+    of the proposed method can effectively learn universal                            for each plane, X p = {X 1 , . . . , X N p } ( p ∈ {cor, sag, axial}),
+    representations. In addition, compared with the 3-D-based                         where N p is the number of slices for the corresponding plane,
+    competing methods that require a huge number of learnable                         and w, d, and h present the width, depth, and height of
+    parameters, our method provides a parameter-efficient transfer                    the 3-D volume image, respectively. The 2-D slice images
+    learning framework and demonstrates superior performances                         are fed into the convolutional encoder, leading to a set of
+                                                                                                                            p      p      p
+    for three medical imaging tasks. We compare the modeling                          embedding vectors, Z p = {z1 , . . . , z N p } (zn ∈ Rdemb ), where
+    approach, modality, source dataset, and proxy task between                        demb denotes the dimension of an embedding vector. Then,
+    the proposed method and the related works in Table I.                             we conduct a positional encoding and a segment encoding
+                                                                                      step before entering the transformer and obtain the encoding
+                       III. P ROPOSED M ETHOD                                                           p            p        p
+                                                                                      vectors, E p = {e1 , . . . , e N p } (en ∈ Rdemb ).
+       The aim of our work is to transfer a backbone network
+    pretrained upon a large-scale 3-D brain MRI dataset to down-                      B. Medical Transformer Network
+    stream tasks of 3D MRI analyses. In this section, we describe                        Our Medical Transformer consists of a backbone network to
+    the overall framework of our Medical Transformer, shown in                        be pretrained by an SSL proxy task and a prediction network
+    Fig. 1. For learning universal representations of 3-D brain                       based on linear fully connected (FC) layers for final prediction.
+    MRI, we first build a large-scale 3-D brain MRI dataset of                        For the backbone network, we use a 2-D convolutional encoder
+    normal, healthy subjects by collecting three publicly available                   and a transformer encoder. The convolutional encoder extracts
+    datasets, i.e., information extraction from images (IXI),1                        the hierarchical spatial features of the 2-D slices for each
+    Cambridge Centre for Ageing and Neuroscience (Cam-CAN),2                          plane, and then the transformer encoder extracts their relational
+    and Autism Brain Imaging Data Exchange (ABIDE).3                                  features by modeling the interslice dependencies via an
+       Based on a backbone network comprising a convolutional                         attention mechanism, enabling us to capture the dependencies
+    encoder and a transformer encoder and a prediction network,                       among neighboring and distant slices. In this manner, the
+    our Medical Transformer takes a multiview approach, in which                      representations can reflect global and holistic relations. Here,
+    a given 3-D volumetric image is split into 2-D slices from                        we use an independent convolutional encoder for each plane
+    three planes (sagittal, coronal, and axial), and these 2-D                        that does not share model parameters because the 3D MRI
+    image slices are fed to the network as inputs. Transfer                           consists of three planes, i.e., axial, coronal, and sagittal,
+    learning comprises the following three steps: 1) pretraining                      which have different views for each plane. Then, the resulting
+    the convolutional encoder using triplet loss with nonlinear                       spatial features go through positional encoding for ordering
+    intensity transformation for learning anatomical appearances;                     slices and segment encoding for discerning planes before
+       1 https://brain-development.org/ixi-dataset/                                   being fed into the transformer. For segment encoding, with a
+       2 https://www.cam-can.org/                                                     precomputed embedding matrix from the range corresponding
+       3 http://fcon_1000.projects.nitrc.org/indi/abide/                              to the number of planes, we made a nontrainable embedding
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:04 UTC from IEEE Xplore. Restrictions apply.
+    JUN et al.: MEDICAL TRANSFORMER: UNIVERSAL ENCODER FOR 3-D BRAIN MRI ANALYSIS                                                                              17783
+
+
+                                                                                                p
+                                                                                       where z̃(i) is an embedding vector of a random training sample
+                                                                                                                          p,+
+                                                                                       that is averaged over slices, z̃(i) is that of the transformed
+                                                                                                                        p,−
+                                                                                       version (positive example), z̃(i) is that of a different sample
+                                                                                       from the dataset (negative example), N T is the number of
+                                                                                       training samples, α is the margin between positive and negative
+                                                                                       samples, and D is a function for distance measure, e.g., L2
+    Fig. 2. Illustration of pretraining a convolutional encoder by triplet loss with   distance. The final loss is defined by averaging all the losses
+    nonlinear intensity transformation.
+                                                                                       from the three planes.
+                                                                                          Inspired by the successful adoption of masked language
+    layer and conducted an embedding lookup of a range. After                          modeling as a proxy task of SSL in BERT [43], we propose
+    passing through the transformer, a volumetric feature map                          to learn universal 3D MRI representations for a masked
+    is formed by a combination of slicewise features for all                           encoding vector prediction as our SSL proxy task. Specifically,
+    the planes. Our multiview approach of integrating slicewise                                                                      p
+                                                                                       we regard a slicewise encoding vector en as a token, and a
+    features from all the planes efficiently reduces the model                                                                p       p
+                                                                                       set of encoding vectors E p = {e1 , . . . , e N p }, i.e., an image-
+    parameters, still sufficiently capturing plenty of volumetric                      level feature, as a sentence. We randomly mask out some
+    representations. Finally, the prediction network outputs the                       input slice images for each plane and predict the corresponding
+    final task-specific prediction. Depending on the downstream                        encoding vectors of the masked images from encoding vectors
+    medical task, we take a multiscale approach to capture low-                        of the remaining nonmasked slices. Here, the convolutional
+    and high-level features for segmentation and a single-scale                        encoder pretrained in the previous step is frozen, and only the
+    approach to capture high-level features for classification and                     transformer encoder is trained for the masked encoding vector
+    regression.                                                                        prediction task so that the transformer encoder can predict
+                                                                                       the masked encoding vector by determining the interslice
+    C. Transfer Learning                                                               dependencies.
+                                                                                          For modeling interslice dependencies, we use a stan-
+       1) Pretraining Medical Transformer: To learn a generalized
+                                                                                       dard transformer encoder over slicewise encoding features
+    representation using unlabeled data, we first pretrain the
+                                                                                       E p ∈ R N p ×demb . The mathematical formulations are as follows:
+    convolutional encoder in an SSL manner, as shown in
+                                                                                                                    (W Q E p )(W K E p )⊤
+                                                                                                                                         
+    Fig. 2. To this end, we use an exemplar network [39] to
+                                                                                           Ē p = E p + Softmax             √               (WV E p ) (2)
+    derive supervision labels, for which it relies on a nonlinear                                                             demb
+    transformation for learning appearances as one of the image                            Ê p = Ē p + ReLU( Ē p F1 )F2                              (3)
+    augmentation techniques. The absolute or relative intensity
+    values of medical images deliver crucial information about the                     where {W Q , W K , WV } is a set of the learnable weight matrices,
+    image structure. To preserve the intensity of anatomies during                     and F1 ∈ Rdemb ×dff and F2 ∈ Rdff ×demb denote two pointwise
+    image transformation, we use a Bezier curve for a smooth and                       feedforward convolutions.
+    monotonous transformation, which assigns a unique value to                            The loss for the masked encoding vector prediction can be
+    each pixel, ensuring a one-to-one mapping.                                         formulated using the mean squared error as
+       For training the exemplar network, we use triplet loss [40],                                                1 X p               2
+                                                                                                          p
+    [41], [42], where an original input is compared with positive                                      Lmask =               êm − zmp                (4)
+                                                                                                                  |M|
+    and negative inputs such that the distance from original to the                                                        m∈M
+    positive is minimized, and the distance from the original to the                   where M is a set of the masked slice indices.
+    negative is maximized. From 3D MRI volume, we introduce                               2) Fine-Tuning Medical Transformer: The proposed Med-
+    original, positive, and negative inputs for three planes, i.e.,                    ical Transformer aims to build a backbone network that
+    sagittal, coronal, and axial planes. Specifically, an original                     works as a universal MRI encoder, generally transferable
+    input is simply 2-D slice images for a plane. A positive                           for various downstream medical tasks. To validate the
+    input is defined as the transformed 2-D slice images from                          effectiveness of our pretrained backbone network, we fine-tune
+    the same volume such that their pixel intensity value is                           the backbone and prediction network for downstream tasks.
+    nonlinearly one-to-one mapped by the Bezier curve, i.e.,                           To this end, we take two different approaches, i.e., a single-
+    intensity transformation only, while a negative input is defined                   scale approach to capture high-level features for classification
+    as slice images from other batches (volumes). The original,                        and regression tasks and a multiscale approach to capture
+    positive, and negative inputs are fed into the convolutional                       both low- and high-level features for a segmentation task.
+    encoder, and the resulting embedding vectors are average-                          Specifically, the multiscale approach integrates all the outputs
+                    p     p,+         p,−
+    pooled into z̃(i) , z̃(i) , and z̃(i) . The following triplet loss                 from previous convolution layers in the encoder. For instance,
+      p
+    Ltriplet is calculated by comparing them with positive pairs                       as shown in Fig. 3, low- and high-level features from the
+    and negative pairs as:                                                             convolutional blocks, #2–#4 in the encoders E {cor,sag,axial} , are
+                       NT                                                              taken into account, which empowers the representations for
+      p            1 X       n    
+                                     p       p,+
+                                                   
+                                                       p       p,−
+                                                                     o
+     Ltriplet =           max 0, D z̃(i) , z̃(i) − D z̃(i) , z̃(i) +α                  the segmentation task.
+                  N T i=1                                                                 After passing through the backbone network, the encoding
+                                                                                (1)    vectors Ê p ∈ R N p ×demb for each plane construct a volumetric
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:04 UTC from IEEE Xplore. Restrictions apply.
+    17784                                            IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 12, DECEMBER 2024
+
+
+
+
+    Fig. 3.   Illustration of fine-tuning phase for brain disease diagnosis, brain age prediction, and brain tumor segmentation.
+
+
+
+
+    Fig. 4.   Illustration of 3-D information reconstruction. One voxel point in the figure considers all the corresponding feature maps from three planes.
+
+
+    feature map F p ∈ Rw×d×h×demb . In the single-scale approach,                     methods (3D-SSL) including 3D-relative patch location (RPL),
+    slicewise features for all the planes are concatenated into a                     3-D-Rotation, 3-D-Jigsaw, 3D-contrastive predictive coding
+    final volumetric feature map F ∈ Rw×d×h×3demb via a combina-                      (CPC), and 3-D-Exemplar [12], and Model Genesis [14].
+    tion. That is, one voxel point in the 3D MRI volume considers                     In addition, we conducted extensive ablation studies for our
+    all the corresponding feature maps from three planes. It should                   model to evaluate the effects of various components in the pro-
+    be noted that our proposed method models 3-D data using a                         posed method. In addition to quantitative validation, we also
+    2.5-D method that divides the 3-D data into three planes and                      compared the qualitative results of a segmentation task.
+    then inputs them but restores the 3-D-form information for                        For reproducibility of the results, our pretrained model and
+    training the prediction network. As a result, it can model 3-D                    code are publicly available at “https://github.com/ku-milab/
+    contextual information, retaining local spatial characteristics,                  MedicalTransformer.” We specified the complete architecture
+    making it suitable for the various downstream tasks including                     for pretraining and fine-tuning phase, memory consumption,
+    volumetric tasks such as segmentation. This overall process                       comparison with 2.5-D competitive methods and SOTA
+    for 3-D information reconstruction is illustrated in Fig. 4.                      methods of target benchmark dataset, and ablations for our
+       In the multiscale approach, the feature maps from the                          hybrid architecture in Supplementary Material.
+    preceding convolutional blocks are matched to the same size
+    via trilinear interpolation and additionally concatenated to                      A. Experimental Settings
+    the aforementioned final feature map, which is fed into the                          1) Pretraining Medical Transformer: To build a large-scale
+    prediction network. The prediction network consists of a linear                   brain MRI dataset, we collected T1-weighted sMRI scans of
+    FC layer for segmentation and a linear FC layer followed                          1783 normal, healthy subjects from IXI (#=566), Cam-CAN
+    by average pooling for classification and regression tasks.                       (#=653), and ABIDE (#=564) datasets. Only subjects who
+    During the fine-tuning phase, the pretrained backbone and the                     are 13 years of age or older are considered in ABIDE I and
+    prediction network are fine-tuned on downstream tasks.                            ABIDE II. For preprocessing, we conducted Brain ExTraction
+                                                                                      (BET) [44] to remove areas other than the brain from
+                               IV. E XPERIMENTS                                       images (e.g., neck, skull). FMRIB linear image registration
+      In this section, we evaluated the performance of the                            toolkit (FLIRT) [45], [46] was used to remove global linear
+    proposed Medical Transformer on three medical tasks on                            differences over the images such as global translation, scale,
+    publicly available brain MRI datasets. To demonstrate the                         and rotation differences. Finally, each 3D MRI volume of
+    superiority of our proposed method, we compared the results                       193 × 229 × 193 in size was average-pooled into a size of
+    of three tasks with other SOTA methods in the literature, i.e.,                   96 × 114 × 96 to reduce memory requirements. To handle
+    I3D [7], NiftyNet [8], MedicalNet [9], and 3-D self-supervised                    the data variation problems, i.e., the domain shift caused by
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:04 UTC from IEEE Xplore. Restrictions apply.
+    JUN et al.: MEDICAL TRANSFORMER: UNIVERSAL ENCODER FOR 3-D BRAIN MRI ANALYSIS                                                                              17785
+
+
+
+                                                                               TABLE II
+    P ERFORMANCE C OMPARISON B ETWEEN C OMPETITIVE M ETHODS AND THE P ROPOSED M ETHOD FOR B RAIN D ISEASE D IAGNOSIS (AD/MCI/NC
+        M ULTICLASS C LASSIFICATION ), B RAIN AGE P REDICTION (R EGRESSION ), AND B RAIN T UMOR S EGMENTATION A FTER C ROSS -VALIDATION
+           (M EAN ± S TD ). T HE E NTRIES IN B OLD H IGHLIGHT THE B EST P ERFORMANCE A MONG THE D IFFERENT A PPROACHES FOR T HREE TARGET
+                                                            TASKS . ( M AUC, MAE, WT, TC, ET)
+
+
+
+
+                                      TABLE III                                       fivefold cross-validation for all the tasks in Table II. Our
+        S OCIODEMOGRAPHIC I NFORMATION S UMMARY OF ADNI C OHORT                       Medical Transformer and the comparable methods were fine-
+                                                                                      tuned using PyTorch, and it was trained on GPU NVIDIA
+                                                                                      GeForce RTX 2080 TI for the classification and regression
+                                                                                      tasks and TITAN RTX for the segmentation task.
+                                                                                           a) Brain disease diagnosis: Our target task is to
+                                                                                      differentiate between AD, mild cognitive impairment (MCI),
+                                                                                      and cognitively normal (CN), i.e., multiclass classification,
+    data acquisition from multicenters, we conducted spatial and                      which is a crucial but challenging task in the study of AD,
+    intensity distribution normalization before providing inputs to                   owing to the subtle and diverse morphological changes in
+    the model.                                                                        the spectra of AD, MCI, and CN [48]. To this end, we used
+       The backbone network comprised ResNet-18 and the trans-                        T1-weighted sMRI scans from the AD neuroimaging initiative
+    former encoder. The network architecture of the transformer                       (ADNI) dataset.4 The demographic information of the dataset
+    encoder was defined with the dimension of an embedding                            is summarized in Table III. The classification performance was
+    vector (demb = 16), the dimension of a feedforward network                        evaluated in terms of the multiclass area under the receiver
+    (dff = 64), and the number of heads (h = 4). For positional                       operating curve (mAUC) [49].
+    encoding, we used a sinusoidal function. We trained our                                b) Brain age prediction: To verify the versatility of our
+    models using the Adam optimizer [47] with an initial learning                     Medical Transformer on a regression task, we conducted a
+    rate of 1e−4 and a multiplicative decay of 0.99 for 150 epochs                    brain age prediction based on a brain MRI sample, which
+    (early stopping of 30 patience) using mini-batches of                             is regarded as one of the most effective ways for brain
+    10 samples.                                                                       aging understanding [50]. T1-weighted sMRI scans from the
+       We divided samples into five-folds, with a single fold for                     ADNI dataset were used the same as in the classification
+    the validation set and the remaining folds for the training set,                  task, as presented in Table III. The regression results were
+    and chose the final optimal model based on the performance                        reported in terms of the mean absolute error (MAE) between
+    over the validation set. For the masked encoding vector                           the chronological age and the predicted age.
+    prediction task, the masking ratio was set as 10% so that                              c) Brain tumor segmentation: To evaluate the perfor-
+    universal representation was effectively learned by reasonable                    mance of the proposed method on brain tumor segmentation,
+    difficulties, i.e., 9, 11, and 9 slices were masked for the sagittal,             we used the Brain Tumor Segmentation (BraTS) 2020 dataset.5
+    coronal, and axial planes, respectively. The pretraining of the                   It contains 369 training samples and 125 validation samples
+    Medical Transformer was implemented using PyTorch on GPU                          including T1, postcontrast T1-weighted (T1Gd), T2-weighted
+    NVIDIA GeForce RTX 2080 TI.                                                       (T2), and T2-FLAIR. The dataset was preprocessed with
+       2) Downstream Tasks: To validate the effectiveness of our                      skull-striping, interpolated to a uniform isotropic resolution
+    transfer learning framework, we fine-tuned the pretrained                         of 1 mm3 , and registered to an SRI24 space with
+    model on several medical tasks, i.e., brain disease diagnosis,                    a dimension of 240 × 240 × 155. The original image
+    brain age prediction, and brain tumor segmentation tasks,                         size is 240 × 240 × 155, but the largest crop size of
+    which are actively studied in brain MRI research. The predic-                     160 × 192 × 128 was used, which ensures that most image
+    tion network was built using a linear FC layer. With respect to                   content remains within the crop area. As the BraTS dataset
+    the classification and regression tasks, the resulting volumetric                 consists of four different MRI modalities when compared with
+    map after the linear FC layer was average-pooled. We used                         a single modality in other datasets, there is a difference in
+    Dice loss, cross-entropy loss, and mean squared error loss for                    the input channel size of ResNet in the pretrained backbone
+    segmentation, classification, and regression, respectively.
+       We reported the performances of our proposed method and                           4 http://adni.loni.usc.edu/
+
+    competing methods in terms of the average results from the                           5 https://www.med.upenn.edu/cbica/brats2020/data.html
+
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:04 UTC from IEEE Xplore. Restrictions apply.
+    17786                                            IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 12, DECEMBER 2024
+
+
+
+
+    Fig. 5. Visualization of the segmentation results between our proposed Medical Transformer and the competing methods for comparison of qualitative results.
+    The WT class includes all the visible labels (a union of green, blue, and red labels). The TC class is a union of blue and red, while the ET class is shown
+    in red.
+
+                                      TABLE IV                                                                          TABLE V
+        C OMPARISON OF THE N UMBER OF M ODEL PARAMETERS B ETWEEN                      C OMPARISON OF THE I NFERENCE T IME B ETWEEN C OMPETITIVE M ETH -
+           C OMPETITIVE M ETHODS AND THE P ROPOSED M ETHOD FOR                             ODS AND THE P ROPOSED M ETHOD FOR T HREE TARGET TASKS
+                           T HREE TARGET TASKS
+
+
+
+
+                                                                                      representations. In addition, pretraining the backbone network
+                                                                                      using a large corpus MRI dataset contributed toward the
+    network, which hinders the fine-tuning of the backbone                            superior performance of our method.
+    network. To overcome this issue, we duplicated the weights                           2) Brain Age Prediction: Our Medical Transformer was
+    of the pretrained input layer by the number of modalities.                        compared with the competing baseline methods on the
+    In terms of performance evaluation, we calculated a Dice score                    brain age prediction task in Table II. It is noteworthy
+    for each tumor region, i.e., whole tumor (WT), tumor core                         that our proposed method outperformed all the counterparts
+    (TC), and enhancing TC (ET).                                                      by a large margin. In particular, while all the competing
+                                                                                      methods showed inferior performance for this regression task,
+    B. Analysis and Discussion                                                        training from the scratch and Medical Transformer achieved
+       1) Brain Disease Diagnosis: Table II shows comparison                          remarkable performance with the least MAE, enhancing the
+    of the results of our proposed method with those of the                           effectiveness of our multiview approach to make 3-D high-
+    comparative models for AD, MCI, and NC classification in                          level representations from three planes of a volume.
+    terms of mAUC. For the competing methods, we took an                                 3) Brain Tumor Segmentation: As presented in Table II,
+    encoder from the pretrained model and appended a fully                            it can be seen that our Medical Transformer achieved the best
+    connected layer similar to our prediction network. Our Medical                    or comparable performance in the brain tumor segmentation
+    Transformer achieved the best classification performance                          task, specifically comparable performance in the evaluation of
+    compared with the 3-D-based SOTA methods. Compared with                           Dice WT and TC, and the best in the evaluation of Dice ET,
+    training from scratch, in which the model weights were                            which is the most difficult among tumor types.
+    randomly initialized, adopting the transfer learning scheme                          The 3D-SSL methods showed consistently better perfor-
+    demonstrated clear superiority in performance by taking                           mances in Dice WT and Dice TC, but a relatively poor
+    advantage of the universal representations and accordingly                        result in Dice ET. This implies that they effectively learn
+    assigned better initialization weights in fine-tuning the target                  3-D structural representations through 3D SSL proxy tasks,
+    task model. Among the methods that were compared, I3D                             but are inferior at capturing the sophisticated tumor regions.
+    demonstrated a comparable performance using the recurrent                         In contrast, I3D performed the poorest among the comparison
+    layers as a feature extractor, as the classification task                         methods, owing to a large domain gap of transfer learning
+    benefits from a high level of embedding features. MedicalNet                      between the 3-D Kinetics dataset and the medical dataset.
+    also presented a comparable performance by pretraining the                        In addition, MedicalNet showed relatively low performances
+    backbone network using a large-scale medical dataset.                             in all the metrics, despite the largest number of parameters
+       These experimental results validated the efficacy of our mul-                  among the competing methods.
+    tiview approach in extracting 3-D volumetric characteristics                         Our result of obtaining the best performance in the Dice
+    and our SSL proxy task in effectively learning universal                          ET evaluation showed the effectiveness of our method for
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:04 UTC from IEEE Xplore. Restrictions apply.
+    JUN et al.: MEDICAL TRANSFORMER: UNIVERSAL ENCODER FOR 3-D BRAIN MRI ANALYSIS                                                                              17787
+
+
+
+                                                                               TABLE VI
+               P ERFORMANCE C OMPARISON OF S UPERVISED AND T RANSFER L EARNING D EPENDING ON THE M ULTIDIMENSIONAL A PPROACHES ,
+                             E . G ., 2-D, 2.5-D, AND 3-D, ON B RAIN D ISEASE D IAGNOSIS AND B RAIN AGE P REDICTION TASK
+
+
+
+
+                                                                              TABLE VII
+    P ERFORMANCE C OMPARISON B ETWEEN S UPERVISED L EARNING AND T RANSFER L EARNING S CHEME D EPENDING ON A R ATIO OF T RAINING S AMPLES
+        FOR T HREE TARGET TASKS . T HE E NTRIES IN B OLD I NDICATE THE P ERFORMANCE OF THE T RANSFER L EARNING S CHEME U SING A PARTIAL
+                       DATASET T HAT HAS R EACHED T HAT OF THE S UPERVISED L EARNING S CHEME U SING THE E NTIRE DATASET
+
+
+
+
+    capturing more sophisticated tumor regions by generating                          1.8434 times that of I3D of 0.0396 s (Min) and approximately
+    volumetric features from a combination of three plane                             0.5920 times that of NiftyNet of 0.1233 s (Max). These
+    encoding features via our multiview approach. Furthermore,                        experimental results showed that our proposed method is
+    the multiscale approach during fine-tuning contributed toward                     relatively fast in inference time and computationally efficient.
+    the performance improvement by integrating low- and high-                            6) Multidimensional Approaches (2-D/2.5-D/3-D): To rep-
+    level features.                                                                   resent the power of our 2.5-D approach in dealing with
+       Fig. 5 shows comparison of the qualitative results of                          3-D volumetric data, we compared the results of supervised
+    segmentation between the competing methods and ours.                              learning and transfer learning for the proposed 2.5-D approach
+    We observed that the segmentation result of the proposed                          with those of 2-D and 3-D approaches for brain disease
+    method was similar to that of 3D-SSL, and although it is not                      classification and brain age prediction in Table VI. Specifically,
+    possible to accurately capture the border region of the WT, our                   for 2-D and 3-D approaches, we considered: 1) 2-D ResNet;
+    proposed method was better at distinguishing between three                        2) 2-D ResNet + Transformer; 3) 3D ResNet; and
+    tumor types. This result is reasonable as the transfer learning                   4) 3D ResNet + Transformer, with the network architecture
+    framework proposed in this work is generally applicable to a                      parameters such as feature map size and the number of
+    variety of downstream tasks in a parameter-efficient manner.                      layers being set similar to the network of the proposed 2.5-D
+       4) Number of Parameters: To investigate the power of                           approach. Specifically, for 2-D approaches, we performed
+    our parameter-efficient Medical Transformer, we compared                          predictions by averaging slice features from a view and feeding
+    the number of model parameters between our method and                             them into the FC layer, instead of 3-D-form reconstruction.
+    comparable methods for three downstream tasks. As presented                       When pretraining the model for transfer learning results,
+    in Table IV, the proposed method demonstrated superior                            given that masked encoding vector prediction through the
+    performances while having fewer parameters (92.74% fewer                          transformer applied in our method cannot be applied in 2D and
+    for classification, 92.73% fewer for regression, and 97.19%                       3D ResNet, only triplet-loss-based pretraining was performed.
+    fewer for segmentation) compared with the MedicalNet, which                          Our proposed method was shown to have the best results
+    recorded the maximum number of parameters for all the tasks.                      in supervised learning and transfer learning for all the tasks.
+       5) Inference Time: The 2.5-D approach might reasonably                         For example, from the supervised learning results, mAUC
+    be expected to substantially increase the inference time, so we                   was higher by 0.0037 compared with the second-best, 3D
+    compared our inference time with other 3-D-based competitive                      ResNet + Transformer, for classification, and MAE was lower
+    methods for three downstream tasks in Table V. The proposed                       by 0.0414 compared with the second-best, 3D ResNet +
+    method did not record the minimum inference time in all                           Transformer, for regression. In addition, from the transfer
+    the target tasks. However, in classification, it took a time                      learning results, mAUC was higher by 0.0212 compared with
+    of 0.0506 s, approximately 1.5812 times that of 3D-SSL of                         the second-best, 3D ResNet + Transformer, for classification,
+    0.0320 s (Min) and approximately 0.5622 times that of Model                       and MAE was lower by 0.1053 compared with the second-
+    Genesis of 0.0900 s (Max). In regression, it recorded 0.0505 s,                   best, 3D ResNet + Transformer, for regression. In summary,
+    approximately 1.5490 times that of I3D of 0.0326 s (Min) and                      our 2.5-D method showed superior performance than 2-D and
+    approximately 0.5680 times that of Model Genesis of 0.0889 s                      3-D-based baselines while effectively reducing the number of
+    (Max). In segmentation, it recorded 0.0730, approximately                         parameters.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:04 UTC from IEEE Xplore. Restrictions apply.
+    17788                                            IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 12, DECEMBER 2024
+
+
+
+       7) Ablation Studies: First, to investigate the effect of                                                      R EFERENCES
+    transfer learning that performs well with a handful of training                    [1] G. Litjens et al., “A survey on deep learning in medical image analysis,”
+    samples, we simulated experiments with fewer labeled data.                             Med. Image Anal., vol. 42, pp. 60–88, Dec. 2017.
+    Specifically, we fine-tuned the model using a partial dataset,                     [2] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for
+                                                                                           image recognition,” in Proc. IEEE Conf. Comput. Vis. Pattern Recognit.
+    i.e., only 10%, 30%, 50%, and 70% samples of training                                  (CVPR), Jun. 2016, pp. 770–778.
+    dataset for three target tasks. Table VII shows comparison of                      [3] G. Huang, Z. Liu, L. Van Der Maaten, and K. Q. Weinberger, “Densely
+    the results of supervised learning (training from scratch) and                         connected convolutional networks,” in Proc. IEEE Conf. Comput. Vis.
+                                                                                           Pattern Recognit. (CVPR), Jul. 2017, pp. 2261–2269.
+    transfer learning for each task. Transfer learning consistently                    [4] Q. Yu, L. Xie, Y. Wang, Y. Zhou, E. K. Fishman, and A. L. Yuille,
+    showed a significant performance improvement over the                                  “Recurrent saliency transformation network: Incorporating multi-stage
+    supervised learning for three tasks in all the ratio scenarios.                        visual cues for small organ segmentation,” in Proc. IEEE/CVF Conf.
+                                                                                           Comput. Vis. Pattern Recognit., Jun. 2018, pp. 8280–8289.
+    Specifically, for brain disease diagnosis, the transfer learning                   [5] X. Han, “Automatic liver lesion segmentation using a deep convolutional
+    scheme using only approximately 50% training data achieved                             neural network method,” 2017, arXiv:1704.07239.
+    similar performance to the supervised learning scheme using                        [6] D. Ardila et al., “End-to-end lung cancer screening with three-
+                                                                                           dimensional deep learning on low-dose chest computed tomography,”
+    the entire data, thus reducing annotation efforts by nearly                            Nature Med., vol. 25, no. 6, pp. 954–961, Jun. 2019.
+    50%. In addition, using only 30% of training samples,                              [7] J. Carreira and A. Zisserman, “Quo vadis, action recognition? A new
+    the performance for brain age prediction was better than                               model and the kinetics dataset,” in Proc. IEEE Conf. Comput. Vis.
+                                                                                           Pattern Recognit. (CVPR), Jul. 2017, pp. 4724–4733.
+    that of training from scratch using full samples, which
+                                                                                       [8] E. Gibson et al., “NiftyNet: A deep-learning platform for medical
+    suggests that about 70% of the annotation cost associated                              imaging,” Comput. Methods Programs Biomed., vol. 158, pp. 113–122,
+    with the supervised learning scheme could be saved by                                  May 2018.
+    initializing with our Medical Transformer. In terms of brain                       [9] S. Chen, K. Ma, and Y. Zheng, “Med3D: Transfer learning for 3D
+                                                                                           medical image analysis,” 2019, arXiv:1904.00625.
+    tumor segmentation, Medical Transformer achieved similar                          [10] W. Kay et al., “The kinetics human action video dataset,” 2017,
+    performances to training from scratch using nearly 70% on                              arXiv:1705.06950.
+    WT, 40% on TC, and 20% on ET, where the effect of reducing                        [11] H. R. Roth, A. Farag, E. B. Turkbey, L. Lu, J. Liu, and R. M. Summers,
+                                                                                           “Data from pancreas-CT,” Cancer Imag. Arch., 2016. [Online].
+    annotation efforts was particularly remarkable in the evaluation                       Available: https://arxiv.org/abs/1705.06950
+    of ET. Thus, these experimental results suggest that our                          [12] A. Taleb et al., “3D self-supervised methods for medical imaging,” in
+    Medical Transformer can alleviate the lack of annotated 3D                             Proc. Adv. Neural Inf. Process. Syst., vol. 33, 2020, pp. 18158–18172.
+                                                                                      [13] C. Sudlow et al., “UK Biobank: An open access resource for identifying
+    MRI samples through an annotation-efficient transfer learning                          the causes of a wide range of complex diseases of middle and old age,”
+    scheme for a variety of downstream tasks.                                              PLoS Med., vol. 12, no. 3, Mar. 2015, Art. no. e1001779.
+                                                                                      [14] Z. Zhou, V. Sodha, J. Pang, M. B. Gotway, and J. Liang, “Models
+                           V. C ONCLUSION                                                  Genesis,” Med. Image Anal., vol. 67, Jan. 2021, Art. no. 101840.
+       In this work, we proposed a novel transfer learning                            [15] N. Tajbakhsh et al., “Surrogate supervision for medical image analysis:
+    framework, called Medical Transformer, which effectively                               Effective deep learning from limited quantities of labeled data,” in Proc.
+                                                                                           IEEE 16th Int. Symp. Biomed. Imag. (ISBI), Apr. 2019, pp. 1251–1255.
+    models 3-D volumetric images in the form of a sequence                            [16] X. Zhuang, Y. Li, Y. Hu, K. Ma, Y. Yang, and Y. Zheng, “Self-supervised
+    of 2-D image slices. To learn high-level volumetric rep-                               feature learning for 3D medical images by playing a Rubik’s cube,” in
+    resentations, we took a multiview approach that leveraged                              Proc. Int. Conf. Med. Image Comput. Comput.-Assist. Intervent. Cham,
+                                                                                           Switzerland: Springer, Oct. 2019, pp. 420–428.
+    plenty of information from three planes of a volume image,
+                                                                                      [17] J. Zhu, Y. Li, Y. Hu, K. Ma, S. K. Zhou, and Y. Zheng, “Rubik’s Cube+:
+    while providing parameter-efficient training. As a result of                           A self-supervised feature learning framework for 3D medical image
+    evaluating our pretrained model on brain disease diagnosis,                            analysis,” Med. Image Anal., vol. 64, Aug. 2020, Art. no. 101746.
+    brain age prediction, and brain tumor segmentation tasks, our                     [18] H. R. Roth et al., “A new 2.5D representation for Lymph Node detection
+                                                                                           using random sets of deep convolutional neural network observations,” in
+    Medical Transformer outperformed the SOTA transfer learning                            Proc. Int. Conf. Med. Image Comput. Comput.-Assist. Intervent. Cham,
+    methods, efficiently reducing the number of parameters by                              Switzerland: Springer, 2014, pp. 520–527.
+    up to 92% for classification and regression tasks and 97%                         [19] A. Prasoon, K. Petersen, C. Igel, F. Lauze, E. Dam, and M. Nielsen,
+                                                                                           “Deep feature learning for knee cartilage segmentation using a
+    for segmentation. Finally, it is noteworthy that our proposed                          triplanar convolutional neural network,” in Proc. Int. Conf. Med. Image
+    framework can be applied to other types of 3-D medical                                 Comput. Comput.-Assist. Intervent. Cham, Switzerland: Springer, 2013,
+    images, e.g., CT, X-ray, and positron emission tomography                              pp. 246–253.
+                                                                                      [20] A. Dosovitskiy et al., “An image is worth 16 × 16 words: Transformers
+    (PET), as well as other clinical or scientific tasks.                                  for image recognition at scale,” 2020, arXiv:2010.11929.
+                      ACKNOWLEDGMENT                                                  [21] A. Vaswani et al., “Attention is all you need,” in Proc. Adv. Neural Inf.
+                                                                                           Process. Syst., vol. 30, 2017, pp. 1–11.
+       This work was done at the Department of Brain and                              [22] J. Chen et al., “TransUNet: Transformers make strong encoders for
+    Cognitive Engineering, Korea University, Seoul, Republic of                            medical image segmentation,” 2021, arXiv:2102.04306.
+    Korea.                                                                            [23] A. Hatamizadeh, V. Nath, Y. Tang, D. Yang, H. R. Roth, and D. Xu,
+       Data used in preparation of this article were obtained from                         “Swin UNETR: Swin transformers for semantic segmentation of brain
+                                                                                           tumors in MRI images,” in Proc. 7th Int. Workshop, Brainlesion, Glioma,
+    the Alzheimer’s Disease Neuroimaging Initiative (ADNI)                                 Multiple Sclerosis, Stroke Traumatic Brain Injuries. Cham, Switzerland:
+    database (http://www.loni.ucla.edu/ADNI). As such, the                                 Springer, Jul. 2022, pp. 272–284.
+    investigators within the ADNI contributed to the design and                       [24] W. Wang, C. Chen, M. Ding, H. Yu, S. Zha, and J. Li, “TransBTS:
+                                                                                           Multimodal brain tumor segmentation using transformer,” in Proc.
+    implementation of ADNI and/or provided data but did not                                Int. Conf. Med. Image Comput. Comput.-Assist. Intervent. Cham,
+    participate in analysis or writing of this report. A complete                          Switzerland: Springer, Sep. 2021, pp. 109–119.
+    listing of ADNI investigators can be found at http://adni.loni.u                  [25] X. Zhao, Y. Wu, G. Song, Z. Li, Y. Zhang, and Y. Fan, “3D
+                                                                                           brain tumor segmentation through integrating multiple 2D FCNNs,” in
+    cla.edu/wpcontent/uploads/how_to_apply/ADNI_Authorship_                                Proc. Int. MICCAI Brainlesion Workshop. Cham, Switzerland: Springer,
+    List.pdf.                                                                              Feb. 2018, pp. 191–203.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:04 UTC from IEEE Xplore. Restrictions apply.
+    JUN et al.: MEDICAL TRANSFORMER: UNIVERSAL ENCODER FOR 3-D BRAIN MRI ANALYSIS                                                                              17789
+
+
+
+    [26] K. Pawar, Z. Chen, N. J. Shah, and G. F. Egan, “An ensemble of               [48] E. Lee, J.-S. Choi, M. Kim, and H.-I. Suk, “Toward an interpretable
+         2D convolutional neural network for 3D brain tumor segmentation,” in              Alzheimer’s disease diagnostic model with regional abnormality
+         Proc. Int. MICCAI Brainlesion Workshop. Cham, Switzerland: Springer,              representation via deep learning,” NeuroImage, vol. 202, Nov. 2019,
+         May 2020, pp. 359–367.                                                            Art. no. 116113.
+    [27] M. Pendse, V. Thangarasa, V. Chiley, R. Holmdahl, J. Hestness, and           [49] D. J. Hand and R. J. Till, “A simple generalisation of the area under the
+         D. DeCoste, “Memory efficient 3D U-Net with reversible mobile                     ROC curve for multiple class classification problems,” Machine Learn.,
+         inverted bottlenecks for brain tumor segmentation,” in Proc. Int. MICCAI          vol. 45, no. 2, pp. 171–186, Nov. 2001.
+         Brainlesion Workshop. Cham, Switzerland: Springer, Mar. 2021,                [50] H. Peng, W. Gong, C. F. Beckmann, A. Vedaldi, and S. M. Smith,
+         pp. 388–397.                                                                      “Accurate brain age prediction with lightweight deep neural networks,”
+    [28] Y. Tang et al., “Self-supervised pre-training of Swin transformers for            Med. Image Anal., vol. 68, Feb. 2021, Art. no. 101871.
+         3D medical image analysis,” 2021, arXiv:2111.14791.
+    [29] H. R. Roth et al., “DeepOrgan: Multi-level deep convolutional networks
+         for automated pancreas segmentation,” in Proc. Int. Conf. Med.                                         Eunji Jun received the Ph.D. degree from the
+         Image Comput. Comput.-Assist. Intervent. Cham, Switzerland: Springer,                                  Department of Brain Cognitive Engineering, Korea
+         Nov. 2015, pp. 556–564.                                                                                University, Seoul, South Korea, in 2021.
+                                                                                                                  She is currently a Senior Research Engineer with
+    [30] H.-C. Shin et al., “Deep convolutional neural networks for computer-
+                                                                                                                the Institute of Advanced Technology Development,
+         aided detection: CNN architectures, dataset characteristics and transfer
+                                                                                                                Hyundai Motor Group, Hwaseong-si, Gyeonggi-
+         learning,” IEEE Trans. Med. Imag., vol. 35, no. 5, pp. 1285–1298,
+                                                                                                                do, South Korea. Her current research interests
+         May 2016.
+                                                                                                                include time series forecasting, anomaly detection,
+    [31] N. Tajbakhsh et al., “Convolutional neural networks for medical image                                  and medical image analysis.
+         analysis: Full training or fine tuning?” IEEE Trans. Med. Imag., vol. 35,
+         no. 5, pp. 1299–1312, May 2016.
+    [32] A. Esteva et al., “Dermatologist-level classification of skin cancer
+         with deep neural networks,” Nature, vol. 542, no. 7639, pp. 115–118,                                   Seungwoo Jeong (Student Member, IEEE) is
+         Feb. 2017.                                                                                             currently pursuing the Ph.D. degree with the
+    [33] Y. Ding et al., “A deep learning model to predict a diagnosis of                                       Department of Artificial Intelligence, Korea
+         Alzheimer disease by using 18F-FDG PET of the brain,” Radiology,                                       University, Seoul, South Korea.
+         vol. 290, no. 2, pp. 456–464, Feb. 2019.                                                                 His     current    research   interests include
+    [34] N. Tajbakhsh, J. Y. Shin, M. B. Gotway, and J. Liang, “Computer-                                       brain–computer interface, biomedical machine
+         aided detection and visualization of pulmonary embolism using a novel,                                 learning, medical image analysis, and time series
+         compact, and discriminative image representation,” Med. Image Anal.,                                   representation learning.
+         vol. 58, Dec. 2019, Art. no. 101541.
+    [35] R. Zhang, P. Isola, and A. A. Efros, “Colorful image colorization,” in
+         Proc. Eur. Conf. Comput. Vis. Cham, Switzerland: Springer, Sep. 2016,
+         pp. 649–666.
+    [36] T. Ross et al., “Exploiting the potential of unlabeled endoscopic video                                Da-Woon Heo received the M.S. degree from the
+         data with self-supervised learning,” Int. J. Comput. Assist. Radiol.                                   Department of Brain and Cognitive Engineering,
+         Surgery, vol. 13, no. 6, pp. 925–933, Jun. 2018.                                                       Korea University, Seoul, South Korea, in 2018,
+                                                                                                                where she is currently pursuing the Ph.D. degree
+    [37] L. Chen, P. Bentley, K. Mori, K. Misawa, M. Fujiwara, and
+                                                                                                                with the Department of Artificial Intelligence.
+         D. Rueckert, “Self-supervised learning for medical image analysis using
+                                                                                                                  Her    current    research    interests     include
+         image context restoration,” Med. Image Anal., vol. 58, Dec. 2019,
+                                                                                                                machine/deep     learning,   medical      AI,     and
+         Art. no. 101539.
+                                                                                                                neuroscience.
+    [38] T. Chen, S. Kornblith, M. Norouzi, and G. Hinton, “A simple framework
+         for contrastive learning of visual representations,” in Proc. 37th Int.
+         Conf. Mach. Learn., 2020, pp. 1597–1607.
+    [39] A. Dosovitskiy, J. T. Springenberg, M. Riedmiller, and T. Brox,
+         “Discriminative unsupervised feature learning with convolutional neural                                Heung-Il Suk (Senior Member, IEEE) received the
+         networks,” in Proc. Adv. Neural Inf. Process. Syst. Red Hook, NY, USA:                                 B.S. and M.S. degrees in computer engineering from
+         Curran, 2014, pp. 1–9.                                                                                 Pukyong National University, Busan, South Korea,
+    [40] G. Chechik, V. Sharma, U. Shalit, and S. Bengio, “Large scale online                                   in 2004 and 2007, respectively, and the Ph.D. degree
+         learning of image similarity through ranking,” J. Mach. Learn. Res.,                                   in computer science and engineering from Korea
+         vol. 11, no. 3, pp. 1109–1135, Mar. 2010.                                                              University, Seoul, South Korea, in 2012.
+    [41] X. Wang and A. Gupta, “Unsupervised learning of visual representations                                   From 2012 to 2014, he was a Post-Doctoral
+         using videos,” in Proc. IEEE Int. Conf. Comput. Vis. (ICCV), Dec. 2015,                                Research Associate with the University of North
+         pp. 2794–2802.                                                                                         Carolina at Chapel Hill, Chapel Hill, NC, USA.
+    [42] F. Schroff, D. Kalenichenko, and J. Philbin, “FaceNet: A uni-                                          He is currently an Associate Professor with
+         fied embedding for face recognition and clustering,” in Proc.                                          the Department of Artificial Intelligence and the
+         IEEE Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2015,                 Department of Brain and Cognitive Engineering, Korea University. His
+         pp. 815–823.                                                                 research interests include machine/deep learning, explainable AI, biomedical
+                                                                                      data analysis, and brain–computer interface.
+    [43] J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova, “BERT: Pre-training
+                                                                                        Dr. Suk was awarded the Kakao Faculty Fellowship from Kakao
+         of deep bidirectional transformers for language understanding,” 2018,
+                                                                                      and the Young Researcher Award from the Korean Society for Human
+         arXiv:1810.04805.
+                                                                                      Brain Mapping (KHBM) in 2018 and 2019, respectively. He serves as
+    [44] S. M. Smith, “Fast robust automated brain extraction,” Human Brain           an Editorial Board Member for Electronics, Frontiers in Neuroscience,
+         Mapping, vol. 17, no. 3, pp. 143–155, Nov. 2002.                             Frontiers in Radiology, International Journal of Imaging Systems and
+    [45] M. Jenkinson and S. Smith, “A global optimisation method for robust          Technology (IJIST), and Clinical and Molecular Hepatology, and a Program
+         affine registration of brain images,” Med. Image Anal., vol. 5, no. 2,       Committee Member or a reviewer for international conferences, including
+         pp. 143–156, Jun. 2001.                                                      Neural Information Processing Systems (NeurIPS), International Conference
+    [46] M. Jenkinson, P. Bannister, M. Brady, and S. Smith, “Improved                on Machine Learning (ICML), International Conference on Learning
+         optimization for the robust and accurate linear registration and motion      Representations (ICLR), Association for the Advancement of Artificial
+         correction of brain images,” NeuroImage, vol. 17, no. 2, pp. 825–841,        Intelligence (AAAI), International Joint Conferences on Artificial Intelligence
+         Oct. 2002.                                                                   (IJCAI), Computer Vision and Pattern Recognition (CVPR), Medical Image
+    [47] D. P. Kingma and J. L. Ba, “Adam: A method for stochas-                      Computing and Computer Assisted Intervention (MICCAI), International
+         tic optimization,” in Proc. Int. Conf. Learn. Represent., 2015,              Conference on Image Processing and Machine Intelligence (IPMI), and
+         pp. 1–15.                                                                    Medical Imaging with Deep Learning (MIDL).
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:04 UTC from IEEE Xplore. Restrictions apply.
+

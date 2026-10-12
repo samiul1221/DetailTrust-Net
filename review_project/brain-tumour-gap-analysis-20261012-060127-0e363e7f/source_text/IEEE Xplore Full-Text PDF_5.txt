@@ -1,0 +1,933 @@
+    19996                                            IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 36, NO. 12, DECEMBER 2025
+
+
+
+
+              MBUNeXt: Multibranch Encoder Aggregation
+              Network Based on Layer-Fusion Strategy for
+                Multimodal Brain Tumor Segmentation
+                   Qinghao Liu , Yuehao Zhu, Min Liu , Senior Member, IEEE, Zhao Yao , Yaonan Wang ,
+                                            and Erik Meijering , Fellow, IEEE
+
+       Abstract—Multimodal brain tumor segmentation (BraTS),                                                     I. I NTRODUCTION
+    integrated with surgical robots and navigation systems, enables
+    accurate surgical interventions while maximizing the preservation
+    of surrounding healthy brain tissue. However, multimodal brain
+    scans suffer from large interclass differences in brain tumor
+                                                                                      B     RAIN tumors can cause severe neurological defects and
+                                                                                            even pose a life-threatening risk. In modern biomedi-
+                                                                                      cal image processing, segmentation [1], [2], [3] techniques
+    subregions and information redundancy, leading to inadequate
+    fusion of multimodal information and significantly affecting the
+                                                                                      are widely utilized for the diagnosis, staging, and follow-
+    accuracy of BraTS. To address the above problems, we propose                      up of brain tumors. Magnetic resonance imaging (MRI) [4]
+    a multibranch encoder aggregation (MEA) network based on a                        is a widely adopted imaging modality in the automated
+    layer-fusion strategy called multibranch UNeXt (MBUNeXt). The                     diagnosis of brain tumor diseases due to its ability to pro-
+    network comprises three well-designed modules: the multimodal                     vide high-contrast images of soft tissues. With different
+    feature attention (MFA) module, the MEA module, and the                           parameter acquisitions, a range of MRI sequences with dif-
+    large-kernel convolution skip (LCS)-connection module. These                      ferent modalities can be obtained [5]. For the diagnosis of
+    modules work together to achieve precise segmentation of brain                    brain tumor diseases [6], MRI modalities commonly utilized
+    tumors. Specifically, the MFA module preserves the intermodality
+    similarity structure through attention mechanisms and Gaussian                    include T1-weighted (T1), post-contrast T1-weighted (T1Gd),
+    modulation functions, thereby filtering redundant information.                    T2-weighted (T2), and T2 fluid-attenuated inversion recovery
+    Then, the MEA module exploits the correlations among multiple                     (FLAIR). Among them, T1 can reveal various tomographic
+    modalities to effectively integrate multimodal hybrid feature                     anatomical structures; T1Gd can visualize areas with enhanced
+    representation and optimize multimodal information fusion.                        blood supply after the injection of a contrast agent, providing
+    In addition, the LCS module constructs multiple groups of                         further insight into the tumor’s internal characteristics; T2 is
+    depthwise separable convolutions with large kernel, which can                     related to the water content in tissues and organs, and can
+    guide the network to attend to features at different scales,
+                                                                                      precisely locate the area of the lesion; FLAIR can present the
+    thereby addressing the issue of significant interclass differences
+    in brain tumor subregions. The experimental results on the                        surrounding conditions of the tumor site, showing the edema
+    large-scale public datasets, BraTS2019 and BraTS2021, which                       area. Different imaging modalities can present complementary
+    consist of approximately 5000 3-D brain scans, demonstrate that                   information regarding the lesion area and surrounding tissues.
+    our proposed method has achieved SOTA performance, with                           Therefore, the use of multimodal medical images can make
+    average Dice scores of 85.84% and 91.11%, respectively. It also                   up for the shortcomings of single-modality images, effectively
+    performs well on the BraTS-Africa2024 dataset with low imaging                    helping doctors to accurately identify the surgical area and
+    quality, confirming its robustness. The code is available at https://             lesion structure. The integration of medical image analysis
+    github.com/liuqinghao2018/MBUNeXt
+                                                                                      techniques with the application of surgical robot systems in
+       Index Terms—Brain tumor segmentation (BraTS), layer-fusion                     modern medicine enables more precise and refined surgical
+    strategy, magnetic resonance imaging (MRI), multimodal fusion.                    interventions, maximizing the preservation of surrounding
+                                                                                      normal brain tissue and enhancing the safety and efficacy of
+       Received 19 December 2023; revised 9 June 2024, 31 January 2025,               the surgery [7], [8], [9].
+    and 19 May 2025; accepted 20 July 2025. Date of publication 4 August                 However, the vast amount of medical data associated with
+    2025; date of current version 3 December 2025. This work was supported in
+    part by the National Key Research and Development Program of China under          multimodal MRI scans has greatly increased the workload of
+    Grant 2022YFE0134700, in part by the National Natural Science Foundation          disease diagnosis. Doctors need to invest additional time in
+    of China under Grant U22B2050 and Grant 62425305, in part by the Science          manually assessing an extensive volume of medical images,
+    and Technology Program of Changsha under Grant kq2102009, and in part             which can result in diagnostic errors. Hence, there is an urgent
+    by Hunan Provincial Innovation Foundation for Postgraduates under Grant
+    CX20230438. (Qinghao Liu and Yuehao Zhu contributed equally to this work.)        need to develop a multimodal MRI segmentation method
+    (Corresponding author: Min Liu.)                                                  that can effectively leverage the complementary information
+       Qinghao Liu, Yuehao Zhu, Min Liu, Zhao Yao, and Yaonan Wang are with           present in multimodal images and extract regions of interest
+    the School of Artificial Intelligence and Robotics, the National Engineering
+    Research Center of Robot Visual Perception and Control Technology, and the
+                                                                                      (lesion tissues and organs) from these images.
+    International Scientific and Technological Innovation Cooperation Base for           In recent years, significant progress has been made in
+    Biomedical Image Processing, Hunan University, Changsha, Hunan 410082,            the field of deep learning, with various deep neural net-
+    China (e-mail: liu min@hnu.edu.cn).                                               works demonstrating versatility and efficiency in medical
+       Erik Meijering is with the School of Computer Science and Engineering,
+    University of New South Wales, Sydney, NSW 2052, Australia (e-mail:
+                                                                                      image segmentation. These networks have outperformed tra-
+    meijering@imagescience.org).                                                      ditional algorithms, yielding notable results. U-Net [10],
+       Digital Object Identifier 10.1109/TNNLS.2025.3593297                           a symmetric encoder–decoder network structure, has been
+                  2162-237X © 2025 IEEE. All rights reserved, including rights for text and data mining, and training of artificial intelligence and
+                            similar technologies. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                                          See https://www.ieee.org/publications/rights/index.html for more information.
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    LIU et al.: MBUNeXt: MULTIBRANCH ENCODER AGGREGATION NETWORK BASED ON LAYER-FUSION STRATEGY                                                                19997
+
+
+
+    particularly influential in medical image segmentation. Its                         Integrating these modules into the network architecture,
+    encoder–decoder architecture preserves image details, con-                        we propose a new architecture called multibranch UNeXt
+    tributing to improved segmentation accuracy, and has become                       (MBUNeXt).
+    a leading network in the field. Khan et al. [11] integrated                         The experimental results of MBUNeXt on several highly
+    deep saliency maps and an improved dragonfly algorithm,                           challenging multimodal BraTS datasets, particularly for
+    enhancing the accuracy of brain tumor detection and classifi-                     BraTS2019 and BraTS2021, provide compelling evidence of
+    cation through feature enhancement, selection, and extreme                        the effectiveness of our model, which surpasses other existing
+    learning machine (ELM) classification. Rajinikanth et al.                         BraTS methods and demonstrates its outstanding performance
+    [12] employed VGG-UNet-assisted segmentation and sup-                             in this field. To further validate its robustness, we have
+    port vector machine (SVM) classification to enhance the                           conducted experiments on the BraTS-Africa2024 dataset as
+    detection and classification accuracy of brain tumors in                          well, achieving good segmentation results and proving the
+    MRI slices through feature extraction, selection, and fusion.                     method’s strong robustness.
+    Maqsood et al. [13] used a deep neural network and multiclass                       In summary, the contributions of this work are as follows.
+    SVM (M-SVM), enhancing the precision of brain tumor                                 1) A U-shaped network named MBUNeXt is proposed
+    detection and classification through image contrast enhance-                             for multimodal BraTS. The network is designed to
+    ment, customized convolutional neural networks (CNNs)                                    emphasize and aggregate the potential shared features of
+    segmentation, transfer learning-based feature extraction, and                            multimodal images and filter out redundant information,
+    entropy-based feature selection. Badjie and Ülker [14], based                           while achieving a larger receptive field at a global
+    on the deep transfer learning architecture of AlexNet, improve                           scale, enabling the network to capture multiscale feature
+    the accuracy of brain tumor detection and classification in                              information, emphasizing target areas, and accurately
+    MR images through feature enhancement, selection, and an                                 locating lesions.
+    optimized network structure. In addition, TransBTS [15]                             2) The MFA module is proposed to emphasize potential
+    employs 3-D CNNs to extract spatial features and uses a                                  shared features and filter out redundant information,
+    Transformer for global feature modeling, ultimately achieving                            which integrates multimodal feature maps in the channel
+    image segmentation through a convolutional decoder. This                                 dimension and constructs Gaussian modulation func-
+    method differs from traditional approaches that rely only on                             tions to adaptively adjust the activation response of
+    CNNs, as it combines the strengths of local feature extraction                           the segmentation target. The proposed MEA module
+    with global information. It demonstrates excellent performance                           fully aggregates multimodal information and learn com-
+    in tasks such as multimodal brain tumor segmentation (BraTS)                             plementary features between multiple modalities by
+    and classification.                                                                      modeling nonlinear relationships within and between
+       Taking into account the characteristics of multimodal MRI                             modalities. The LCS module addresses the issue of sig-
+    scans, and the advantages and disadvantages of existing meth-                            nificant interclass scale differences between brain tumor
+    ods, we design a multibranch encoder aggregation (MEA)                                   subregions. It achieves this by employing multiple sets
+    network based on a layer-fusion strategy to achieve accurate                             of depthwise separable convolutions with a large kernel,
+    segmentation of brain tumor. Specifically, three well-designed                           allowing for the extraction of lesion feature information
+    modules are introduced into the U-shaped network to solve                                at different scales.
+    practical problems in multimodal BraTS, such as inadequate                          3) Extensive experiments were conducted on two large-
+    multimodal information fusion, information redundancy, and                               scale multimodal MRI BraTS tasks (BraTS2019 and
+    large interclass differences of brain tumor subregions.                                  BraTS2021), which included approximately 5000 3-D
+       To effectively integrate the multimodal image informa-                                brain scans. To further validate the robustness of the
+    tion obtained from the multibranch encoder, we propose a                                 method, experiments were also carried out on the BraTS-
+    multimodal feature attention (MFA) module, which utilizes                                Africa2024 dataset. The results demonstrate that the
+    an attention mechanism to guide the fusion process and                                   proposed method achieved superior outcomes compared
+    assist the multibranch encoder to extract multimodal infor-                              to the current SOTA approaches, even with fewer param-
+    mation. Importantly, by embedding Gaussian functions in                                  eters, proving its robustness and broad applicability.
+    the MFA, the module cannot only emphasize mutual fea-
+    tures of multimodal images, but also filter out subrelated                                                  II. R ELATED W ORK
+    information.
+                                                                                      A. Medical Image Segmentation Methods
+       To aggregate the unique features of different modal images,
+    an MEA module is introduced, which connects the multibranch                          Utilizing the strong feature extraction capability of CNNs,
+    encoder and decoder. The module converts the multimodal                           the fully convolutional network (FCN) [18] employs CNNs
+    features extracted from the multibranch encoder into tokens                       for end-to-end semantic segmentation. U-Net [10] has been
+    and inputs them into the Transformer for global multimodal                        widely used for a variety of medical image segmentation
+    information modeling.                                                             tasks and has inspired a great deal of research to adapt to
+       To guide the network to focus on the target area, effectively                  specific segmentation needs or improve performance. Subse-
+    identify lesions of varying sizes, and address the issue of size                  quently, many networks were designed that use this U-shaped
+    variation, a large-kernel convolution skip (LCS)-connection                       architecture as the backbone, such as Res-UNet [19], UNet++
+    module is designed. In the LCS module, multiple sets of depth-                    [20], and KiU-Net [21], which further advanced the progress
+    wise separable convolutions with large kernel are constructed                     of medical image segmentation. nnU-Net [22] demonstrated
+    to achieve a larger receptive field and capture multiscale                        the effectiveness of a generalized U-Net architecture with
+    context information [16], [17].                                                   minimal modifications in achieving remarkable results across
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    19998                                            IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 36, NO. 12, DECEMBER 2025
+
+
+
+    various vision tasks, adapting and processing diverse datasets                    after fusion in the input space, decomposed the BraTS task into
+    automatically. The extending nn-UNet [23] framework by                            three different but related subtasks, and gradually trained them.
+    incorporating group normalization and axial attention mecha-                      This method achieved the best performance on the BraTS2015
+    nisms, achieving precise BraTS through adaptive architecture                      and BraTS2017 datasets. Most of these methods focus on
+    optimization in the BraTS 2021 challenge and securing first                       subsequent complex segmentation network architecture design,
+    place in the competition. FANet [2] leverages feedback atten-                     without considering the relationships between different modal-
+    tion to iteratively optimize prediction masks and incorporates a                  ities, and without analyzing how to fuse different feature
+    run-length encoding strategy. Experimental results on multiple                    information to improve segmentation performance.
+    public datasets demonstrate its superior performance compared                        In the layer-level fusion strategy, these methods utilize two
+    to existing methods. However, CNN-based network models                            or more modal images as a single input to train segmentation
+    often face challenges in integrating global information and                       networks. Subsequently, the learned feature representations
+    handling multiscale features.                                                     from these inputs are fused across the layers of the network,
+       Recent Transformer-based models excel in computer vision                       and the fused results are then fed back to the decision layer to
+    by modeling long-range dependencies. In medical image                             obtain the final segmentation output. Dolz et al. [35] proposed
+    segmentation, U-shaped architectures integrated with Trans-                       a 3-D fully CNN based on DenseNets, which extended dense
+    formers [24] achieve SOTA performance. For example,                               connections to accommodate multimodal segmentation. Each
+    UNETR [25] designed a U-shaped network that combines a                            imaging modality has a pathway containing layers with dense
+    Transformer and CNN. It utilizes ViT [26] as an encoding                          connections, enabling the network to learn more complex
+    module to extract contextual information and employs CNN                          feature representations. It demonstrated SOTA performance in
+    to capture local information, leading to the final segmentation                   multimodal brain tissue segmentation challenges. M 2 FTrans
+    results. Swin UNETR [27], on the other hand, uses Swin                            [36] framework integrates a modality-masked fusion Trans-
+    Transformer [28] as an encoder to compute self-attention                          former with learnable tokens and masked self-attention
+    in a shifted window and also enables further processing of                        mechanisms, optimizing multimodal feature fusion through
+    the extracted multiscale features by patch merging. Swin                          spatial-weighted attention and channel-wise fusion Transform-
+    UNETR has demonstrated exceptional performance in a wide                          ers. It achieves significant performance improvements over
+    range of medical image segmentation tasks. DeepCRC-SL [1]                         existing methods on the BraTS dataset, particularly excelling
+    constructs a 1-D colorectal coordinate system to transform                        in critical scenarios where dominant modalities are absent.
+    labels into coordinate maps. It enhances the segmentation con-                    AAHN [37] proposes an asymmetric dual-stream encoder with
+    tinuity through auxiliary regression tasks, differentiates tissues                Transformer-CNN branches, employs the Transformer-CNN
+    using self-attention layers, and adopts a coordinate-driven self-                 feature alignment and fusion (T-CFAF) module and cross-
+    learning strategy to integrate unlabeled data for performance                     modality heterogeneous graph fusion (CMHGF) module for
+    improvement. It performs remarkably in colorectal cancer                          adaptive feature fusion, and achieves superior performance
+    and colorectum segmentation. HResFormer [3] combines 2-D                          on six medical image segmentation datasets. PDMINet [38]
+    and 3-D Transformers, utilizes the hybrid local–global fusion                     introduces a prototype-driven framework with multimodal
+    module (HLGM) to integrate information, and adopts the                            information interaction, prototype-guided fusion, and multi-
+    residual learning of the hybrid model. It outperforms existing                    expert integration to address feature aliasing in BraTS. It
+    methods in multiple medical image segmentation benchmark                          achieves superior performance on BraTS datasets by enhanc-
+    tests. However, these methods [15], [29], [30], [31] incorporate                  ing subregion-specific features and suppressing irrelevant
+    self-attention mechanisms into the encoding process, which                        information. However, the large number of dense connections
+    demands larger datasets to effectively learn input sequence                       within each pathway introduces a significant number of param-
+    relationships for improved output prediction.                                     eters, making the network difficult to train. Moreover, while
+                                                                                      multimodal medical images provide information at different
+                                                                                      levels, they also introduce redundant data and substantial
+    B. Multimodal Fusion Methods                                                      noise, which may degrade network performance when using
+       The purpose of multimodal fusion is to utilize the infor-                      overly simplistic dense connections.
+    mation from various modalities of medical images to assist                           Decision-level fusion focuses more on fusion issues because
+    in data representation, enhance the discriminative capability                     each modality is treated as an input to a separate network.
+    of networks, and thereby improve the accuracy of multimodal                       These networks [39], [40] can learn the complex and com-
+    medical image segmentation. Based on deep learning, fusion                        plementary feature information of each modality, and finally,
+    strategies [32] can be categorized into three types: input-level                  fusion is performed at the output layer of the network to
+    fusion, layer-level fusion, and decision-level fusion.                            obtain the segmentation results. Nie et al. [41] proposed a
+       In the input-level fusion strategy, these methods fuse mul-                    novel multi-FCNs network architecture dedicated to infant
+    timodal images channel by channel into multichannel inputs,                       brain tissue segmentation, employing a multimodal network
+    learn the feature representation after fusion, and then train                     training and high-level feature fusion strategy to achieve more
+    the segmentation network. Three-dimensional ShiftBTS [33]                         accurate segmentation. In general, compared to input-level
+    extends ShiftViT to 3-D multimodal medical images, introduc-                      fusion and layer-level fusion, if the fusion method is effective
+    ing a 3-D shift operation, enhanced feature extractor (EFE),                      enough, decision-level fusion can achieve better segmentation
+    and cascaded attention module. It achieves superior perfor-                       performance. However, decision-level fusion requires multiple
+    mance in complex BraTS while maintaining computational                            network architectures to individually extract information from
+    efficiency. Zhou et al. [34] proposed a multitask segmentation                    each modality, leading to an exponential parameter increase.
+    network on the BraTS dataset, which fused multimodal MRI                          This demand for more memory and computational resources
+    scans channel by channel, learned the feature representation                      limits its practical application. Hence, adopting an appropriate
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    LIU et al.: MBUNeXt: MULTIBRANCH ENCODER AGGREGATION NETWORK BASED ON LAYER-FUSION STRATEGY                                                                19999
+
+
+
+
+    Fig. 1. Framework of the proposed MBUNeXt for BraTS. Specifically, MBUNeXt is mainly composed of four parts: the back-bone structure of MBUNeXt,
+    the MFA module, the MEA module, and the LCS module.
+
+
+    fusion strategy is crucial as it not only fully exploits the                      and PReLU activation) followed by downsampling via a
+    complementary advantages of multimodal medical images but                         2 × 2 × 2 kernel with stride 2 to halve the feature resolu-
+    also effectively eliminates redundant information and noise                       tion, avoiding pooling. Residual connections are introduced to
+    interference, significantly enhancing the effectiveness and                       mitigate gradient dissipation during backpropagation. Given
+    value of medical image fusion.                                                    multimodal MRI inputs x j ∈ R1×H×W×D , the network pro-
+                                                                                      gressively encodes them into deep features mij . The output
+                                  III. M ETHOD                                        of MFA is multiplied by the original feature mij and then
+    A. Overview                                                                       element-wise added to mij , generating the enhanced feature
+       MBUNeXt is a novel U-shaped network that incorporates                          maij and forming a residual-like mechanism. The relationships
+    multiple encoding branches and one decoding branch. The                           are mathematically defined as
+    overall architecture of the MBUNeXt network is illustrated
+                                                                                                             En1  x j ,  i = 1
+                                                                                                           (          
+    in Fig. 1. Specifically, MBUNeXt consists of four main                                              j
+                                                                                                      mi =              j                        (1)
+    components: the multibranch encoder, the MFA module, the                                                 Eni mai−1      , i = 2, 3, 4
+    MEA module, and the LCS module. This section provides an                                                               
+    overview of the general structure of MBUNeXt and further                                        maij = mij + MFA mij × mij                   (2)
+    elaborates on significant implementation details of the model,                                    Mi = concat m1i , m2i , m3i , m4i
+                                                                                                                                        
+                                                                                                                                                 (3)
+    such as how the MFA module effectively emphasizes potential
+                                                                                                    MAi = concat mai , mai , mai , mai
+                                                                                                                          1   2      3    4
+                                                                                                                                            
+    shared features, how the MEA module fully aggregates multi-                                                                                  (4)
+    modal complementary information, and how the LCS module
+                                                                                      where mij , maij ∈ Rk×(H/2 )×(W/2 )×(D/2 ) . MFA denotes
+                                                                                                                             i       i       i
+
+    guides the network to focus on feature information at different
+                                                                                      the multimodal feature attention module, Mi represents
+    scales.
+                                                                                      the multimodal features, MAi denotes the enhanced mul-
+                                                                                      timodal features processed by MFA, and Mi , MAi ∈
+    B. Multibranch Encoder                                                                    i      i      i
+                                                                                      R4k×(H/2 )×(W/2 )×(D/2 ) . Here, k indicates the number of feature
+       Unlike most variants of U-Net, the MBUNeXt network                             channels.
+    employs a layer-fusion strategy to divide the encoding path
+    into multiple branches, with each branch processing a single
+    modality MRI input x j ( j ∈ {1, 2, 3, 4}) through an identical                   C. Multimodal Feature Attention
+    network structure. Each encoder branch consists of four stages                       The multibranch encoder consists of mutually independent
+    i ∈ {1, 2, 3, 4}, where each stage applies a convolutional oper-                  encoding paths that extract unique sensitive features and a sub-
+    ation Eni (comprising a convolutional layer, InstanceNorm,                        stantial amount of information from each modality. However,
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    20000                                            IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 36, NO. 12, DECEMBER 2025
+
+
+
+
+    Fig. 2. MFA module uses channel attention and Gaussian distribution function
+    to emphasize potential shared features and filter out redundant information.
+
+
+                                                                                      Fig. 3. MEA module aggregates multiple branches of the encoder by
+    not all of this information contributes to the segmentation of                    Transformer to achieve global context modeling and fusion of multimodal
+    lesions; instead, it introduces redundant information. More-                      information.
+    over, in the process of capturing unique features associated
+    with each modality, the multibranch encoders tend to overlook
+    those multimodal potential shared features that are also impor-                   distribution by calculating the mean and variance of all acti-
+    tant for the segmentation regions. Therefore, the MFA module                      vation values in Mc , which can be expressed as
+    is designed to emphasize the shared information among dif-                                         k              r
+    ferent modalities and filter out redundant information. Its                                     1 X c              1 Xk             2
+                                                                                                µ=         Mi , σ =              Mic − µ        (8)
+    purpose is to assist the multibranch encoder in extracting                                      k                   k    n=1
+                                                                                                          n=1
+    crucial regions for image segmentation. Fig. 2 illustrates the
+    structure of the MFA module.                                                      where µ represents the mean of the attention map, and σ
+       Specifically, we focus on a specific part given an input                       represents the standard deviation of the attention map. The
+    image by exploiting the feature relationships between chan-                       output of the MFA module is Mis ∈ Rk×1×1×1 .The overall
+    nels. In the calculation of channel attention [42], [43], [44],                   MFA module can be summarized as
+    we consider that maximum pooling collects the most promi-                                                     avg 
+                                                                                                  Mis = G MLP Mi        + MLP Mimax .
+                                                                                                                                     
+                                                                                                                                               (9)
+    nent and salient features from different modalities, and mean
+    pooling collects shared features from different modalities. To                      This method optimizes the multimodal attention map by
+    aggregate the channel information of the feature map, we                          using the modulation function, which helps the attention
+    employ both mean pooling and maximum pooling opera-                               blocks to focus on the common areas in the feature map,
+    tions. This results in the generation of two sets of features:                    emphasizing the multimodal potential shared information
+                                                   avg
+    mean pooled channel features denoted as Mi ∈ R4k×1×1×1                            while suppressing useless information and noise.
+    and maximum pooled channel features denoted as Mimax ∈
+    R4k×1×1×1 , as shown in the following equation:
+                                                                                      D. Multibranch Encoder Aggregation
+                               avg
+                             Mi = AvgPool (Mi )                                (5)       Different encoding branches are employed to process dis-
+                             Mimax = MaxPool (Mi ) .                           (6)    tinct MRI modalities separately. The multibranch encoder
+                   avg
+                                                                                      extracts the unique information of each modality step by step
+       Then, Mi and Mimax are passed through a compression                            to obtain deep feature maps of multiple modalities. In most
+    network consisting of a multilayer perceptron (MLP). In order                     methods, multiple feature maps are fused by concatenation,
+    to fully integrate multimodal information, the enhancement                        addition, and multiplication.
+    ratio is set e, and the channel attention map is first expanded to                   Such fusion methods are both prone to information loss and
+    Mic0 ∈ R4ek×1×1×1 , and then gradually compressed to generate                     difficult to fully aggregate multimodal information. Given the
+    a multimodal channel attention map Mic ∈ Rk×1×1×1 .                               capability of self-attention mechanisms to capture long-range
+       The enhancement ratio e is an adjustable parameter and e                       dependencies and contextual information [26], we incorporate
+    is set to [16, 8, 4, 2] in the MFA module for the different                       the Transformer as the MEA module, as depicted in Fig. 3.
+    encoding layers. Subsequently, we merge the average-pooling                       Specifically, the MEA module captures the multimodal feature
+                          avg
+    channel features Mi and the max-pooling channel features                          map MA4 from the multibranch encoder.
+       max
+    Mi using element-wise summation.                                                     First, the MEA module flattens the feature map of each
+       In this module, it is noteworthy that the Gaussian distri-                     modality from the spatial dimension and depth dimension
+    bution function [45], [46], [47] is utilized as a modulation                      to one dimension and combines them to obtain a token
+    function to reactivate the distribution of features by learn-                     sequence with dimension 4k × N. In order to achieve precise
+    ing the attention weights of each channel, which helps to                         localization of the lesion and accurate segmentation, learnable
+    model the correlation between different channels explicitly and                   positional encoding is employed, which can be expressed by
+    adaptively adjust the activation response for the segmentation                    the following equations:
+    target. The implementation process can be expressed as
+                                                                                                                z0 = LP (MA4 ) + PE                            (10)
+                               Mis = G Mic
+                                            
+                                                                   (7)
+                                                                                      where LP denotes the linear projection layer, PE ∈ R4k×N
+    where Mic denotes the multimodal channel attention map,                           denotes the location embedding layer, and z0 ∈ R4k×N denotes
+    Mis denotes the multimodal attention scale, and G represents                      the feature token sequence, k refers to the number of feature
+    the Gaussian distribution function. G maps the Gaussian                           channels for each modality; and N denotes the length of the
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    LIU et al.: MBUNeXt: MULTIBRANCH ENCODER AGGREGATION NETWORK BASED ON LAYER-FUSION STRATEGY                                                                  20001
+
+
+
+                                                                                      expands the receptive field, allowing the network to capture
+                                                                                      the intricate structures of lesions spanning various sizes. To
+                                                                                      further compress network parameters [48], we utilize 1 × 1
+                                                                                      × n, 1 × n × 1 and n × 1 × 1 depthwise strip convolutions
+                                                                                      to approximately replace the standard n × n × n depthwise
+                                                                                      convolution.
+                                                                                         Specifically, the LCS module extracts feature maps from
+                                                                                      the multibranch encoder. First, MAi (i ∈ {1, 2, 3}) pass through
+                                                                                      depthwise separable convolutions of 5 × 5 × 5, 7 × 7 × 7,
+    Fig. 4. LCS module adopts a set of large-size depthwise separable convolu-
+    tions to expand the perceptual field and enhance edge features.
+                                                                                      11 × 11 × 11, and 21 × 21 × 21 in sequence, as shown in
+                                                                                      the following equation:
+                                                                                                           MA0i = Convdw
+                                                                                                                       5×5×5 (MAi )                              (15)
+    token sequence after flattening the feature maps from the
+                                                                                                           MA00i = Convdw       0
+                                                                                                                                  
+    spatial and depth dimensions into a 1-D sequence.                                                                  7×7×7 MAi                                 (16)
+                                                                                                            i = Conv11×11×11 MAi
+                                                                                                          MA000     dw         00
+                                                                                                                                                 
+       The MEA module utilizes an L-layer Transformer architec-                                                                                                  (17)
+    ture, where each Transformer layer is composed of multihead                                          MA0000 = Convdw                MA000
+                                                                                                                                                 
+                                                                                                                                                                 (18)
+                                                                                                           i          21×21×21            i
+    attention and an MLP. Within the lth layer of the MEA module,
+                                                                                                                                             i       i       i
+    the outputs are computed as follows:                                                                      i , MAi
+                                                                                      where MA0i , MA00i , MA000      0000
+                                                                                                                           ∈ R4k×(H/2 )×(W/2 )×(D/2 ) rep-
+                                                                                      resent the outputs of the depthwise separable convolution,
+                          z0l = MSA (LN (zl−1 )) + zl−1                      (11)
+                                                                                      and Convdwn×n×n represents a depthwise separable convolutional
+                          zl = MLP LN z0l + z0l
+                                           
+                                                                             (12)     layer with kernel size n × n × n. Spatial information is
+    where LN represents layer normalization, MSA represents the                       extracted by these multiscale convolutions. In the depthwise
+    multihead self-attention layer, and zl represents the output of                   separable convolution, the spatial feature relationship and
+    the lth layer Transformer.                                                        interchannel feature relationship of the multimodal image
+       The key component of the Transformer architecture is the                       are computed completely independently. Therefore, a series
+    self-attention mechanism, which leverages the relationships                       of depthwise separable convolution blocks of different sizes
+    between Q, K, and V to capture dense correlations between                         extract feature maps for each modality separately. Finally, this
+    tokens and capture global information. The calculation process                    information is summed up and fed into a regular convolution
+    of self-attention is as follows:                                                  block for multimodal information integration, as expressed by
+                                                                                      the following equations:
+                                                QK >
+                                                    
+                Attention (Q, K, V) = Softmax √        V       (13)
+                                                                                           i = Conv3×3×3 MAi + MAi + MAi + MAi + MAi
+                                                                                                                           0        00       000      0000
+                                                                                       MAsc
+                                                                                                                                                           
+                                                  d
+                                                                                                                                                      (19)
+    where Q, K, and V denote queries, keys, and values, respec-                       where MAsc       2k×(H/2i )×(W/2i )×(D/2i )
+                                                                                                  i ∈ R                           represents the output of
+    tively; d represents the size of the query and key.                               the LCS module and is fed into the decoder at each decoding
+       In the MEA module, the self-attention mechanism models                         stage, Conv3×3×3 represents a regular convolutional layer with
+    nonlinear relationships within and between modalities, fully                      kernel size 3 × 3 × 3.
+    integrating multimodal information and learning complemen-                           Through the LCS module, the shallow features from corre-
+    tary relationships between all modalities. After processing                       sponding positions in the encoder and the deep features from
+    through the self-attention mechanism, the features undergo                        the decoder are effectively aggregated during the up-sampling
+    convolutional operations to reduce the number of channels, fol-                   process at each level of the network. This allows the decoder
+    lowed by residual connections to obtain the final multimodal                      to leverage more high-resolution information, facilitating a
+    fusion feature ME                                                                 more accurate recovery of fine details in the original image.
+                    ME = FR Reshape (zL ) + MA4
+                                                   
+                                                               (14)                   More importantly, the LCS module provides multiscale and
+                                                                                      multilevel multimodal information for image segmentation to
+    where ME ∈ Rk×(H/8)×(W/8)×(D/8) , FR represents a feature                         enhance edge features, and thus obtains finer segmentation
+    reduction block composed of convolutional operations, which                       results.
+    integrates channel compression (4k → k), and Reshape recon-
+    structs spatial dimensions from flattened token sequences.
+                                                                                      F. Decoder
+                                                                                         The decoder obtains the multimodal feature map ME that
+    E. Skip-Connection With Large-Kernel Convolution                                  has been meticulously modified by the MEA module, gradu-
+       In the context of medical image segmentation, the primary                      ally restores it to the original 3-D image size (H × W × D),
+    objective of neural networks is to accurately identify and                        and produces segmentation results. Specifically, at each stage,
+    segment the lesion area. However, in brain tumors, there are                      the encoder features from the LCS module are concatenated
+    often several different tissue subregions with large differences                  with those corresponding to the decoder. The concatenated
+    in size and shape. Accurately identifying the location and                        features are processed by 3 × 3 × 3 convolutions, and then
+    boundaries of morphologically diverse lesions poses a chal-                       upsampled by transposed convolutions until they are restored
+    lenge for networks utilizing a single conventional 3 × 3 ×                        to the original input resolution. Finally, the features at the
+    3 convolution. To overcome these difficulties, we design the                      original image resolution are processed through a sigmoid
+    LCS module, as shown in Fig. 4. By incorporating a series of                      activation function and a 1 × 1 × 1 convolutional layer for
+    large-scale depthwise separable convolutions, the LCS module                      generating a multimodal medical image segmentation map.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    20002                                            IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 36, NO. 12, DECEMBER 2025
+
+
+
+                                                                                      resulting in poorer image quality and resolution, which poses
+                                                                                      additional challenges for the segmentation task.
+                                                                                         4) Experiment Details: The MBUNeXt model was imple-
+                                                                                      mented based on PyTorch and trained with an NVIDIA Quadro
+                                                                                      RTX A6000 GPU. During the training phase, a batch size of 2
+                                                                                      was set, and the model was trained for 300 epochs. The Dice
+                                                                                      loss function was employed to update the network weights.
+                                                                                      The AdamW optimizer was utilized with an initial learning
+    Fig. 5. In the utilized BraTS datasets, annotations include different brain
+    tumor subregions: the NCR (red), the ED (green), and the ET (yellow).             rate of 0.0001, and it underwent linear warm-up and cosine
+                                                                                      annealing to gradually adjust the learning rate. In addition,
+                                                                                      various general data augmentation techniques were applied.
+                           IV. E XPERIMENT                                            Specifically, during the training process, when trained with
+       The proposed MBUNeXt model, along with other SOTA                              the BraTS2019, BraTS2021, and BraTS-Africa2024 datasets,
+    segmentation methods, underwent training and testing on                           the input images were randomly cropped to 128 × 128 ×
+    two challenging multimodal brain tumor datasets, namely,                          128 voxels. For the 3-D images, random mirroring flips were
+    the BraTS2019 and BraTS2021 datasets. In addition, the                            performed along the axial, coronal, and sagittal planes with a
+    BraTS-Africa2024 dataset was incorporated into the validation                     probability of 0.5. In addition, random intensity shift within
+    process, allowing for the assessment of the MBUNeXt model’s                       the range of (−0.1, 0.1) and random intensity scale within
+    robustness across datasets with unique imaging characteris-                       the range of (0.9, 1.1) were applied to the images. Prior to
+    tics using identical experimental settings. The segmentation                      training, all images were normalized to have zero mean and
+    methods were evaluated based on common performance                                unit standard deviation. The Dice loss function was employed
+    metrics. Furthermore, the effectiveness of the modules pro-                       to update the network weights, which is defined as
+    posed within MBUNeXt was demonstrated through ablation                                                                      2 |S ∩ G|
+    studies.                                                                                                      LDice = 1 −                                  (20)
+                                                                                                                                |S | + |G|
+
+    A. Dataset and Implementation                                                     where S denotes the predicted segmentation result and G
+                                                                                      denotes the ground truth.
+       1) BraTS2019 Dataset: This dataset [49], [50], [51], pro-                         5) Performance Measurement: We employed the same
+    vided by the BraTS 2019 Challenge, focuses on glioma                              evaluation metrics as other SOTA networks, such as Swin
+    segmentation and includes multimodal MRI data from 19                             UNETR [27] and TransBTS [15], which include the average
+    institutions. The training set consists of 335 cases, each                        Dice coefficient (Dice) and 95% Hausdorff Distance (HD95).
+    with 3-D MRI scans in four modalities: T1, T1Gd, T2, and                          The detailed definition of the average Dice coefficient is as
+    T2-FLAIR. Images are resized to 155 × 240 × 240 voxels.                           follows:
+    Labels include the nonenhancing tumor core (NCR), peritu-                                                       2 |S ∩ G|
+    moral edema (ED), and enhancing tumor (ET), forming three                                                Dice =                            (21)
+                                                                                                                    |S | + |G|
+    evaluation regions: the whole tumor (WT, including NCR, ED,
+    and ET), the tumor core (TC, including NCR and ET), and                           where S denotes the predicted segmentation result and G
+    ET, as shown in Fig. 5. We adopted Swin UNETR [27]’s data                         denotes the ground truth. A larger Dice score represents better
+    partitioning method, splitting the training set into an 80%:20%                   segmentation performance.
+    ratio and training networks using fivefold cross-validation. Our                    The detailed definition of the Hausdorff Distance (HD)
+    method was compared with various SOTA approaches for a                            metrics is as follows:
+                                                                                                                   
+    comprehensive evaluation.
+                                                                                               HD G0 , P0 = max max         min g0 − p0
+                                                                                                          
+       2) BraTS2021 Dataset: This dataset [50], [51], [52] was                                                       g0 ∈G0 p0 ∈P0
+    provided by the BraTS 2021 challenge and included additional                                                                              
+    routine clinically acquired 3-D multimodal MRI scans. It                                                             max
+                                                                                                                          0  0 0
+                                                                                                                                min0
+                                                                                                                                     p0
+                                                                                                                                        − g 0
+                                                                                                                                                . (22)
+                                                                                                                                p ∈P g ∈G
+    consists of a total of 5004 3-D brain scans. Apart from
+    the number of volumes, all other information regarding the                                                0
+                                                                                         Among them, G represents the ground truth surface point
+    BraTS2019 and BraTS2021 datasets remained identical. In                           set; and P0 represents the predicted surface point set. g0
+    the BraTS2021 challenge, the training set consisted of 1251                       represents a point that belongs to the set G0 ; p0 represents a
+    cases. Compared to the training set of BraTS2019, BraTS2021                       point that belongs to the set P0 . The HD95 is measured based
+    contained approximately four times more data. This significant                    on the 95th percentile of distances between the ground truth
+    increase in data volume was a crucial factor in selecting these                   point set and the predicted point set. This approach reduces
+    two datasets for our experiments. It allows us to demonstrate                     the impact of outliers during the calculation of HD.
+    that our network could still achieve high performance despite
+    the substantial difference in the amount of available data.
+       3) BraTS-Africa2024 Dataset: This dataset [53] is derived                      B. Experiments on BraTS2019
+    from the MICCAI-CAMERA-Lacrina Fund BraTS-Africa                                    In the BraTS2019 experiments, we conducted fivefold
+    2024 Challenge, with a training set consisting of 60 cases.                       cross-validation to compare MBUNeXt with various existing
+    Similar to the BraTS2019 dataset, each case includes MRI                          advanced algorithms, including U-Net [10], nnU-Net [22],
+    scans of four modalities and shares the same segmentation                         nnFormer [30], TransBTS [15], UNETR [25], and Swin
+    targets. However, unlike BraTS2019, this dataset is character-                    UNETR [27]. The average evaluation results of all the meth-
+    ized by the widespread use of low-quality MRI technology,                         ods in fivefold cross-validation are presented in Table I. In
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    LIU et al.: MBUNeXt: MULTIBRANCH ENCODER AGGREGATION NETWORK BASED ON LAYER-FUSION STRATEGY                                                                20003
+
+
+
+
+                MRI              Ground Truth           MBUNeXt              SwinUNETR               nnFormer               UNETR                 nnUNet
+                      T1Gd
+
+
+
+
+                           T2
+
+
+
+
+                           T1
+
+
+
+
+                       Flair
+
+
+
+
+                       Flair
+                      ED
+
+                     NCR
+
+                      ET
+
+
+
+
+    Fig. 6. Visual comparison of BraTS results in BraTS2019 and BraTS2021. For the purpose of visualization, we selected certain modalities that clearly depict
+    the lesions.
+
+
+    experiments, MBUNeXt demonstrated the best performance in                         effectiveness of the proposed module in MBUNeXt and its
+    terms of average Dice coefficients for all subregions of brain                    ability to leverage the rich information from multimodal brain
+    tumors, outperforming other CNN-based and Transformer-                            tumor datasets for improved segmentation performance.
+    based baselines. Specifically, MBUNeXt achieved Dice scores
+    of 85.42%, 90.62%, and 81.48% for the TC, WT, and ET                              C. Experiments on BraTS2021
+    regions, respectively, and also had the smallest average HD95                        In comparison to the BraTS2019 dataset, the dataset used
+    for the three segmentation target regions, achieving the SOTA                     in the BraTS2021 Challenge was updated to include a larger
+    performance. The segmentation outputs of several networks                         number of clinical MRI scans. Specifically, the BraTS2021
+    are illustrated in Fig. 6. MBUNeXt demonstrated excellent                         dataset contained approximately four times the amount of data
+    performance in BraTS. The remarkable performance of the                           compared to the training set of BraTS2019. In the BraTS2021
+    proposed method can be attributed to the effective extraction                     experiments, we conducted fivefold cross-validation to com-
+    of unique features from each modality by the multibranch                          pare MBUNeXt with several SOTA methods. The average
+    encoder, the assistance of the MFA module in capturing                            evaluation results of all the methods in the fivefold cross-
+    multimodal information, the learning of complementary rela-                       validation are presented in Table I. We trained the network
+    tionships between all modalities through the self-attention                       model using the hyperparameters defined in the BraTS2019
+    mechanism in the MEA module, and the provision of multi-                          experiments. The MBUNeXt achieved average Dice scores of
+    scale and multilevel multimodal information for multimodal                        91.52%, 93.18%, and 88.62% for the TC, WT, and ET regions,
+    BraTS by the LCS module, resulting in a more refined                              respectively, and also had the smallest average HD95 for the
+    segmentation effect.                                                              three segmentation target regions, achieving the SOTA perfor-
+       In general, the experimental results showed that MBUNeXt                       mance. These results also demonstrate the robust performance
+    outperformed other SOTA methods, such as Swin UNETR                               of our network with an increased amount of data.
+    and nnFormer, in terms of Dice scores and average HD95                               In addition, it is observed that Transformer-based networks
+    for the ET, WT, and TC regions. This demonstrates the                             have competitive benchmarks on the BraTS2021 dataset. The
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    20004                                            IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 36, NO. 12, DECEMBER 2025
+
+
+
+                                                                      TABLE I
+            AVERAGE R ESULTS OF SOTA M ETHODS ON THE B RATS2019 AND B RATS2021 T RAINING DATASETS U SING F IVEFOLD C ROSS -VALIDATION .
+                                   T HE B OLDED R ESULTS I NDICATE THE B EST S CORES FOR E ACH T UMOR S UBREGION
+
+
+
+
+    Fig. 7. Visual comparison of segmentation results in the BraTS-Africa2024 dataset. MBUNeXt significantly reduces mis-segmentation, demonstrating its
+    superior performance on low-quality imaging data.
+
+                                                                         TABLE II
+                         F IVEFOLD C ROSS -VALIDATION AVERAGE R ESULTS OF SOTA M ETHODS ON THE B RATS-A FRICA 2024 DATASET.
+                                             B OLD R ESULTS I NDICATES THE B EST S CORE FOR E ACH S UBREGION
+
+
+
+
+    limitations observed in the Transformer structure could be                        extracting unique multimodal feature representations through
+    attributed to its lack of certain intrinsic inductive biases that                 CNN multibranch encoders and utilizing multiple designed
+    are present in CNNs, such as translational invariance and                         modules to assist in extracting shared features.
+    local correlation. Therefore, the Transformer-based networks
+    require a larger volume of data to effectively learn the
+    relationships within the input sequences and make accurate                        D. Experiments on BraTS-Africa2024 Dataset
+    predictions. Consequently, Transformer-based models tend to                          To evaluate the robustness of the MBUNeXt model, valida-
+    exhibit better performance on large-scale datasets. In contrast,                  tion was conducted on the BraTS-Africa2024 dataset, which is
+    MBUNeXt achieves excellent segmentation performance by                            crucial for establishing the model’s generalization capability
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    LIU et al.: MBUNeXt: MULTIBRANCH ENCODER AGGREGATION NETWORK BASED ON LAYER-FUSION STRATEGY                                                                20005
+
+
+
+                               TABLE III
+    C OMPARISON OF N UMBER OF PARAMETERS , FLOP S , AND I NFERENCE
+         T IME FOR VARIOUS M ODELS IN B RATS2019 E XPERIMENTS
+
+
+
+
+                                                                                      Fig. 8. Visualization of feature maps from each encoder in the MBUNeXt.
+
+
+    under varying medical imaging quality conditions. As shown
+                                                                                                                        TABLE IV
+    in Table II, the results on the BraTS-Africa2024 dataset
+    demonstrate that the MBUNeXt model not only performs                                   Q UALITATIVE C OMPARISON OF D IFFERENT F USION S TRATEGIES
+                                                                                                     ON THE B RATS2019 T RAINING DATASET
+    excellently on datasets with high imaging quality (such as
+    BraTS2019 and BraTS2021) but also maintains strong com-
+    petitiveness on the lower quality BraTS-Africa2024 dataset.
+    Fig. 7 illustrates the segmentation results of multiple networks,
+    showing that MBUNeXt effectively reduces mis-segmentation.
+    MBUNeXt achieved average Dice scores for the TC, WT,
+    and ET regions on the BraTS-Africa2024 dataset that were
+    2.78%, 1.70%, and 1.14% higher than the suboptimal method,
+    respectively, and also attained the smallest average HD95 val-
+    ues across all three segmentation target regions, demonstrating
+    SOTA performance. This further confirms the versatility and
+    broad applicability of the model in the field of multimodal
+    segmentation.                                                                     strategy. All networks utilized the same encoder and decoder
+                                                                                      architecture, and shared identical parameter settings. Through
+                                                                                      comparison, it can be observed that the average Dice score
+    E. Computational Efficiency                                                       of the multibranch encoder network was 6.33% higher than
+       In Table III, we present the number of parameters, FLOPs,                      that of the single-branch encoder network, indicating a signif-
+    and inference time of various models in the BraTS2019                             icant improvement in segmentation performance. In addition,
+    benchmark. MBUNeXt has 32.02M parameters, 712.66G                                 by visualizing the features of each encoder in the multi-
+    FLOPs, and an average inference time of 5.28 s. Com-                              branch network (see Fig. 8), it is evident that each individual
+    pared to Transformer-based models (Swin UNETR, nnFormer,                          encoder can better extract unique features of the corresponding
+    and UNETR), MBUNeXt demonstrates significantly fewer                              modality. In addition, as shown in Table V, among the four
+    parameters—a 78.6% reduction compared to nnFormer and a                           modalities (T1, T1Gd, T2, and Flair), “Missing 1 Modality”
+    48.5% reduction relative to Swin UNETR—while maintaining                          represents the average Dice scores across the four scenarios
+    competitive performance. Although its FLOPs are higher than                       where any single modality is missing (e.g., T1 absent and
+    those of UNETR and TransBTS, MBUNeXt achieves a better                            T1Gd absent), resulting in an average Dice of 65.14% for
+    balance between model complexity and performance compared                         MBUNeXt versus 63.36% for Swin UNETR. “Missing 2
+    to CNN-based models (e.g., nnU-Net). These results highlight                      Modalities” corresponds to the average Dice results when any
+    the potential of MBUNeXt to deliver robust performance                            two modalities are missing (six combinations in total), where
+    with reduced model size, though at the cost of increased                          MBUNeXt achieves 41.14% compared to Swin UNETR’s
+    computational load compared to lightweight architectures.                         40.94%. For “Missing 3 Modalities” (four combinations),
+                                                                                      MBUNeXt demonstrates superior robustness with an average
+                                                                                      Dice of 20.04%, significantly outperforming Swin UNETR’s
+    F. Ablation Studies                                                               15.30%. Experimental results demonstrate that MBUNeXt
+       Next, we performed ablation experiments on the BraTS2019                       consistently outperforms Swin UNETR across all modality
+    training dataset to assess the influence of fusion strategies and                 missing scenarios, validating its modality robustness. Notably,
+    individual modules on the overall performance of MBUNeXt.                         the performance gap widens as more modalities are missing-
+    The Dice coefficient was adopted as the primary evaluation                        for instance, MBUNeXt achieves a 4.74% absolute gain over
+    metric for this purpose.                                                          Swin UNETR under three-modality absence. This improve-
+       The backbone network, designed in conjunction with a                           ment is attributed to the ability of each encoder branch in the
+    layer-fusion strategy, plays a crucial role in achieving SOTA                     multibranch network to extract modality-specific features and
+    performance. Table IV presents the performance differences                        capture complementary aspects of the input data. Therefore,
+    between networks employing the input-level fusion strategy,                       we adopted the U-shaped network with a multibranch encoder
+    the layer-level fusion strategy, and the decision-level fusion                    as the backbone network.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    20006                                            IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 36, NO. 12, DECEMBER 2025
+
+
+
+                                      TABLE V
+             P ERFORMANCE C OMPARISON B ETWEEN MBUN E X T AND
+                  S WIN UNETR U NDER M ISSING M ODALITIES
+
+
+
+
+                                      TABLE VI
+                     A BLATION S TUDY OF THE MFA M ODULE
+
+                                                                                      Fig. 9. Visualization comparison of feature maps before and after processing
+                                                                                      by various modules.
+
+                                                                                                                       TABLE VIII
+                                                                                                            A BLATION S TUDY OF M ODULES
+
+
+
+
+                                     TABLE VII
+            A BLATION S TUDY OF D IFFERENT M ULTIBRANCH E NCODER
+                 AGGREGATE M ETHODS IN THE MEA M ODULE
+
+
+
+
+       Table VI presents the performance improvements achieved
+                                                                                      results indicate that the MFA module significantly improves
+    by incorporating the designed MFA module into the back-
+                                                                                      segmentation accuracy in the TC and WT regions, while the
+    bone network, as well as the impact of using the Gaussian
+                                                                                      MEA module excels in enhancing boundary delineation for the
+    distribution function as the modulation function in the MFA
+                                                                                      ET region. When combined, the MFA achieves shared feature
+    module. Compared to the backbone network of MBUNeXt,
+                                                                                      reinforcement and redundancy suppression through channel-
+    the introduction of the MFA module without the Gaussian
+                                                                                      wise feature fusion and Gaussian modulation, while the MEA
+    distribution resulted in an average Dice score improvement of
+                                                                                      explores complementary features via intramodal/intermodal
+    0.52% for multimodal BraTS. Furthermore, it can be observed
+                                                                                      nonlinear modeling, forming a progressive feature optimiza-
+    that when the MFA module with the Gaussian distribution
+                                                                                      tion workflow, outperforming other dual-module combinations
+    was introduced, an improvement of 0.87% was achieved in
+                                                                                      in terms of performance. As shown in Fig. 9, further incor-
+    BraTS compared to the backbone network of MBUNeXt. This
+                                                                                      poration of the LCS module expands the receptive field via
+    demonstrates the ability of the MFA module to emphasize
+                                                                                      large-sized convolution kernels (5×5×5, 7×7×7, 11×11×11,
+    potential shared features while filtering out redundant infor-
+                                                                                      and 21 × 21 × 21), thereby optimizing the segmentation
+    mation.
+                                                                                      performance in the TC region and enhancing the extraction
+       Table VII compares different multibranch encoder aggregate
+                                                                                      capability of multiscale lesion features in the ET region. The
+    methods, including concatenation, summation, multiplication,
+                                                                                      hierarchical integration of the three-level modules validates the
+    and the proposed MEA module. The MEA module creatively
+                                                                                      effectiveness of the proposed MBUNeXt architecture through
+    utilized Transformer as an MEA module to leverage its pow-
+                                                                                      a multimodal encoding framework in achieving precise tumor
+    erful capability in modeling multimodal nonlinear relationship
+                                                                                      subregion segmentation.
+    and capturing global contextual information. As presented in
+    Table VII, our approach achieved the best results in each
+    segmentation category, surpassing the commonly used con-                          G. Limitation and Future Work
+    catenation method by 0.57% (the backbone network employed                           The core objective of this study is to address the challenge
+    the concatenation method). This indicates that the MEA mod-                       of multimodal BraTS, and thus, our proposed method relies
+    ule effectively integrated multimodal information and learned                     on aligned multimodal images from the same patient as
+    the complementary relationships between modalities.                               network inputs. However, this requirement limits the direct
+       Table VIII illustrates the performance evolution as MFA,                       application of the method to datasets containing only single-
+    MEA, and LCS modules are incrementally integrated. The                            modality images. To address this limitation, future work will
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    LIU et al.: MBUNeXt: MULTIBRANCH ENCODER AGGREGATION NETWORK BASED ON LAYER-FUSION STRATEGY                                                                  20007
+
+
+
+    focus on designing a multimodal framework compatible with                          [12] V. Rajinikanth, S. Kadry, and Y. Nam, “Convolutional-Neural-Network
+    missing modalities, which dynamically models intermodal                                 assisted segmentation and SVM classification of brain tumor in clinical
+                                                                                            MRI slices,” Inf. Technol. Control, vol. 50, no. 2, pp. 342–356, Jun.
+    feature interactions to directly accommodate single-modality                            2021.
+    or partially incomplete inputs, thereby enhancing the method’s                     [13] S. Maqsood, R. Damaševičius, and R. Maskeliūnas, “Multi-modal brain
+    generalizability and robustness.                                                        tumor detection using deep neural network and multiclass SVM,”
+                                                                                            Medicina, vol. 58, no. 8, p. 1090, Aug. 2022.
+                                                                                       [14] B. Badjie and E. Deniz Ülker, “A deep transfer learning based archi-
+                           V. C ONCLUSION                                                   tecture for brain tumor classification using MR images,” Inf. Technol.
+       This article presents a novel MEA network based on a                                 Control, vol. 51, no. 2, pp. 332–344, Jun. 2022.
+                                                                                       [15] W. Wang, C. Chen, M. Ding, H. Yu, S. Zha, and J. Li, “TransBTS:
+    layer-fusion strategy for multimodal BraTS. The network                                 Multimodal brain tumor segmentation using transformer,” in Proc.
+    incorporates three well-designed modules to enhance its seg-                            24th Int. Conf. Med. Image Comput. Comput.-Assist. Intervent., 2021,
+    mentation performance. The proposed MFA module fuses                                    pp. 109–119.
+    the multimodal features of multibranch encoders at different                       [16] H. H. Lee, S. Bao, Y. Huo, and B. A. Landman, “3D UX-net:
+                                                                                            A large kernel volumetric Convnet modernizing hierarchical trans-
+    stages, emphasizes the potential shared information in dif-                             former for medical image segmentation,” in Proc. Int. Conf. Learn.
+    ferent modalities, and filters out redundant information. And                           Represent. (ICLR), 2023. [Online]. Available: https://openreview.net/
+    the MEA module aggregates multibranch encoders, model                                   forum?id=wsZsjOSytRA
+    the nonlinear relationship among different modalities, and                         [17] S. Liu et al., “More ConvNets in the 2020s: Scaling up kernels beyond
+                                                                                            51×51 using sparsity,” in Proc. Int. Conf. Learn. Represent. (ICLR),
+    effectively integrating multimodal information. In addition,                            2023. [Online]. Available: https://openreview.net/pdf?id=bXNl-myZkJl
+    the LCS module guides the network in attending to feature                          [18] J. Long, E. Shelhamer, and T. Darrell, “Fully convolutional networks
+    information at various scales, enabling accurate identification                         for semantic segmentation,” in Proc. IEEE Conf. Comput. Vis. Pattern
+    of lesions of different sizes and addressing the issue of size                          Recognit. (CVPR), Jun. 2015, pp. 3431–3440.
+                                                                                       [19] X. Xiao, S. Lian, Z. Luo, and S. Li, “Weighted res-UNet for high-quality
+    variability. Comprehensive experiments were conducted on                                retina vessel segmentation,” in Proc. 9th Int. Conf. Inf. Technol. Med.
+    the BraTS2019, BraTS2021, and BraTS-Africa2024 datasets                                 Educ. (ITME), Oct. 2018, pp. 327–331.
+    to evaluate the effectiveness of the proposed method. The                          [20] Z. Zhou, M. Siddiquee, N. Tajbakhsh, and J. Liang, “UNet++: A
+    experimental results show that MBUNeXt achieves SOTA                                    nested U-net architecture for medical image segmentation,” in Proc. Int.
+                                                                                            Workshop Deep Learn. Med. Image Anal., vol. 11045, 2018, pp. 3–11.
+    performance in multimodal BraTS with a smaller number                              [21] J. M. J. Valanarasu, V. A. Sindagi, I. Hacihaliloglu, and V. M. Patel,
+    of parameters, by effectively extracting features from each                             “KiU-Net: Towards accurate segmentation of biomedical images using
+    modality and comprehensively fusing multimodal information,                             over-complete representations,” in Proc. Int. Conf. Med. Image Comput.
+    while also demonstrating good robustness.                                               Comput.-Assist. Intervent., 2020, pp. 363–373.
+                                                                                       [22] F. Isensee, P. F. Jaeger, S. A. A. Kohl, J. Petersen, and K. H. Maier-Hein,
+                                                                                            “NnU-net: A self-configuring method for deep learning-based biomedi-
+                                   R EFERENCES                                              cal image segmentation,” Nature Methods, vol. 18, no. 2, pp. 203–211,
+                                                                                            Feb. 2021.
+    [1]  L. Yao et al., “A colorectal coordinate-driven method for colorectum and      [23] H. M. Luu and S. Park, “Extending nn-UNet for brain tumor
+         colorectal cancer segmentation in conventional CT scans,” IEEE Trans.              segmentation,” in Proc. MICCAI BLWS, 2021, pp. 173–186.
+         Neural Netw. Learn. Syst., vol. 36, no. 4, pp. 7395–7406, Apr. 2025.          [24] A. Vaswani et al., “Attention is all you need,” in Proc. Int. Conf. Neural
+    [2] N. K. Tomar et al., “FANet: A feedback attention network for improved               Inform. Process. Syst. (NIPS), vol. 30, 2017, pp. 5998–6008.
+         biomedical image segmentation,” IEEE Trans. Neural Netw. Learn. Syst.,        [25] A. Hatamizadeh et al., “UNETR: Transformers for 3D medical image
+         vol. 34, no. 11, pp. 9375–9388, Nov. 2023.                                         segmentation,” in Proc. IEEE/CVF Winter Conf. Appl. Comput. Vis.
+    [3] S. Ren and X. Li, “HResFormer: Hybrid residual transformer for                      (WACV), Jan. 2022, pp. 574–584.
+         volumetric medical image segmentation,” IEEE Trans. Neural Netw.              [26] A. Dosovitskiy et al., “An image is worth 16×16 words: Trans-
+         Learn. Syst., vol. 36, no. 6, pp. 1–9, Jun. 2025.                                  formers for image recognition at scale,” in Proc. Int. Conf. Learn.
+    [4] Q. Zhu, H. Wang, B. Xu, Z. Zhang, W. Shao, and D. Zhang, “Multimodal                Represent. (ICLR), 2021. [Online]. Available: https://openreview.net/
+         triplet attention network for brain disease diagnosis,” IEEE Trans. Med.           forum?id=YicbFdNTTy
+         Imag., vol. 41, no. 12, pp. 3884–3894, Dec. 2022.
+                                                                                       [27] A. Hatamizadeh, V. Nath, Y. Tang, D. Yang, H. R. Roth, and D. Xu,
+    [5] A. Stabile et al., “Multiparametric MRI for prostate cancer diagnosis:
+                                                                                            “Swin UNETR: Swin transformers for semantic segmentation of brain
+         Current status and future directions,” Nature Rev. Urology, vol. 17,
+                                                                                            tumors in MRI images,” in Proc. Med. Image Comput. Comput. Assist.
+         no. 1, pp. 41–61, Jan. 2020.
+                                                                                            Intervent. (MICCAI), 2021, pp. 272–284.
+    [6] L. Sun, W. Shao, D. Zhang, and M. Liu, “Anatomical attention guided
+                                                                                       [28] Z. Liu et al., “Swin transformer: Hierarchical vision transformer using
+         deep networks for ROI segmentation of brain MR images,” IEEE Trans.
+                                                                                            shifted windows,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV),
+         Med. Imag., vol. 39, no. 6, pp. 2000–2012, Jun. 2020.
+                                                                                            Oct. 2021, pp. 10012–10022.
+    [7] K. Roy, D. Banik, D. Bhattacharjee, O. Krejcar, and C. Kollmann,
+         “LwMLA-NET: A lightweight multi-level attention-based NETwork for             [29] J. Chen et al., “TransUNet: Transformers make strong encoders for
+         segmentation of COVID-19 lungs abnormalities from CT images,” IEEE                 medical image segmentation,” 2021, arXiv:2102.04306.
+         Trans. Instrum. Meas., vol. 71, pp. 1–13, 2022.                               [30] H.-Y. Zhou et al., “NnFormer: Volumetric medical image segmen-
+    [8] H. Du, J. Wang, M. Liu, Y. Wang, and E. Meijering, “SwinPA-net: Swin                tation via a 3D transformer,” IEEE Trans. Image Process., vol. 32,
+         transformer-based multiscale feature pyramid aggregation network for               pp. 4036–4045, 2023.
+         medical image segmentation,” IEEE Trans. Neural Netw. Learn. Syst.,           [31] A. He, K. Wang, T. Li, C. Du, S. Xia, and H. Fu, “H2Former: An effi-
+         vol. 35, no. 4, pp. 5355–5366, Apr. 2024.                                          cient hierarchical hybrid transformer for medical image segmentation,”
+    [9] M. Liu, Y. Han, J. Wang, C. Wang, Y. Wang, and E. Meijering,                        IEEE Trans. Med. Imag., vol. 42, no. 9, pp. 2763–2775, Sep. 2023.
+         “LSKANet: Long strip kernel attention network for robotic surgi-              [32] T. Baltrusaitis, C. Ahuja, and L.-P. Morency, “Multimodal machine
+         cal scene segmentation,” IEEE Trans. Med. Imag., vol. 43, no. 4,                   learning: A survey and taxonomy,” IEEE Trans. Pattern Anal. Mach.
+         pp. 1308–1322, Apr. 2024.                                                          Intell., vol. 41, no. 2, pp. 423–443, Feb. 2019.
+    [10] O. Ronneberger, P. Fischer, and T. Brox, “U-Net: Convolutional net-           [33] G. Yang, X. Guo, H. Zhang, Z. Zheng, H. Dong, and S. Xu, “3D
+         works for biomedical image segmentation,” in Proc. 18th Int. Conf. Med.            ShiftBTS: Shift operation for 3D multimodal brain tumor segmentation,”
+         Image Comput. Comput.-Assist. Intervent., vol. 9351. Cham, Switzer-                IEEE J. Biomed. Health Informat., early access, Mar. 18, 2025, doi:
+         land: Springer, 2015, pp. 234–241.                                                 10.1109/JBHI.2025.3552166.
+    [11] M. A. Khan et al., “Multimodal brain tumor detection and classifi-            [34] C. Zhou, C. Ding, Z. Lu, X. Wang, and D. Tao, “One-pass multi-task
+         cation using deep saliency map and improved dragonfly optimization                 convolutional neural networks for efficient brain tumor segmentation,”
+         algorithm,” Int. J. Imag. Syst. Technol., vol. 33, no. 2, pp. 572–587, Mar.        in Proc. Int. Conf. Med. Image Comput. Assist. Intervent., 2018,
+         2023.                                                                              pp. 637–645.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+    20008                                            IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 36, NO. 12, DECEMBER 2025
+
+
+
+    [35] J. Dolz, K. Gopinath, J. Yuan, H. Lombaert, C. Desrosiers, and I. Ben                                  Yuehao Zhu is a Graduate Student with the College
+         Ayed, “HyperDense-net: A hyper-densely connected CNN for multi-                                        of Electrical and Information Engineering, Hunan
+         modal image segmentation,” IEEE Trans. Med. Imag., vol. 38, no. 5,                                     University, Changsha, China. His research interests
+         pp. 1116–1126, May 2019.                                                                               include image processing and pattern recognition.
+    [36] J. Shi, L. Yu, Q. Cheng, X. Yang, K.-T. Cheng, and Z. Yan, “MFTrans:
+         Modality-masked fusion transformer for incomplete multi-modality
+         brain tumor segmentation,” IEEE J. Biomed. Health Informat., vol. 28,
+         no. 1, pp. 379–390, Jan. 2024.
+    [37] S. Zheng et al., “Asymmetric adaptive heterogeneous network for
+         multi-modality medical image segmentation,” IEEE Trans. Med. Imag.,
+         vol. 44, no. 4, pp. 1836–1852, Apr. 2025.
+    [38] Y. Zhang, Z. Li, H. Li, and D. Tao, “Prototype-driven and multiexpert                               Min Liu (Senior Member, IEEE) received the
+         integrated multimodal MR brain tumor image segmentation,” IEEE                                      bachelor’s degree from Beijing University, Beijing,
+         Trans. Instrum. Meas., vol. 74, pp. 1–14, 2025.                                                     China, in 2004, and the Ph.D. degree in electrical
+    [39] X. Zhao, L. Li, W. Lu, and S. Tan, “Tumor co-segmentation in PET/CT                                 engineering from the University of California at
+         using multi-modality fully convolutional neural network,” Phys. Med.                                Riverside, Riverside, CA, USA, in 2012.
+         Biol., vol. 64, no. 1, Dec. 2018, Art. no. 015011.                                                    He was a Research Scientist with the University
+    [40] D. Zhang, G. Huang, Q. Zhang, J. Han, J. Han, and Y. Yu, “Cross-                                    of California at Santa Barbara, Santa Barbara, CA,
+         modality deep feature learning for brain tumor segmentation,” Pattern                               USA. He is currently a Professor with the College
+         Recognit., vol. 110, Feb. 2021, Art. no. 107562.                                                    of Electrical and Information Engineering, Hunan
+    [41] D. Nie, L. Wang, Y. Gao, and D. Shen, “Fully convolutional networks                                 University, Changsha, China. His research interests
+         for multi-modality isointense infant brain image segmentation,” in Proc.                            include computer vision and image processing.
+         IEEE 13th Int. Symp. Biomed. Imag. (ISBI), Apr. 2016, pp. 1342–1345.           Dr. Liu is an Associate Editor of IEEE T RANSACTIONS ON N EURAL
+    [42] J. Hu, L. Shen, and G. Sun, “Squeeze-and-excitation networks,” in Proc.      N ETWORKS AND L EARNING S YSTEMS.
+         IEEE Conf. Comput. Vis. Pattern Recognit., Jul. 2018, pp. 7132–7141.
+    [43] S. Woo, J. Park, J.-Y. Lee, and I. S. Kweon, “CBAM: Convolutional
+         block attention module,” in Proc. Eur. Conf. Comput. Vis., Sep. 2018,
+         pp. 3–19.                                                                                              Zhao Yao received the M.S. and Eng.D. degrees
+    [44] C. H. Song, H. J. Han, and Y. Avrithis, “All the attention you                                         from the School of Information Science and Tech-
+         need: Global–local, spatial-channel attention for image retrieval,” in                                 nology, Fudan University, Shanghai, China, in 2020
+         Proc. IEEE/CVF Winter Conf. Appl. Comput. Vis. (WACV), Jan. 2022,                                      and 2024, respectively.
+         pp. 439–448.                                                                                              He is currently an Assistant Professor with
+    [45] J. Qin, J. Wu, X. Xiao, L. Li, and X. Wang, “Activation modulation and                                 the School of Artificial Intelligence and Robotics,
+         recalibration scheme for weakly supervised semantic segmentation,” in                                  Hunan University, Changsha, China. His research
+         Proc. AAAI Conf. Artif. Intell., 2022, vol. 36, no. 2, pp. 2117–2125.                                  interests focus on the application of machine learn-
+    [46] J. Xie, Z. Ma, D. Chang, G. Zhang, and J. Guo, “GPCA: A probabilistic                                  ing and deep learning in medical image analysis.
+         framework for Gaussian process embedded channel attention,” IEEE
+         Trans. Pattern Anal. Mach. Intell., vol. 44, no. 11, pp. 8230–8248, Nov.
+         2022.
+    [47] P. Fang, J. Zhou, S. K. Roy, P. Ji, L. Petersson, and M. Harandi,
+         “Attention in attention networks for person retrieval,” IEEE Trans.                                    Yaonan Wang received the Ph.D. degree in electri-
+         Pattern Anal. Mach. Intell., vol. 44, no. 9, pp. 4626–4641, Sep. 2022.                                 cal engineering from Hunan University, Changsha,
+    [48] M.-H. Guo, C.-Z. Lu, Q. Hou, Z. Liu, M. Cheng, and S. Hu, “SegNeXt:                                    China, in 1994.
+         Rethinking convolutional attention design for semantic segmentation,”                                     From 1994 to 1995, he was a Post-Doctoral
+         in Proc. Int. Conf. Neural Inform. Process. Syst. (NIPS), 2022,                                        Research Fellow with the National University of
+         pp. 1140–1156.                                                                                         Defense Technology, Changsha. Since 1995, he has
+    [49] S. Bakas et al., “Identifying the best machine learning algorithms for                                 been a Professor with the College of Electrical and
+         brain tumor segmentation, progression assessment, and overall survival                                 Information Engineering, Hunan University. From
+         prediction in the BRATS challenge,” 2018, arXiv:1811.02629.                                            1998 to 2000, he was supported as a Senior Hum-
+    [50] B. H. Menze et al., “The multimodal brain tumor image segmenta-                                        boldt Fellow by the Federal Republic of Germany,
+         tion benchmark (BRATS),” IEEE Trans. Med. Imag., vol. 34, no. 10,                                      University of Bremen, Bremen, Germany. From
+         pp. 1993–2024, Oct. 2015.                                                    2001 to 2004, he was a Visiting Professor with the University of Bremen.
+    [51] S. Bakas et al., “Advancing the cancer genome atlas glioma MRI               His research interests include robotics and image processing.
+         collections with expert segmentation labels and radiomic features,”            Prof. Wang is a member of the Chinese Academy of Engineering.
+         Scientific Data, vol. 4, no. 1, Sep. 2017, Art. no. 170117.
+    [52] U. Baid et al., “The RSNA-ASNR-MICCAI BraTS 2021 benchmark
+         on brain tumor segmentation and radiogenomic classification,” 2021,                                    Erik Meijering (Fellow, IEEE) received the Ph.D.
+         arXiv:2107.02314.                                                                                      degree from Utrecht University, Utrecht, The Nether-
+    [53] M. Adewole et al., “The brain tumor segmentation (BraTS) challenge                                     lands, in 2000.
+         2023: Glioma segmentation in sub-saharan Africa patient population                                        He is currently a Professor of biomedical image
+         (BraTS-Africa),” 2023, arXiv:2305.19369.                                                               computing with the School of Computer Science
+                                                                                                                and Engineering, University of New South Wales,
+                                                                                                                Sydney, NSW, Australia.
+                              Qinghao Liu received the master’s degree in                                          Dr. Meijering is an SPS Distinguished Lecturer
+                              mechatronics engineering from China Agricultural                                  (2022-2023). He was the Chair of the IEEE Signal
+                              University, Beijing, China, in 2020. He is cur-                                   Processing Society (SPS) Technical Committee on
+                              rently pursuing the Ph.D. degree with the College                                 Bio Imaging and Signal Processing (2018-2019)
+                              of Electrical and Information Engineering, Hunan        and the Technical Program Chair of the IEEE International Symposium on
+                              University, Changsha, China.                            Biomedical Imaging (2006, 2010, and 2018). He is an Associate Editor of
+                                His research interests include computer vision and    IEEE T RANSACTIONS ON M EDICAL I MAGING, a former Associate Editor
+                              medical image segmentation.                             and a Guest Editor of IEEE T RANSACTIONS ON I MAGE P ROCESSING, and
+                                                                                      a Guest Editor of IEEE Signal Processing Magazine. He also served/serves
+                                                                                      on a variety of other international conferences, advisory, and review boards.
+
+
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:10:48 UTC from IEEE Xplore. Restrictions apply.
+

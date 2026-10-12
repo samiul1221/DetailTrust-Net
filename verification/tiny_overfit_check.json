@@ -1,0 +1,17 @@
+{
+  "interpretation": "Repeated training patch sanity check, not held-out performance",
+  "loss_decreased": true,
+  "losses": [
+    2.3372678756713867,
+    1.909411907196045,
+    1.6355245113372803,
+    1.5097832679748535,
+    1.428497314453125,
+    1.3692266941070557,
+    1.3286508321762085,
+    1.302445650100708,
+    1.2869428396224976,
+    1.2795512676239014
+  ],
+  "status": "completed"
+}

@@ -1,0 +1,838 @@
+                                           IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 41, NO. 10, OCTOBER 2022                                                 2953
+
+
+
+
+     D2-Net: Dual Disentanglement Network for Brain
+      Tumor Segmentation With Missing Modalities
+                       Qiushi Yang, Xiaoqing Guo , Graduate Student Member, IEEE,
+       Zhen Chen , Graduate Student Member, IEEE, Peter Y. M. Woo , and Yixuan Yuan , Member, IEEE
+
+       Abstract — Multi-modal         Magnetic         Resonance                      Resonance Imaging (MRI) with various acquisition parameters
+    Imaging (MRI) can provide complementary information                               is the primary imaging device to diagnose tumors since
+    for automatic brain tumor segmentation, which is crucial                          it can visualize soft-issue lesions with superior resolution.
+    for diagnosis and prognosis. While missing modality
+    data is common in clinical practice and it can result                             In recent years, numerous automatic brain tumor segmentation
+    in the collapse of most previous methods relying                                  algorithms [1], [2], [4]–[7] have been proposed to reduce the
+    on complete modality data. Current state-of-the-art                               labor-intensive process of manual segmentation with encour-
+    approaches cope with the situations of missing modalities                         aging results. In daily neurosurgical practice, only a limited
+    by fusing multi-modal images and features to learn shared                         number of MRI modalities are performed per scan to suffi-
+    representations of tumor regions, which often ignore
+    explicitly capturing the correlations among modalities                            ciently derive the diagnosis, and comprehensive scanning is
+    and tumor regions. Inspired by the fact that modality                             often not performed due to the restricted accessibility of MRI
+    information plays distinct roles to segment different tumor                       in resource-limited public health institutions. However, most
+    regions, we aim to explicitly exploit the correlations among                      prior methods [1], [2], [4]–[6] for brain tumor segmentation
+    various modality-specific information and tumor-specific                          require a complete set of MRI data and can be difficult to
+    knowledge for segmentation. To this end, we propose a
+    Dual Disentanglement Network (D2 -Net) for brain tumor                            apply in the real-world setting where missing modalities are
+    segmentation with missing modalities, which consists                              often encountered. Therefore, there is an urgent demand to
+    of a modality disentanglement stage (MD-Stage) and a                              develop a robust segmentation model to address this issue.
+    tumor-region disentanglement stage (TD-Stage). In the                                Recently, extensive arts [8]–[19] attempt to handle the
+    MD-Stage, a spatial-frequency joint modality contrastive                          situations of missing modalities in medical image segmen-
+    learning scheme is designed to directly decouple the
+    modality-specific information from MRI data. To decompose                         tation and they can generally be broadly grouped into three
+    tumor-specific representations and extract discriminative                         lines. Multi-modal fusion based algorithms [8], and [9] learn
+    holistic features, we propose an affinity-guided dense                            features only with all available sets of modalities, neglecting
+    tumor-region knowledge distillation mechanism in the                              massive useful information from the missing modality data.
+    TD-Stage through aligning the features of a disentangled                          Modality generation based methods [12] [10], [11], [20]
+    binary teacher network with a holistic student network.
+    By explicitly discovering relations among modalities and                          adopt generative models to synthesize missing modalities, and
+    tumor regions, our model can learn sufficient information                         then utilize the complete modalities for model optimization.
+    for segmentation even if some modalities are missing.                             But most of these modality generation based methods are
+    Extensive experiments on the public BraTS-2018 database                           limited in synthesizing desirable data with clear clinical cor-
+    demonstrate the superiority of our framework over state-                          relations. More recently, shared knowledge extraction based
+    of-the-art methods in missing modalities situations. Codes
+    are available at https://github.com/CityU-AIM-Group/D2Net.                        approaches [13]–[18], [21]–[24], aiming to learn a latent
+                                                                                      feature space that is robust against the number of available
+       Index Terms — Contrastive learning, knowledge distilla-                        modalities, have gained popularity. Instead of synthesizing
+    tion, modality disentanglement, missing modalities.
+                                                                                      MRI images directly, this strategy extracts shared represen-
+                               I. I NTRODUCTION                                       tations towards tumor segmentation by learning correlations
+                                                                                      among inherent multi-modal features [13], [15]–[17], [22],
+    B      RAIN tumor segmentation is of great importance for the
+           diagnosis and prognosis of gliomas [1]–[3]. Magnetic                       [23] or statistical information [14], [21]. The extracted shared
+                                                                                      features can represent modality-robust information for brain
+      Manuscript received 24 March 2022; accepted 10 May 2022. Date of                tumor segmentation and perform well even if some modalities
+    publication 16 May 2022; date of current version 30 September 2022.               are missing.
+    This work was supported by the Innovation and Technology Commission
+    Innovation and Technology Fund ITS/100/20 under Grant CityU 9440276.                 Despite the remarkable performance improvements of
+    (Corresponding author: Yixuan Yuan.)                                              shared knowledge extraction based schemes [14], [15], [17],
+      Qiushi Yang, Xiaoqing Guo, Zhen Chen, and Yixuan Yuan are                       [18], [21]–[23], they capture the correlations of multi-modal
+    with the Department of Electrical Engineering, City University
+    of Hong Kong, Hong Kong, SAR, China (e-mail: qsyang2-c@my.                        features without explicit modality-aware supervision, and they
+    cityu.edu.hk; xqguo.ee@my.cityu.edu.hk; zchen.ee@my.cityu.edu.hk;                 are hard to obtain robust knowledge towards situations of
+    yxyuan.ee@cityu.edu.hk).                                                          missing modalities. Additionally, in the real-world process of
+      Peter Y. M. Woo is with the Department of Neurosurgery, Kwong Wah
+    Hospital, Hong Kong, SAR, China (e-mail: wym307@ha.org.hk).                       clinical diagnosis, clinicians jointly utilize several MRI images
+      Digital Object Identifier 10.1109/TMI.2022.3175478                              to recognize specific tumor regions, demonstrating the impor-
+
+                        1558-254X © 2022 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                                      See https://www.ieee.org/publications/rights/index.html for more information.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+    2954                                                                           IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 41, NO. 10, OCTOBER 2022
+
+
+
+
+                                                                                      with joint spatial and frequency domains as a multi-view
+                                                                                      learning strategy. Furthermore, it can enable the model to
+                                                                                      obtain modality-invariant content-preserved features that are
+                                                                                      robust against situations of missing modalities.
+                                                                                         In order to decompose tumor-specific features and obtain
+                                                                                      holistic representations for segmentation, an intuitive solution
+                                                                                      is to design a novel tumor-region knowledge distillation mech-
+                                                                                      anism with the separated tumor masks as explicit disentan-
+                                                                                      glement supervisions. The knowledge distillation includes a
+                                                                                      holistic tumor-region branch as the student for all categories of
+                                                                                      tumor segmentation and a set of disentangled binary branches
+                                                                                      as the teacher for each tumor category. However, previous
+                                                                                      distillation based models [33]–[36] usually distill features
+                                                                                      of student and teacher at manual selected layers, ignoring
+                                                                                      the distinct contributions for segmentation of multi-level fea-
+                                                                                      tures as well as some potential effective distillation links
+    Fig. 1. Comparison of segmentation performance of three tumor-region              among features and logits. To address this issue, we propose
+    categories with each modality. Green, yellow and red of segmentation              an affinity-guided dense tumor-region knowledge distillation
+    maps refer to peritumoral edema, enhancing tumor, non-enhancing
+    tumor and necrosis, respectively.                                                 (ADT-KD) mechanism in the tumor-region disentanglement
+                                                                                      stage (TD-Stage) to learn holistic and tumor-specific features
+    tance of multi-modalities for tumor-region segmentation [13],                     in a mutual learning way. It exploits the dense and effective
+    [15]. In Fig. 1, we empirically illustrate the performance com-                   links to distill knowledge by learning the relative affinities
+    parison of three tumor-region categories with different modal-                    between features, then controls the distillation intensities of
+    ities using a U2 -Net [25]. Specifically, the whole tumor (WT)                    all layer pairs in both the feature- and logit-levels to improve
+    region is highly distinguishable with FLAIR and T2 modal-                         the ability of information communication and segmentation
+    ities, and the enhancing tumor (ET) region exhibits clear                         performance.
+    structures in T1ce. Hence, it is necessary to disentangle the                        In this paper, we propose a dual disentanglement framework
+    modality-specific information and content-preserved features                      (D2 -Net) consisting of the MD-Stage and TD-Stage to handle
+    from MRI images, and further decouple the features into                           the issue of missing modalities in brain tumor segmentation.
+    multiple tumor-specific features. The former disentanglement                      The MD-Stage helps the model explicitly exploit the corre-
+    enables the model to learn relations among modalities, and                        lations among modality-specific information by decomposing
+    the later captures task-oriented correlations between modalities                  them from MRI images, and the TD-Stage produces decoupled
+    and tumor regions. In this way, the model can achieve robust                      tumor-specific knowledge unrelated to MRI modalities, which
+    brain tumor segmentation with missing modalities.                                 can address the missing modality issue. In summary, this work
+       Previous methods [13], [16] disentangle modality-specific                      includes three major contributions:
+    and modality-independent features via simple auto-encoder                            • In contrast to prior arts that implicitly learn modality
+    networks with reconstruction constraint or adversarial                                  relations among multi-modal MRI images in the feature
+    training to deal with the missing modality issues, however,                             space, we propose a novel SFMC learning scheme in
+    their performances are inadequate to meet the clinical                                  the MD-Stage to explicitly decouple the modality-specific
+    demands. A rational reason is that these commonly used                                  information from MRI images and exploit the correlations
+    reconstruction constraints may derive degenerate solutions and                          among modality representations in a content-independent
+    fail to decompose features well, while adversarial training                             modality space.
+    based models [10]–[12], [20] lack explicit guidance of                               • We represent the first effort to decouple features into mul-
+    modality-specific information. Recently, contrastive learning                           tiple individual tumor-specific features in the TD-Stage.
+    based approaches [26]–[29] have shown state-of-the-art                                  To provide tumor-specific supervision and enable accurate
+    performances in many image recognition tasks. But their                                 tumor-region disentanglement, an ADT-KD mechanism is
+    applications in medical image segmentation tasks, especially                            designed to align the features of a disentangled binary
+    brain tumor segmentation with missing modalities, have yet                              teacher with a holistic student networks.
+    to be further explored. Moreover, existing disentanglement                           • We conduct extensive experiments on a challenging brain
+    based methods [13], [16] only consider spatial domain,                                  tumor segmentation dataset BraTS-2018 and demonstrate
+    while frequency domain as another view preserves low-level                              a clear advantage of the proposed framework over state-
+    statistics [30]–[32] and modality-specific information [32].                            of-the-art methods in missing modalities situations.
+    We therefore propose a novel spatial-frequency jointly
+    modality contrastive (SFMC) learning scheme in the modality                                                 II. R ELATED W ORK
+    disentanglement stage (MD-Stage) to explicitly capture
+    modality-specific information in a self-supervised learning                       A. Learning With Missing Modalities
+    strategy. The proposed SFMC learning scheme can provide                              In recent years, various methods for brain tumor segmenta-
+    explicit supervision towards modality-specific information                        tion with missing modalities have been investigated [8]–[19],
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+    YANG et al.: D2 -Net: DUAL DISENTANGLEMENT NETWORK FOR BRAIN TUMOR SEGMENTATION WITH MISSING MODALITIES                                                    2955
+
+
+
+
+    [21], [22]. Generally, they can be grouped into three lines. The                     The first direction is to model information in latent space
+    first line is based on multi-modal fusion approaches [8], [9],                    utilizing GAN models. GAN-based models reply on the
+    which simply employ feature fusion strategies to aggregate                        hypothesis that content and modality information could be
+    features of all available sets of modalities to obtain fused                      encoded in deep generative architectures. MixNMatch [12]
+    representations for segmentation. Shen et al. [8] introduce a                     decomposes object pose, shape, texture and background infor-
+    channel-independent encoder and a feature fusion module to                        mation of images by leveraging adversarial image and feature
+    learn fused features in an input robust way. Karin et al. [9]                     distributions aligned to learn the latent attribution encoders.
+    adopt a fusion layer at the end of the network to combine                         InfoGAN [37] learns decoupled representations by maximiz-
+    features from all available modalities. Although they are easy                    ing the mutual information between latent variables and gen-
+    to implement, they ignore information from missing modalities                     erated images. These approaches are efficient, but are difficult
+    and the potential correlations among all modalities. The second                   to converge and sensitive to hyper-parameters. An alternative
+    category, modality generation based methods [10]–[12], [20],                      direction is to learn statistical independent latent variables in
+    aims to synthesize missing modalities and then leverages                          the embedded space based on an encoder-decoder framework.
+    complete modalities as inputs to perform segmentation tasks.                      Cheng et al. [38] adopt a Variational Auto-Encoder (VAE) to
+    MGM-GAN [20] utilizes a multi-scale gate emergence-based                          decompose the shape, appearance and background of images
+    generative adversarial network (GAN) to synthesize the miss-                      in a hierarchical manner. The β-VAE [41] adjusts the prior
+    ing modalities of MRI from available modalities. Hi-Net [11]                      matching term of KL divergence with a coefficient β with an
+    learns a mapping from existing modalities to missing modali-                      adaptive module to learn disentangled information.
+    ties by exploiting the correlations among multiple modalities.                       Nevertheless, these methods [12], [37]–[41] lack explicit
+    These methods are computationally cumbersome requiring                            supervision with respect to modality information, and their
+    extra networks for synthesis. Since the optimization objective                    performance may be unsatisfactory. Moreover, they merely
+    of generation and segmentation tasks are not coordinated, the                     employs unsupervised learning schemes to learn latent disen-
+    synthesized data may affect segmentation performance.                             tanglement representation without any task-oriented supervi-
+       Shared knowledge extraction based strategies [13]–[18],                        sion thus struggling to capture desired information. In con-
+    [21], [22] as another line target to learn a shared feature                       trast, the proposed contrastive loss leverages the inherent
+    representation, i.e., modality-invariant features, by removing                    characteristic of multi-modal inputs that all modalities are
+    modality-specific information. HeMIS [14] computes the first                      aligned, which can guide the model to learn modality-specific
+    and second moments of feature statistics of each modality, and                    information in a self-supervised manner.
+    integrates them for segmentation. Chen et al. [13] leverage a
+    disentanglement framework to learn the content and appear-
+                                                                                                                    III. M ETHOD
+    ance codes of MRI data by a simple auto-encoder network
+    and then fuse shared content codes to segment tumor regions.                         In this work, we proposed a dual disentanglement net-
+    Some recent arts [22], [23] propose “dedicated” knowledge                         work (D2 -Net) for brain tumor segmentation with missing
+    distillation schemes to learn mono-modal knowledge from                           modalities, as illustrated in Fig. 2. It consists of a modality
+    a multi-modal model, while they need to train one special-                        disentanglement stage (MD-Stage) for modality-specific infor-
+    ized model for each case with missing modalities, which                           mation decoupling and a tumor-region disentanglement stage
+    is considered cost-ineffective for multiple cases. The latest                     (TD-Stage) for tumor-specific knowledge separation.
+    algorithm [15] presents a correlation module to capture the                          In the MD-Stage, D2 -Net takes the MRI image x
+    latent multi-source relations and then transforms all available                   with multi-modalities as inputs to obtain fused tumor
+    features to latent representations for fusion with an attention                   feature z via the tumor encoder E T . Meanwhile, each
+    module for segmentation.                                                          modal image is separately input the corresponding modality
+       The shared knowledge extraction based methods are simple                       encoders E M with a global average pooling (GAP) layer
+    yet able to model correlations among multi-modal features.                        to produce the modality-specific codes c under the con-
+    However, most of them suffer from the unstable training                           straint of subtly designed spatial-frequency jointly modal-
+    problem and unsatisfactory feature disentanglement. In this                       ity contrastive (SFMC) learning scheme. The disentangled
+    work, we propose a contrastive learning based scheme in                           modality-specific codes c are then transferred to desired
+    both the spatial and frequency domains to explicitly and                          tumor-specific codes ĉ via a tumor modality projection net-
+    stably decompose modality-specific information, and introduce                     work E T M to discover the correlations among modalities and
+    a novel affinity-guided dense knowledge distillation mecha-                       tumor-region features in the latent space. In the TD-Stage,
+    nism to explicitly learn correlations among tumor-regions and                     the modality-content reconstruction network E R transfers the
+    modalities simultaneously.                                                        tumor feature z and tumor-specific codes ĉ into tumor-specific
+                                                                                      features F. The tumor-region features F are decoupled via a
+    B. Disentanglement Representation Learning                                        disentangled binary decoder D T and then boost the holistic
+       Disentanglement representation learning [12], [37]–[41]                        features through a novel affinity-guided dense tumor-region
+    has been commonly studied in unsupervised learning, and                           knowledge distillation (ADT-KD) mechanism with a holistic
+    it enables deep learning models to be easily interpretable.                       multi-class tumor-region decoder D S and the disentangled
+    Recent disentanglement strategies are generally divided into                      binary decoder D T . Finally, the brain tumor segmentation
+    two directions.                                                                   is obtained by holistic tumor-region student D S . The overall
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+    2956                                                                           IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 41, NO. 10, OCTOBER 2022
+
+
+
+
+    Fig. 2. Overview of the proposed dual disentanglement network (D2 -Net). Left: Modality disentanglement stage with the spatial-frequency jointly
+    modality contrastive (SFMC) module. Right: Tumor-region disentanglement stage with the affinity-guided dense tumor-region knowledge distillation
+    (ADT-KD) module.
+
+                                                                                         1) SFMC: For spatial modality contrastive learning in
+                                                                                      the MD-Stage, our target is to guarantee the obtained
+                                                                                      modality-specific codes from the same modality are similar
+                                                                                      and codes from different modalities are distinct. Specifically,
+                                                                                      given an anchor modality-specific code ci,u , with i, u indicat-
+                                                                                      ing the index of modalities and slices, respectively, we regard
+                                                                                      codes ci,v,v=u belonging to the same modality but different
+                                                                                      slices as positive ones, and codes c j,u, j =i belonging to other
+                                                                                      modalities whereas the same slice as negative ones. To restrain
+    Fig. 3.     The illustration of spatial-frequency jointly modality con-           the anchor codes and positive/negative codes via measuring
+    trastive (SFMC) module. In the spatial domain, it calculates the spatial          their similarities, the spatial modality contrastive learning loss
+    contrastive loss (left) and in the frequency domain, it conducts the
+    frequency contrastive loss (right).                                               is formulated as follows:
+                                                                                                                                         
+                                                                                                                        h θ ci,u , ci,v
+    network is optimized by joint loss functions including the                         Lsc = − log 
+                                                                                         i,u,v
+                                                                                                                                                           ,
+    proposed SFMC loss (LSFMC ), ADT-KD loss (LADT-KD ), one                                            h θ ci,u , ci,v + M  j =1 ½[ j  =i] h θ ci,u , c j,u
+    reconstruction loss (Lrec ), one consistency loss (Lconsis), one                                                                                            (1)
+    binary cross-entropy loss (Laux ) and one standard segmenta-
+                                                                                      where ½[ j =i] ∈ {0, 1} is an indicator function evaluating
+    tion loss (Lseg ).
+                                                                                      to 1 if j = i , and h θ (·, ·) denotes the affinity metric
+                                                                                      function and we adopt exponential
+                                                                                                                              cosine similarity τ as:
+    A. Modality Disentanglement Stage (MD-Stage)                                                             p·q
+                                                                                      h θ ( p, q) = exp  p·q · τ , where τ is the temperature
+                                                                                                                    1
+       In the MD-Stage, we propose SFMC learning scheme to                            factor facilitating the model to learn from hard negatives.
+    decompose modality-specific codes from MRI images in the                          Optimized by this contrastive loss, the model can directly
+    spatial and frequency domain jointly, as illustrated in Fig. 3.                   decouple the modality-specific codes from MRI images in the
+    To the best of our knowledge, this represents the first effort to                 spatial domain.
+    leverage spatial and frequency contrastive learning to decouple                      Considering that the amplitude information in the frequency
+    the modality-specific information from MRI images for brain                       domain retains low-level statistics related to modality informa-
+    tumor segmentation.                                                               tion [30], [42], we further employ the frequency modality con-
+       Concretely, given the multi-modal 3D MRI images x =                            trastive learning scheme in the frequency domain to enhance
+          M , x ∈ R M×G×H ×W , where M is the number of
+    {x m }m=1                                                                         the disentanglement performance. To be precise, we firstly
+    modalities, G is the number of slices, H and W are the height                     convert modality-specific codes c into frequency domain to get
+    and width of inputs, we employ the tumor encoder E T to                           frequency spectrum via Discrete Fourier Transform (DFT):
+    obtain the coarse tumor feature z = E T (x). Simultaneously,                                                        −1                              
+                                                                                                                      N
+                                                       M } are adopted
+    a set of modality encoders E M = {E 1M , . . . , E M                                                                              − j 2π       n
+                                                                                                                                                   N
+                                                                                                                                                      k
+                                                                                                        F (c)(k) =            c(n)e                           ,   (2)
+    to extract the modality-specific codes for every modality MRI
+                        M,G                                                                                            n=0
+    image c = {cm,g }m,d=1     = {E m M (x m )}m=1 , c ∈ R
+                                               M              M×G×N ,
+
+    where N is the dimension of modality-specific codes, for each                     where F (c)(k) represents the k-th harmonics of the fre-
+    slice of the MRI images.                                                          quency spectrum F (c). Then, we obtain the discrete
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+    YANG et al.: D2 -Net: DUAL DISENTANGLEMENT NETWORK FOR BRAIN TUMOR SEGMENTATION WITH MISSING MODALITIES                                                    2957
+
+
+
+
+    Fourier amplitude spectrum:
+                                                1/2
+               c f (k) = R 2 (c)(k) + I 2 (c)(k)     ,                         (3)
+
+    where R(c) and I (c) denote the real and imaginary part of
+    the frequency amplitude spectrum, respectively. In the multi-
+                                                                
+                                      , c f ∈ R M×G×N , where N 
+                               f M
+    modal cases, c f = {cm }m=1
+    denotes the dimension of each frequency-wise representation
+    and c f represents the intensity of each frequency component.
+       Then, we conduct the modality contrastive learning scheme
+    in the frequency domain to pull the intra-modal modality
+    spectrum and push the inter-modal modality spectrum. Given
+                             f
+    a modality spectrum ci,u as the anchor, modality spectrum
+    belonging to the same modality but different slices are
+                                   f
+    regarded as positive ones ci,v,v=u , and modality spectrum
+    belonging to other modalities whereas the same slice are
+                                    f
+    regarded as negative ones c j,u, j =i , the formulation of the
+    frequency contrastive loss is:
+                                                       
+                                             f    f
+                                   h θ ci,u , ci,v                                    Fig. 4. The structure of the affinity-guided dense tumor-region knowl-
+    Li,u,v
+      fc   = − log                                                      ,        edge distillation (ADT-KD) module. It performs the knowledge distillation
+                                           j =1 ½[ j  =i] h θ ci,u , c j,u
+                         f      f                                 f     f
+                   h θ ci,u , ci,v + M                                                in all possible links among pairs of layers in the feature-level and logit-
+                                                                                      level.
+                                                                               (4)
+                f      f            f                                                 conducting a linear transformation, where C is the number
+    where     ci,u , ci,v
+                      and      are anchor, positive and negative
+                                  c j,u
+    frequency spectrum, respectively.                                                 of segmentation categories: ĉ = E T M (c). E T M processes
+       For the brain tumor segmentation with M modalities and G                       all modality codes together by fusing them across multiple
+    slices each modality as MRI inputs, the SFMC loss LSFMC is                        modalities and it is guided by tumor-specific features F, which
+    the sum of spatial and frequency contrastive loss and can be                      can preserve tumor-specific knowledge by an auxiliary seg-
+    formulated as:                                                                    mentation loss. Moreover, the tumor feature z contains aggre-
+                                                                                      gated features of all types of tumor regions, thus, the diverse
+                         1 
+                                  M       G   G
+          LSFMC =              ½[v=u] (Li,u,v + Li,u,v                               categories of tumor information is involved in tumor-specific
+                                         sc       fc ).                        (5)
+                        M G2                                                          codes ĉ. In such a way, the model can obtain the fixed number
+                                 i=1 u=1 v=1
+                                                                                      of tumor-specific codes, more suitable for tumor segmentation
+       To ensure the tumor feature z retain intact content informa-                   than modality-specific codes and unrelated to the number
+    tion of MRI images, a set of reconstruction decoders D R =                        of available input modalities. Therefore, the tumor modality
+    {D R1 , . . . , D R M } are adopted to incorporate modality-specific              transfer can identify the correlations among modalities and
+    codes c with tumor feature z to reconstruct MRI data x  =                        facilitate the model to capture modality-specific information
+    D R (c, z), optimized by the reconstruction loss Lrec (x, x  ) =                 thus improving the model robustness even if some modalities
+      x − x  2 with pixel-wise mean square error as metric                           are missing. Then, with the obtained tumor-specific codes ĉ,
+    between MRI images x and the reconstructed images x  .                           the model can use the tumor feature z to generate desirable
+    Hence, the loss function in the MD-Stage can be formulated                        tumor-specific features for better segmentation.
+    as
+                            Lmodal-disen = LSFMC + Lrec ,                      (6)    B. Tumor-Region Disentanglement Stage (TD-Stage)
+    which enables the model to disentangle the modality-specific                         Considering that the features of different tumor-regions have
+    information and obtain robust content-preserved features sta-                     complementary and mutual knowledge, we aim to decouple
+    bly. In such a way, D2 -Net can extract shared features for                       tumor-specific features and then leverage them to obtain
+    segmentation even if some modalities are missing. Then,                           holistic features for segmentation. To this end, as in Fig. 4,
+    it can lead to the projection from original MRI modalities                        in the TD-Stage, we first design a disentanglement branch to
+    to tumor-region aware modalities.                                                 generate decoupled tumor-region features, and then propose
+       2) Tumor Modality Transfer: Prior studies [43], [44] suggest                   the ADT-KD in the feature-level and logit-level to obtain
+    that neural networks can encode the original modality-specific                    holistic tumor features. With a holistic multi-class tumor-
+    codes c and tumor-specific codes ĉ into a linear latent modality                 region student D S and a disentangled binary teacher D T , the
+    space. Therefore, we propose a tumor modality projection                          ADT-KD can decouple the distinct tumor-specific features and
+    network E T M to improve the model robustness and learn                           balance the holistic and disentangled information for accurate
+    segmentation task-oriented tumor-specific modality informa-                       segmentation. Since the decoupled tumor-specific features are
+    tion. E T M transfers the original modality-specific codes c into                 unrelated to the number of available modalities, thus the
+    the tumor-specific codes ĉ = { ĉi, j }C,G
+                                            i, j =1 , ĉ ∈ R
+                                                             C×G×N by
+                                                                                      TD-Stage can address the missing modality issue.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+    2958                                                                             IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 41, NO. 10, OCTOBER 2022
+
+
+
+
+       1) Decoding for Tumor-Region Segmentation: To obtain                            outputs a probability score map, (i.e., logit), as { ptT }tN=1
+                                                                                                                                                   t
+                                                                                                                                                      or
+    decoupled tumor-region representations, we first construct                               Ns
+                                                                                       { ps }s=1 , pt , ps ∈ R
+                                                                                          S         T    S     C×H ×W . In this way, the ADT-KD loss
+    the features with learned tumor-specific codes and then pro-                       including the feature-level and logit-level is formulated as:
+    vide them the explicit supervision with the binary mask                                       Ns
+    of each tumor category. To be specific, we jointly utilize                         LADT-KD = s=1 tN=1
+                                                                                                          t
+                                                                                                            as,t ( F tT − F sS              + KL( ptT  psS )), (9)
+                                                                                                                                        2
+    the coarse tumor feature z and the tumor-specific codes ĉ
+                                                                                       where the first term represents the feature-level knowl-
+    learned in the MD-Stage to generate tumor-specific features
+                                                        C×G  ×H  ×W  ,              edge distillation loss Lkd_feature, and the second term indi-
+    F = {F c }C  c=1 = E R (ĉ, z), where F ∈ R                                        cates the logit-level distillation loss Lkd_logit. KL(··) is the
+    and E R is the modality-content reconstruction network with
+                                                                                       Kullback-Leibler divergence between two predictions. Differ-
+    AdaIN [45] layers to incorporate tumor-specific modality
+                                                                                       ent from existing distillation works [33]–[35] that directly
+    information within content representations. G  , H  , W  are the
+                                                                                       align feature maps of the teacher with student networks, our
+    size of feature maps. Different from the original features z of
+                                                                                       ADT-KD transfers the feature-level and logit-level knowledge
+    MRI images, the generated tumor-specific features F preserve
+                                                                                       between the teacher and the student guided by the identified
+    the tumor segmentation task-oriented modalities, which are
+                                                                                       affinities for all possible combinations of pairs of layers
+    more discriminative and robust. In terms of each tumor cate-
+                                                                                       (Ns ×Nt pairs). By adopting the affinity among mediate feature
+    gory, tumor-specific features {F c }Cc=1 are then decoded by the                   maps, the teacher and student networks can communicate
+    decoupled binary teacher D T to obtain C binary segmentation
+                                                                                       the knowledge between the pair of features according to
+    predictions pcT = D T (F c ), where pcT ∈ R1×H ×W . Each pcT
+                                                                                       the feature relation, which can smooth the training process
+    corresponding to one tumor background region, which can be
+                                                                                       and suppress the knowledge transfer between two features
+    optimized with the binary segmentation mask { yi }C    i=1 , where                 with large discrepancy. In this manner, the student can learn
+    yi = ½[i=c] for the ground truth category c of a sample. The
+                                                                                       tumor-region knowledge from all layers of the teacher, and the
+    binary segmentation mask, as an auxiliary supervision, can
+                                                                                       teacher can also learn holistic and task-oriented information
+    guide the model to segment each tumor category by a binary
+                                                                                       from the student.
+    cross-entropy loss:
+                                                                                         The loss function in the TD-Stage is summarized as follows:
+         Laux = c=1C
+                         yc log pcT + (1 − yc )log(1 − pcT )) . (7)                               Ltumor-disen = LADT-KD + Laux + Lconsis,                     (10)
+       In parallel, the tumor-specific features F are integrated                       where Lconsis = pT − p S 2 is the prediction consistency
+    by a fusion network Fusi on to get fused holistic features                         constraint to further reduce the distance between two final
+    F  = Fusi on(F), and then they are fed into the holistic                          outputs of student and teacher. With the tumor-region disen-
+    tumor-region student D S to get segmentation result p S =                          tanglement loss, we can decouple the tumor-specific features
+    D S (F  ), where p S ∈ RC×H ×W . In this manner, we can                           and enhance the holistic features for accurate segmentation
+    obtain the decoupled tumor-specific features {F c }C    c=1 , holistic             effectively.
+    features F  , and two segmentation predictions p S and pT =
+    concat( p1T , . . . , pCT ), where concat denotes the concatenation.               C. Optimization
+       2) ADT-KD: To utilize the category-wise and generic knowl-
+    edge simultaneously as complementary two-view supervisions,                          In D2 -Net, it consists of a MD-Stage and a TD-Stag in order
+    we devise the ADT-KD to improve the discrimination of                              to address the issue of missing modalities for brain tumor
+    disentangled tumor-specific features and incorporated holistic                     segmentation. Therefore, the overall objective function of our
+    features for segmentation in a mutual learning manner. Let                         D2 -Net framework is:
+           Ns
+    {F sS }s=1  and {F tT }tN=1t
+                                  be two feature banks, where the feature                     Loverall = Lseg + λ1 Lmodal-disen + λ2 Ltumor-disen,             (11)
+    maps F sS and F tT are from the holistic tumor-region student
+    D S and the disentangled binary teacher D T , respectively. The                    where λ1 and λ2 are trade-off factors to balance the contri-
+    Ns and Nt denote the numbers of the elements in the feature                        bution of each term. Lseg consists of standard dice loss and
+    banks of D S and D T .                                                             multi-class cross-entropy loss for accurate segmentation task.
+       Specifically, we first resize the F sS to match the size of F tT ,
+    then calculate the affinities between them as the scalar as,t :                                              IV. E XPERIMENTS
+                                                                                       A. Datasets and Pre-Processing
+                                            F sS · F tT
+                        as,t = GAP(                          ),                (8)        We evaluate our D2 -Net on the 2018 Brain Tumor Segmen-
+                                         F sS 2 F tT 2
+                                                                                       tation Challenge (BraTS) dataset, which consists of 285 anno-
+    where (·) represents the Hadamard product and GAP(·) refers                        tated MRI sequences in the training set. Each case con-
+    to global average pooling. Then, we can calculate the feature-                     tains four aligned modalities including FLAIR, T1, T1ce
+    level ADT-KD losses among all feature maps F tT and F sS                           and T2. There are four categories including the necrotic
+    with the affinities as,t as re-weighting terms. In order to                        and non-enhancing tumor core (NET), enhancing tumor
+    capture the distilled knowledge oriented to segmentation task,                     (ET), edema (ED) and background (BG), and we evalu-
+    we further conduct the logit-level ADT-KD loss via the                             ate the segmentation performance on WT (the sum of all
+    auxiliary classifier at the side of each feature map. Each                         regions except background), TC (the sum of necrotic, non-
+    auxiliary classifier consists of several convolution layers and                    enhancing and enhancing tumor) and ET (the enhancing
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+    YANG et al.: D2 -Net: DUAL DISENTANGLEMENT NETWORK FOR BRAIN TUMOR SEGMENTATION WITH MISSING MODALITIES                                                    2959
+
+
+
+
+                                                                   TABLE I
+        R OBUSTNESS C OMPARISON OF O UR M ODEL AGAINST C URRENT S TATE - OF - THE -A RT M ETHODS ON THE B RATS-2018 D ATASET. T HE D ICE
+         S CORES (%) A RE P ERFORMED AS THE P ERFORMANCES ON T HREE T UMOR R EGIONS (WT, TC AND ET) IN E ACH C ASE W ITH M ISSING
+                   M ODALITIES (M). T HE B EST AND S ECOND B EST S CORES A RE H IGHLIGHTED AND U NDERLINED. (✓) D ENOTES
+                                       THE P RESENT M ODALITY AND (−) D ENOTES THE M ISSING M ODALITY
+
+
+
+
+    tumor) regions. We split the training dataset into three folds                    To balance the contributions of the MD-Stage and TD-Stage,
+    with 190 sequences as training data and 95 sequences as                           we set the trade-off terms λ1 and λ2 both as 1 for the overall
+    validation data, then conduct the experiments in three-fold                       loss function.
+    cross-validation manner. Following previous works [2], [4],                          2) Training Settings: Our framework is implemented with
+    [13], [15], we perform data pre-processing by normalizing                         PyTorch and trained on V100 GPUs with 400 epochs. The
+    the intensity of each MRI sequence to zero mean and unit                          model is optimized by Adam with an initial learning rate of
+    variance. Moreover, we use standard data augmentation tech-                       3 × 10−4 , weight decay of 5 × 10−5 and a batch size of 2.
+    niques including random flipping, random rotation and random                      In the training phase, we randomly set some of modalities as
+    intensity change. In the training phase, the MRI data of each                     null matrices to mimic the situations of missing modalities as
+    modality is randomly cropped from 240 × 240 × 155 to                              in [13], [15], [17]. In the test phase, for the cases of missing
+    128 × 128 × 128 due to limited memory.                                            modalities, we set the missing modalities as null matrices.
+
+    B. Implementation Details                                                         C. Comparison With the State-of-the-Art Methods on
+       1) Network Structures: In D2 -Net,   ET , DR ,      and    DS          DT      Missing Modalities
+    adopt the encoder/decoder structures of our baseline model                           We conduct extensive experiments to compare our D2 -Net
+    U2 -Net [25]. The adaptive instance normalization [45] is                         framework with state-of-the-art methods [13]–[15], [21]–[23]
+    embedded in D R and E R to incorporate the modality informa-                      on different cases with missing MRI modalities on the
+    tion with tumor-specific representations. The modality encoder                    BraTS-2018 dataset. For fair comparison, all models adopt
+    E M consists of four E iM and it is used to generate the                          networks with the comparable number of parameters and are
+    modality-specific codes c with the dimension of R4×1×1×8 .                        trained under the same settings in an end-to-end fashion with
+    The tumor modality projection network E T M composes of                           randomly discarding input modalities. As illustrated in Table I,
+    three 1 × 1 × 1 convolution layers, and E T as the shared                         our proposed method outperforms existing approaches under
+    tumor encoder across all modalities produces tumor feature                        most cases with missing modalities, and achieves the best
+    z with the shape of R4×4×4×4 . E R consists of four residual                      performance of 76.2%, 66.5%, 42.3% in average for dice score
+    3×3×3 convolution layers attaching adaptive instance normal-                      on WT, TC, ET, respectively. From the right column of Table I,
+    ization [45]. In the fusion network Fusi on, two convolution                      the P-value scores between D2 -Net and other comparisons are
+    layers and a squeeze-to-excite layer [46] with the channel-wise                   smaller than 0.05, indicating that the proposed method obtains
+    attention are adopted to fuse the disentangled tumor-specific                     significant improvements over state-of-the-art methods. The
+    features. In our network, the batch normalization and Leaky                       model U-HVED [21] with the second best results utilizes a
+    ReLU activation are used followed by all convolution layers                       VAE-based framework to learn the statistical information in
+    in E M ,E T ,D S ,D T and Fusi on network. In each feature bank                   the latent space and achieves relatively decent performances.
+    of D S and D T , there are four feature maps with the sizes                       Notably, D2 -Net surpasses U-HVED [21] with an average
+    of {R8×8×8×64 , R16×16×16×32, R32×32×32×16 , R64×64×64×8 },                       dice score increase of 0.4%, 3.3%, 1.6% on WT, TC and
+    where the first three dimensions refer to the shape of each                       ET regions, and our D2 -Net performs better in nearly all
+    feature map and the last dimension denotes the channel.                           cases with missing one or two modalities, which demonstrates
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+    2960                                                                           IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 41, NO. 10, OCTOBER 2022
+
+
+
+
+    Fig. 5. Comparison of segmentation results on four cases of missing modalities: complete modalities; FLAIR, T1ce, T2; FLAIR, T1ce; T1ce. From
+    the left to right are four MRI modalities: T1, T2, FLAIR and T1ce; The fifth column presents the Ground Truth of two patients, the sixth to eleventh
+    columns perform the results of state-of-the-art approaches, and the right column shows our segmentation results; Red: necrotic and non-enhancing
+    tumor core; Yellow: enhancing tumor; Green: edema.
+
+    the effectiveness and robustness of the proposed model. It is                     features when even two modalities are missing. In addition,
+    because two novel disentanglement components of D2 -Net                           D2 -Net also achieves the best scores in the cases with only
+    allow the explicitly capture of latent correlations among                         one available modality (3rd , 4t h , 6t h columns). In particular,
+    modalities and tumor-regions. Note that D2 -Net is superior                       D2 -Net performs the best results on WT and TC regions in
+    than other comparisons in the case of complete modalities,                        cases where only T2 or Flair modalities are available (3rd , 6t h
+    with 88.8% on glioma segmentation. These results prove that                       columns). These experiments results prove D2 -Net is powerful
+    decoupling modality-specific information and tumor-specific                       and robust for brain tumor segmentation even when certain
+    knowledge can improve model robustness against situations                         modalities are missing.
+    with missing modalities. Furthermore, the qualitative results of
+    D2 -Net and other comparison approaches [13]–[15], [21]–[23]
+    in four situations with missing modalities (complete modali-                      D. Evaluation of Modality Disentanglement
+    ties, FLAIR+T1ce+T2, FLAIR+T1ce, T1ce) are shown in                                  1) Ablation Study: In order to investigate the effects of our
+    Fig. 5. The proposed D2 -Net can produce more accurate                            SFMC learning scheme, we present the quantitative results in
+    segmentation results in most cases.                                               the 4t h − 6t h rows of Table II. In comparison to the baseline
+       We further analyze different effects of D2 -Net against                        in the 3rd row, the model with spatial modality contrastive
+    multiple situations of missing modalities. From Table I, in all                   learning loss Lsc gains a remarkable improvements in the
+    cases including available T1ce, D2 -Net exhibits the best results                 average dice score of 9.3%. Then, the model with alternative
+    on TC and ET regions. Particularly, in the cases of missing                       frequency modality contrastive learning loss Lfc obtains an
+    T2, T1 or Flair (13t h , 15t h , 16t h columns), D2 -Net outperforms              increase of 8.6% over the baseline. Moreover, by combining
+    the second best one with obvious advantages of 10.9%, 2.0%,                       the spatial and frequency modality contrastive losses as SFMC,
+    1.8% on TC region, and 0.9%, 0.9%, 1.9% on ET regions.                            the model obtains dice scores of 72.9%, 65.5%, 42.2%, with
+    Compared with the results on the case with complete modal-                        as additional improvement of 14.9%, 23.2% and 4.1% on
+    ities, the performances of D2 -Net in the cases of missing T2                     WT, TC and ET against the baseline. These results indicate
+    or T1 only have a slight decrease on WT (1.1%, 0%) and                            the spatial and frequency modality contrastive learning have
+    ET (2.7%, 2.0%) regions. This validates that D2 -Net is robust                    complementary effects and they can improve the segmentation
+    against missing T2, T1 or Flair modalities. For all six cases                     performances via decoupling modality-specific information.
+    consisting of two available modalities (7t h − 12t h columns),                       Furthermore, to verify the effects of tumor modality transfer,
+    we achieve the best dice scores with an average increment of                      we perform the ablations on this transfer process by retaining
+    2.6% and 4.8% against the second best scores on WT and                            or discarding tumor modality projection network E T M . From
+    TC regions, respectively, which indicates that the proposed                       Table IV, the results degrade when we remove the tumor
+    D2 -Net can exploit accurate correlations of different modal                      modality transfer or directly use original modality-specific
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+    YANG et al.: D2 -Net: DUAL DISENTANGLEMENT NETWORK FOR BRAIN TUMOR SEGMENTATION WITH MISSING MODALITIES                                                    2961
+
+
+
+
+                                                                   TABLE II
+    E VALUATION OF E ACH P ROPOSED C OMPONENT ON THE B RATS-2018 D ATASET. T HE AVERAGE AND S TANDARD D EVIATION OF D ICE S CORES (%)
+        A RE P ERFORMED ACROSS F IFTEEN C ASES OF M ISSING M ODALITIES . LSC AND LFC D ENOTE THE S PATIAL AND F REQUENCY M ODALITY
+                   C ONTRASTIVE L OSSES IN THE MD-S TAGE . LKD _FEATURE AND LKD _LOGIT R EPRESENT THE F EATURE -L EVEL AND
+                                             L OGIT-L EVEL L OSSES OF ADT-KD IN THE TD-S TAGE
+
+
+
+
+                                    TABLE III
+                  T HE I MPACTS OF THE N UMBERS OF P OSITIVE
+                            AND N EGATIVE S AMPLES
+
+
+
+
+                                   TABLE IV
+            T HE A BLATION S TUDY ON T UMOR M ODALITY T RANSFER
+
+
+
+
+    codes c. It suggests tumor-specific codes ĉ contain more
+    suitable information compared with original codes c for seg-
+    mentation, indicating the tumor-specific codes ĉ can encode                      Fig. 6. 2D visualization of modality-specific codes distributions: (a) the
+    the tumor-specific information.                                                   baseline, (b) with spatial contrastive learning scheme, (c) with frequency
+                                                                                      contrastive learning scheme, (d) with both.
+       In addition, we conduct sensitivity analysis on the number of
+    positive and negative samples to evaluate their impacts for the
+                                                                                      obtained with both. It is clear that both spatial and frequency
+    performance of D2 -Net. As shown in Table III, more positive
+                                                                                      contrastive learning enlarges the distances of inter-modality
+    samples can only bring few improvements, and more negative
+                                                                                      specific codes, verifying that proposed SFMC enables the
+    samples rarely improve the performance. It is mainly because
+                                                                                      model to decouple modality-specific information from MRI.
+    that the selected negative samples drawn from nearby slices
+                                                                                         3) Comparison With Modality Disentanglement Methods: To
+    with highly similar tumor-related content can be regarded as
+                                                                                      prove the superiority of the proposed SFMC learning scheme
+    hard negative samples. Similarly, the selected positive samples
+                                                                                      in the MD-Stage, we compare it with other methods [13],
+    chosen from far away slices contain the same modality while
+                                                                                      [24] of modality disentanglement. To obtain the segmentation
+    highly discrepant tumor-related content, therefore, they can
+                                                                                      results of the MD-Stage, we remove the ADT-KD mecha-
+    be regarded as hard positive samples. According to previous
+                                                                                      nism, i.e., Lkd_feature and Lkd_logit, and retain two decoders
+    works [47]–[49], utilizing hard positive and negative samples
+                                                                                      D S and D T in the TD-Stage. As in Table V, the SFMC
+    are efficient for contrastive learning. Therefore, in the process
+                                                                                      learning scheme achieves average dice scores of 72.9%,
+    of SFMC, we pick up 1 slice that belongs to the same modality
+                                                                                      65.5% and 42.2% among all cases with missing modalities
+    and has the interval with 48 slices as the single positive
+                                                                                      on WT, TC and ET regions, which is better than previous
+    sample, and the slices belonging to other three modalities
+                                                                                      approach [24] with a significant improvement of 7.1%, 16.9%,
+    while locating in the 8 nearby slices on two sides as negative
+                                                                                      3.7% on WT, TC and ET regions. It is mainly because
+    ones, i.e., 48 (48= 3 × 8×2) negative samples.
+                                                                                      our SFMC provides explicit modality-specific supervision that
+       2) Visualization of Modality-Specific Codes Distribution: In
+                                                                                      leads to such accurate and robust segmentation performance.
+    the MD-Stage, D2 -Net produces decoupled modality-specific
+    codes c by SFMC with spatial and frequency contrastive
+    learning. To clearly show the disentanglement effect, we visu-                    E. Evaluation of Tumor-Region Disentanglement
+    alize the distributions of them in 2D space via t-SNE [50] in                        1) Ablation Study: We assess the contribution of the pro-
+    Fig. 6. Fig. 6 (a) shows the codes obtained without SFMC as                       posed ADT-KD mechanism from the quantitative perspective
+    the baseline, Fig. 6 (b) and (c) present the modality-specific                    as in the 7t h −9t h rows of Table II. We empirically analyze the
+    codes decoupled with spatial and frequency contrastive learn-                     role of the TD-Stage by utilizing either feature-level or logit-
+    ing, respectively, and Fig. 6 (d) suggests the distribution                       level ADT-KD loss. As in Table II, the model trained only
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+    2962                                                                           IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 41, NO. 10, OCTOBER 2022
+
+
+
+
+                                 TABLE V
+     E VALUATION OF THE MD-S TAGE (MD) AND TD-S TAGE (TD) ON THE
+     B RATS-2018 D ATASET. T HE AVERAGE AND S TANDARD D EVIATION OF
+     D ICE S CORES (%) A RE P ERFORMED ACROSS A LL M ISSING C ASES
+
+
+
+
+                                                                                      Fig. 7.     2D visualization of tumor-specific features distributions:
+                                                                                      (a) without TD-Stage, (b) with TD-Stage.
+                                   TABLE VI
+           T HE I MPACTS OF D ECODER L AYER N UMBERS W ITH ADT-KD                     Table V shows that ADT-KD surpasses the Multi-KD [33]
+                                                                                      and Dense-KD [51] on three tumor regions, with 2.7% and
+                                                                                      1.3% improvements on average dice score, which proves that
+                                                                                      the ADT-KD can exchange useful tumor-specific knowledge
+                                                                                      in both feature-level and logit-level.
+
+                                                                                                                  V. D ISCUSSION
+    with feature-level ADT-KD outperforms the baseline with a                         A. Additional Metrics and Model Complexity
+    dramatic advance of 10.4% dice score, which indicates the
+    effectiveness of distillation for segmentation. We also train                        To further verify the effectiveness of the proposed method,
+    the model with only logit-level ADT-KD and obtain the 57.3%                       we test D2 -Net under four additional evaluation metrics includ-
+    average dice score. In addition, incorporating two level distilla-                ing average symmetric surface distance (ASSD), 95% haus-
+    tion losses can obtain the average dice scores of 76.2%, 66.5%,                   dorff distance (HD95), the model complexity and efficiency.
+    42.3% on WT, TC and ET regions, respectively, which is better                     As shown in Table VII, compared with state-of-the-art meth-
+    than employing either one for training the model. Based on the                    ods, D2 -Net achieves the best average scores on ASSD and
+    model with two modality constrastive components (6t h row),                       HD95 across all cases with missing modalities. Specifically,
+    the two-level ADT-KD can further improve the performance                          we achieve 9.9, 10.3 and 18.4 HD95 scores, outperforming the
+    with 3.3% and 1.0% on WT and TC regions, and 1.5% average                         best second one with 1.3, 1.1 and 1.8, respectively. D2 -Net also
+    increase on those three regions (10t h row). These results                        obtains the best score of ASSD on WT, TC and ET regions
+    demonstrate the consistent effectiveness of two-level ADT-KD                      with 8.2, 10.3 and 13.7, respectively. These results further
+    mechanism, which plays a necessary role for tumor-region                          prove the superiority of the proposed method. In addition, the
+    segmentation in the TD-Stage.                                                     right two columns in Table VII imply results of the model
+       To investigate the influence of different layer numbers in                     complexity and efficiency. D2 -Net only requires 5.1 million
+    ADT-KD, we conduct the ablation study on the number of                            parameters, less then other methods, and the required FLOPs
+    decoder layers in ADT-KD process. As shown in Table VI,                           with 4.2 × 1010 is comparable with others, demonstrating the
+    utilizing two pairs of layers in ADT-KD process brings 0.8%                       efficiency and effectiveness of D2 -Net.
+    improvement than the method using only one pair of layers.
+    As the number of decoder layers increases from 1 to 4,                            B. Impact of Each Proposed Loss Function
+    the performance shows remarkable improvements, while the                             To study the impact of each proposed loss function in
+    results tend to be stable when the number of layers are over                      D2 -Net, we conduct sensitivity studies on trade-off factors of
+    4. As using more layers will bring extra computational cost,                      loss functions. Note that for the analysis of each proposed loss,
+    we employ 4 layers of the decoder in ADT-KD to balance the                        we set the factors of all other losses as 1. Fig. 8 shows the
+    performance and the computational cost.                                           average dice scores across three tumor regions with different
+       2) Visualization of Tumor-Specific Features Distribution: In                   weights of spatial contrastive loss Lsc , frequency contrastive
+    the TD-Stage, we extract decoupled tumor-specific features                        loss Lfc , reconstruction loss Lrec , feature-level distillation loss
+    by ADT-KD and binary supervision to explicitly learn the                          Lkd_feature and logit-level distillation loss Lkd_logit. With the
+    correlations among different tumor-region features. In order                      weights increasing from 0 to 1.0, all losses perform positive
+    to demonstrate the effects of TD-Stage, we visualize the                          trend on dice score, and the four losses in SFMC and ADT-KD
+    2D tumor-specific features as shown in Fig. 7. Compared                           perform stably when factors are equal to 2.0. our chosen
+    with the baseline Fig. 7 (a), the distribution of tumor-specific                  weights, i.e., equaled setting as 1.0, achieve the best results in
+    features trained with TD-Stages exhibits larger inter-category                    most cases, demonstrating the effectiveness of proposed losses.
+    distance as in Fig. 7 (b), and proves the ability of tumor-region
+    disentanglement of the TD-Stage.
+       3) Comparison With Distillation Methods: To further verify                     C. Analysis of Frequency Contrastive Learning in
+    the superiority of proposed ADT-KD mechanism, we com-                             Different Levels
+    pare it with two state-of-the-art knowledge distillation meth-                       In D2 -Net, we adopt frequency contrastive learning scheme
+    ods [33], [51] that only consider the feature-level distillation.                 in the level of the output of modality encoders E M , i.e., the
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+    YANG et al.: D2 -Net: DUAL DISENTANGLEMENT NETWORK FOR BRAIN TUMOR SEGMENTATION WITH MISSING MODALITIES                                                    2963
+
+
+
+
+                                                                TABLE VII
+       E VALUATION OF O UR M ETHOD ON THE B RATS-2018 D ATASET. T HE AVERAGE AND S TANDARD D EVIATION OF 95% H AUSDORFF D ISTANCE
+      (HD95) AND AVERAGE S YMMETRIC S URFACE D ISTANCE (ASSD) (mm) A RE P ERFORMED A MONG F IFTEEN C ASES OF M ISSING M ODALITIES .
+                     T HE N UMBER OF M ODEL PARAMETERS (106 ) AND FLOP S (1010 ) A RE S HOWN IN R IGHT T WO C OLUMNS )
+
+
+
+
+                                                                                                                    TABLE VIII
+                                                                                           T HE R ESULTS OF D 2 -N ET U SING F REQUENCY C ONTRASTIVE
+                                                                                                         L EARNING IN VARIOUS L EVELS
+
+
+
+
+                                                                                                                   TABLE IX
+                                                                                            T HE E FFECTS OF D ECODER C OMPRESSION W ITH ADT-KD
+    Fig. 8. The impacts on trade-off factors of proposed loss functions.
+
+    4t h -layer to provide a complementary constraint for spatial
+    contrastive learning. To analyze the effects of the scheme in
+    different levels, we adopt the scheme in each level: input-                       carried by T1ce are relatively hard to capture. To alleviate this
+    level, 1st − 3rd -layer feature maps and 4t h -layer codes of the                 problem, in future work, we will introduce an extra network
+    modality encoders, and record the corresponding performance                       pre-trained by complete modalities to transfer modality-aware
+    in Table VIII. The frequency contrastive learning adopted in                      information to D2 -Net via knowledge distillation to further
+    input and 1st − 3rd layers of the modality encoders shows                         improve the performance with missing modalities.
+    obvious decreased performance, and our choice delivers the
+                                                                                                                 VI. C ONCLUSION
+    best results. It demonstrates that the modality-specific codes
+    extracted by modality encoders represent sufficient and com-                         In this work, we propose a dual disentanglement network
+    pact modality-specific information.                                               (D2 -Net) with the novel MD-Stage and TD-Stage to explicitly
+                                                                                      capture the correlations among modalities and tumor regions
+    D. Model Compression Effect With ADT-KD                                           for brain tumor segmentation with missing modalities. The
+                                                                                      modality disentanglement provides the first effort to employ a
+       The proposed ADT-KD not only facilitates the model to                          SFMC learning scheme to decouple modality-specific informa-
+    learn discriminative tumor-specific features, but helps the                       tion from MRI images in both spatial and frequency domain,
+    lightweight tumor-region student D S to learn compact knowl-                      which enables the model to directly learn the correlations
+    edge from D T . To investigate the model compression ability                      among multiple modalities. Additionally, to discover the rela-
+    of ADT-KD, we compress D S by reducing the number of
+                                                                                      tions among tumor-region features and obtain holistic features
+    feature channels in each layer as the ratio of 1/2 and 1/4                        for better segmentation, the tumor-region disentanglement
+    to train D2 -Net, respectively. From Table IX, the small stu-                     leverages a novel ADT-KD mechanism to decompose various
+    dent network with 1/4 compression ratio can also achieve                          tumor-specific knowledge. Extensive experiments on BraTS-
+    decent performance of 57.1% by distilling knowledge from                          2018 dataset show the capability and robustness of our model
+    the teacher network, verifying the model compression ability                      compared with state-of-the-art methods on brain tumor seg-
+    of ADT-KD.                                                                        mentation with missing modalities.
+
+    E. Advantage and Limitation                                                                                        R EFERENCES
+       D2 -Net can explicitly capture correlations across different                    [1] M. Havaei et al., “Brain tumor segmentation with deep neural networks,”
+                                                                                           Med. Image Anal., vol. 35, pp. 18–31, Jan. 2017.
+    modalities and tumor regions simultaneously, which improves                        [2] H. Jia, Y. Xia, W. Cai, and H. Huang, “Learning high-resolution
+    the model robustness against cases with missing modalities.                            and efficient non-local features for brain glioma segmentation in MR
+    Although D2 -Net shows superior performance, it may produce                            images,” in Proc. MICCAI, 2020, pp. 480–490.
+                                                                                       [3] C. Dai et al., “Suggestive annotation of brain tumour images with
+    unsatisfying results on some special cases. According to                               gradient-guided sampling,” in Proc. MICCAI, 2020, pp. 156–165.
+    Table I, in the cases of missing T1ce modality, D2 -Net may                        [4] B. Yu et al., “Learning sample-adaptive intensity lookup table for brain
+    land in a predicament and deliver relative low performance,                            tumor segmentation,” in Proc. MICCAI, 2020, pp. 216–226.
+                                                                                       [5] J. Zhang, Y. Xie, Y. Wang, and Y. Xia, “Inter-slice context residual
+    especially on the ET region. The reason is that D2 -Net mainly                         learning for 3D medical image segmentation,” IEEE Trans. Med. Imag.,
+    depends on T1ce modality, while the modality information                               vol. 40, no. 2, pp. 661–672, Feb. 2021.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+    2964                                                                             IEEE TRANSACTIONS ON MEDICAL IMAGING, VOL. 41, NO. 10, OCTOBER 2022
+
+
+
+
+     [6] X. Guo, C. Yang, P. L. Lam, P. Y. Woo, and Y. Yuan, “Domain knowl-            [30] Q. Xu, R. Zhang, Y. Zhang, Y. Wang, and Q. Tian, “A Fourier-
+         edge based brain tumor segmentation and overall survival prediction,”              based framework for domain generalization,” in Proc. IEEE/CVF
+         in Proc. MICCAI Workshops, 2019, pp. 285–295.                                      Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2021,
+     [7] Q. Yang and Y. Yuan, “Learning dynamic convolutions for multi-modal                pp. 14383–14392.
+         3D MRI brain tumor segmentation,” in Proc. MICCAI Workshops, 2020,            [31] L. N. Piotrowski and F. W. Campbell, “A demonstration of the visual
+         pp. 441–451.                                                                       importance and flexibility of spatial-frequency amplitude and phase,”
+     [8] Y. Shen and M. Gao, “Brain tumor segmentation on MRI with missing                  Perception, vol. 11, no. 3, pp. 337–346, Jun. 1982.
+         modalities,” in Proc. IPMI, 2019, pp. 417–428.                                [32] Y. Yang and S. Soatto, “FDA: Fourier domain adaptation for semantic
+     [9] K. van Garderen, M. Smits, and S. Klein, “Multi-modal segmentation                 segmentation,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.
+         with missing MR sequences using pre-trained fusion networks,” in Proc.             (CVPR), Jun. 2020, pp. 4085–4095.
+         MICCAI Workshops, 2019, pp. 165–172.                                          [33] Y. Liu, C. Shu, J. Wang, and C. Shen, “Structured knowledge distillation
+    [10] Y. Wang et al., “3D auto-context-based locality adaptive multi-modality            for dense prediction,” IEEE Trans. Pattern Anal. Mach. Intell., early
+         GANs for PET synthesis,” IEEE Trans. Med. Imag., vol. 38, no. 6,                   access, Jun. 12, 2020, doi: 10.1109/TPAMI.2020.3001940.
+         pp. 1328–1339, Jun. 2018.                                                     [34] F. R. Valverde, J. V. Hurtado, and A. Valada, “There is more
+    [11] T. Zhou, H. Fu, G. Chen, J. Shen, and L. Shao, “Hi-Net: Hybrid-fusion              than meets the eye: Self-supervised multi-object detection and track-
+         network for multi-modal MR image synthesis,” IEEE Trans. Med. Imag.,               ing with sound by distilling multimodal knowledge,” in Proc.
+         vol. 39, no. 9, pp. 2772–2781, Sep. 2020.                                          IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2021,
+    [12] Y. Li, K. K. Singh, U. Ojha, and Y. J. Lee, “MixNMatch: Multifactor dis-           pp. 11612–11621.
+         entanglement and encoding for conditional image generation,” in Proc.         [35] Q. Dou, Q. Liu, P. A. Heng, and B. Glocker, “Unpaired multi-modal
+         IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2020,                   segmentation via knowledge distillation,” IEEE Trans. Med. Imag.,
+         pp. 8039–8048.                                                                     vol. 39, no. 7, pp. 2415–2425, Jul. 2020.
+    [13] C. Chen, Q. Dou, Y. Jin, H. Chen, J. Qin, and P.-A. Heng, “Robust             [36] J. Jiang et al., “Deep cross-modality (MR-CT) educed distillation
+         multimodal brain tumor segmentation via feature disentanglement and                learning for cone beam CT lung tumor segmentation,” Med. Phys.,
+         gated fusion,” in Proc. MICCAI, 2019, pp. 447–456.                                 vol. 48, no. 7, pp. 3702–3713, Jul. 2021.
+    [14] M. Havaei, N. Guizard, N. Chapados, and Y. Bengio, “HeMIS: Hetero-            [37] X. Chen, Y. Duan, R. Houthooft, J. Schulman, I. Sutskever, and
+         modal image segmentation,” in Proc. MICCAI, 2016, pp. 469–477.                     P. Abbeel, “InfoGAN: Interpretable representation learning by informa-
+    [15] T. Zhou, S. Canu, P. Vera, and S. Ruan, “Latent correlation repre-                 tion maximizing generative adversarial nets,” in Proc. NeurIPS, 2016,
+         sentation learning for brain tumor segmentation with missing MRI                   pp. 2180–2188.
+         modalities,” IEEE Trans. Image Process., vol. 30, pp. 4263–4274, 2021.        [38] Y.-C. Cheng, H.-Y. Lee, M. Sun, and M.-H. Yang, “Controllable image
+    [16] J. Ouyang, E. Adeli, K. M. Pohl, Q. Zhao, and G. Zaharchuk, “Repre-                synthesis via SegVAE,” in Proc. ECCV, 2020, pp. 159–174.
+         sentation disentanglement for multi-modal brain MRI analysis,” in Proc.       [39] M. Kim, Y. Wang, P. Sahu, and V. Pavlovic, “Bayes-factor-VAE:
+         IPMI, 2021, pp. 321–333.                                                           Hierarchical Bayesian deep auto-encoder models for factor disentangle-
+                                                                                            ment,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV), Oct. 2019,
+    [17] Q. Wang, L. Zhan, P. Thompson, and J. Zhou, “Multimodal learning
+                                                                                            pp. 2979–2987.
+         with incomplete modalities by knowledge distillation,” in Proc. 26th
+                                                                                       [40] S. Bhagat, S. Uppal, Z. Yin, and N. Lim, “Disentangling multiple
+         Int. Conf. Knowl. Discovery Data Mining, Aug. 2020, pp. 1828–1838.
+                                                                                            features in video sequences using Gaussian processes in variational
+    [18] T. Xia, A. Chartsias, and S. A. Tsaftaris, “Pseudo-healthy synthesis with
+                                                                                            autoencoders,” in Proc. ECCV, 2020, pp. 102–117.
+         pathology disentanglement and adversarial learning,” Med. Image Anal.,
+                                                                                       [41] I. Higgins et al., “beta-VAE: Learning basic visual concepts with a
+         vol. 64, Aug. 2020, Art. no. 101719.
+                                                                                            constrained variational framework,” in Proc. ICLR, 2017. [Online].
+    [19] Q. Suo, W. Zhong, F. Ma, Y. Yuan, J. Gao, and A. Zhang, “Metric
+                                                                                            Available: https://openreview.net/forum?id=Sy2fzU9gl
+         learning on healthcare data with incomplete modalities,” in Proc. 28th        [42] J. Huang, D. Guan, A. Xiao, and S. Lu, “FSDR: Frequency
+         Int. Joint Conf. Artif. Intell., Aug. 2019, pp. 3534–3540.                         space domain randomization for domain generalization,” in Proc.
+    [20] B. Zhan, D. Li, X. Wu, J. Zhou, and Y. Wang, “Multi-modal MRI image                IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2021,
+         synthesis via GAN with multi-scale gate mergence,” IEEE J. Biomed.                 pp. 6891–6902.
+         Health Informat., vol. 26, no. 1, pp. 17–26, Jan. 2022.                       [43] T. M. Cover, “Geometrical and statistical properties of systems
+    [21] R. Dorent, S. Joutard, M. Modat, S. Ourselin, and T. Vercauteren,                  of linear inequalities with applications in pattern recognition,”
+         “Hetero-modal variational encoder-decoder for joint modality comple-               IEEE Trans. Electron. Comput., vol. EC-14, no. 3, pp. 326–334,
+         tion and segmentation,” in Proc. MICCAI, 2019, pp. 74–82.                          Jun. 1965.
+    [22] M. Hu et al., “Knowledge distillation from multi-modal to mono-modal          [44] A. Blumer, A. Ehrenfeucht, D. Haussler, and M. K. Warmuth, “Learn-
+         segmentation networks,” in Proc. MICCAI, 2020, pp. 772–781.                        ability and the Vapnik-Chervonenkis dimension,” J. ACM, vol. 36, no. 4,
+    [23] Y. Wang et al., “ACN: Adversarial co-training network for brain tumor              pp. 929–965, Oct. 1989.
+         segmentation with missing modalities,” 2021, arXiv:2106.14591.                [45] X. Huang and S. Belongie, “Arbitrary style transfer in real-time with
+    [24] J. Ouyang, E. Adeli, K. M. Pohl, Q. Zhao, and G. Zaharchuk, “Rep-                  adaptive instance normalization,” in Proc. IEEE Int. Conf. Comput. Vis.
+         resentation disentanglement for multi-modal brain MR analysis,” 2021,              (ICCV), Oct. 2017, pp. 1501–1510.
+         arXiv:2102.11456.                                                             [46] J. Hu, L. Shen, and G. Sun, “Squeeze-and-excitation networks,” in
+    [25] C. Huang, H. Han, Q. Yao, S. Zhu, and S. K. Zhou, “3D U2 -Net: A 3D                Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit., Jun. 2018,
+         universal U-Net for multi-domain medical image segmentation,” in Proc.             pp. 7132–7141.
+         MICCAI, 2019, pp. 291–299.                                                    [47] S. Ma, Z. Zeng, D. McDuff, and Y. Song, “Active contrastive learning
+    [26] P. Khosla et al., “Supervised contrastive learning,” 2020,                         of audio-visual video representations,” 2020, arXiv:2009.09805.
+         arXiv:2004.11362.                                                             [48] D. Dwibedi, Y. Aytar, J. Tompson, P. Sermanet, and A. Zisserman, “With
+    [27] K. He, H. Fan, Y. Wu, S. Xie, and R. Girshick, “Momentum contrast for              a little help from my friends: Nearest-neighbor contrastive learning of
+         unsupervised visual representation learning,” in Proc. IEEE/CVF Conf.              visual representations,” 2021, arXiv:2104.14548.
+         Comput. Vis. Pattern Recognit. (CVPR), Jun. 2020, pp. 9729–9738.              [49] Y. Kalantidis, M. B. Sariyildiz, N. Pion, P. Weinzaepfel, and
+    [28] T. Chen, S. Kornblith, M. Norouzi, and G. Hinton, “A simple framework              D. Larlus, “Hard negative mixing for contrastive learning,” 2020,
+         for contrastive learning of visual representations,” in Proc. ICML, 2020,          arXiv:2010.01028.
+         pp. 1597–1607.                                                                [50] L. Van der Maaten and G. Hinton, “Visualizing data using t-SNE,”
+    [29] Z. Xie, Y. Lin, Z. Zhang, Y. Cao, S. Lin, and H. Hu, “Propagate yourself:          J. Mach. Learn. Res., vol. 9, no. 11, pp. 1–27, 2008.
+         Exploring pixel-level consistency for unsupervised visual representation      [51] M. Ji, B. Heo, and S. Park, “Show, attend and distill: Knowledge
+         learning,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit.                  distillation via attention-based feature matching,” in Proc. AAAI, vol. 35,
+         (CVPR), Jun. 2021, pp. 16684–16693.                                                no. 9, 2021, pp. 7945–7952.
+
+
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:09:01 UTC from IEEE Xplore. Restrictions apply.
+

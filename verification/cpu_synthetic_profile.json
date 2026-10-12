@@ -1,0 +1,50 @@
+[
+  {
+    "device": "cpu",
+    "includes_loading": true,
+    "measured_updates": 1,
+    "median_step_seconds": 0.22445730000617914,
+    "p90_step_seconds": 0.22445730000617914,
+    "patch": [
+      16,
+      16,
+      16
+    ],
+    "peak_allocated_bytes": null,
+    "peak_reserved_bytes": null,
+    "stage": "A",
+    "warmup": 0
+  },
+  {
+    "device": "cpu",
+    "includes_loading": true,
+    "measured_updates": 1,
+    "median_step_seconds": 0.47610110000823624,
+    "p90_step_seconds": 0.47610110000823624,
+    "patch": [
+      16,
+      16,
+      16
+    ],
+    "peak_allocated_bytes": null,
+    "peak_reserved_bytes": null,
+    "stage": "B",
+    "warmup": 0
+  },
+  {
+    "device": "cpu",
+    "includes_loading": true,
+    "measured_updates": 1,
+    "median_step_seconds": 0.10323810001136735,
+    "p90_step_seconds": 0.10323810001136735,
+    "patch": [
+      16,
+      16,
+      16
+    ],
+    "peak_allocated_bytes": null,
+    "peak_reserved_bytes": null,
+    "stage": "C",
+    "warmup": 0
+  }
+]

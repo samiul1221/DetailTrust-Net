@@ -1,0 +1,90 @@
+{
+  "artifacts": {
+    "correction_contributions.csv": {
+      "path": "detailtrust_outputs\\synthetic_verification\\correction_contributions.csv",
+      "rows": 260,
+      "status": "saved"
+    },
+    "figures": {
+      "ablation_comparisons": "detailtrust_outputs\\synthetic_verification\\figures\\ablation_comparisons.png",
+      "correction_contributions": "detailtrust_outputs\\synthetic_verification\\figures\\correction_contributions.png",
+      "gate_distributions": "detailtrust_outputs\\synthetic_verification\\figures\\gate_distributions.png",
+      "learning_curves": "detailtrust_outputs\\synthetic_verification\\figures\\learning_curves.png",
+      "robustness": "detailtrust_outputs\\synthetic_verification\\figures\\robustness.png",
+      "validation_results": "detailtrust_outputs\\synthetic_verification\\figures\\validation_results.png"
+    },
+    "gate_analysis.csv": {
+      "path": "detailtrust_outputs\\synthetic_verification\\gate_analysis.csv",
+      "rows": 260,
+      "status": "saved"
+    },
+    "metrics_per_subject.csv": {
+      "path": "detailtrust_outputs\\synthetic_verification\\metrics_per_subject.csv",
+      "rows": 1911,
+      "status": "saved"
+    },
+    "metrics_summary.csv": {
+      "path": "detailtrust_outputs\\synthetic_verification\\metrics_summary.csv",
+      "rows": 1911,
+      "status": "saved"
+    }
+  },
+  "best_checkpoint_strict_reload": "saved",
+  "evidence": "CPU synthetic execution only",
+  "records": 1911,
+  "report_parsed": true,
+  "statuses": {
+    "A1_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "A2_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "A3_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "A4_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "A5_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "A6_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "A7_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "B0_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "B1_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "B2_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "B3_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "B4_s1729": {
+      "reason": null,
+      "status": "completed"
+    },
+    "B5_s1729": {
+      "reason": null,
+      "status": "completed"
+    }
+  }
+}

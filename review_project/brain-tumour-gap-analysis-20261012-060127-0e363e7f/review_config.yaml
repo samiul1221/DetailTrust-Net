@@ -1,0 +1,67 @@
+# Complete consequential fields before evidence collection.
+schema_version: "2.0"
+project_id: "brain-tumour-gap-analysis-20261012-060127-0e363e7f"
+project_dir: "."
+project_dir_base: "review_config_directory"
+route: "method-survey"
+
+schemas:
+  claim_ledger: "2.0"
+  human_review_gate: "2.0"
+
+review:
+  title_working: "Research gaps in incomplete and degraded brain-tumour MRI segmentation"
+  question_framework: ""
+  question: "Which narrowly specified architecture hypothesis is worth testing against the supplied corpus and targeted prior art?"
+  population: "Brain-tumour MRI research datasets; primary pilot proposed for adult glioma"
+  concept_or_index_test: ""
+  comparator_or_reference_standard: ""
+  outcomes_or_target_condition: ""
+  context: ""
+  modality: "T1, T1ce, T2, FLAIR; missing and degraded sequence conditions"
+  anatomy: "Brain"
+  task: "3D voxel segmentation; ET/TC/WT evaluation where dataset labels permit"
+  setting: ""
+  audience: "User developing a new architecture and original research paper"
+  target_journal: ""
+  language: "English"
+
+coverage:
+  start: ""
+  end: ""
+  evidence_cutoff: "2026-10-12"
+  databases_available: [local_PDFs, user_notes, web_search, author_repositories, PubMed, arXiv, CVF, MICCAI]
+  eligibility_languages: []
+  grey_literature_policy: "Include labeled preprints and author code to challenge novelty; do not assume journal-version equivalence"
+
+methods:
+  standard_record_fields: [title, version, url, accessed_at, applicability, replaces]
+  conduct_guidance: []
+  review_reporting_guidance: []
+  primary_study_reporting_frameworks: []
+  risk_of_bias_tools: []
+  certainty_framework: null
+
+citations:
+  bibliography: "references.bib"
+  working_syntax: "pandoc-citekey"
+  target_csl: null
+
+human_review:
+  screeners: []
+  extractors_or_charters: []
+  adjudicator: ""
+  risk_of_bias_reviewers: []
+  certainty_reviewers: []
+  gate_path: null
+
+ai_assistance:
+  used: "yes"
+  uses: [text_extraction, targeted_source_checks, provisional_method_comparison, hypothesis_generation]
+  disclosure_path: "AI_USE_DISCLOSURE.md"
+  human_decision_authority_confirmed: false
+
+delivery:
+  format: "markdown"
+  project_status: "Provisional gap recommendation available; human source verification and complete prior-art/code review pending; no experiments"
+  audit_profile: null

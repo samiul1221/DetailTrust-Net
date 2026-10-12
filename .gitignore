@@ -1,0 +1,10 @@
+.env
+.env.*
+.venv-detailtrust/
+__pycache__/
+.pytest_cache/
+detailtrust_outputs/
+*.pt
+*.npy
+*.nii
+*.nii.gz

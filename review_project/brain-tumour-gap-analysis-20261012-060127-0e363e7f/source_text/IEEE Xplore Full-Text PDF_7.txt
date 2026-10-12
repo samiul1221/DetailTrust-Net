@@ -1,0 +1,793 @@
+    IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 4, APRIL 2024                                                                       5355
+
+
+
+
+         SwinPA-Net: Swin Transformer-Based Multiscale
+            Feature Pyramid Aggregation Network for
+                  Medical Image Segmentation
+                 Hao Du, Graduate Student Member, IEEE, Jiazheng Wang , Graduate Student Member, IEEE,
+                            Min Liu , Member, IEEE, Yaonan Wang , and Erik Meijering , Fellow, IEEE
+
+
+       Abstract— The precise segmentation of medical images is                                               I. I NTRODUCTION
+    one of the key challenges in pathology research and clinical
+    practice. However, many medical image segmentation tasks have
+    problems such as large differences between different types of
+    lesions and similar shapes as well as colors between lesions and
+                                                                                      D     EEP-LEARNING-BASED image segmentation plays a
+                                                                                            critical role in medical image analysis and has achieved
+                                                                                      impressiveimpressive performance in several medical tasks [1],
+    surrounding tissues, which seriously affects the improvement of                   [2], [3], such as the segmentation of organs and tissues in var-
+    segmentation accuracy. In this article, a novel method called                     ious types of microscopic images [4], [5], polyp segmentation
+    Swin Pyramid Aggregation network (SwinPA-Net) is proposed                         in colonoscopy images [6], [7], and skin lesion segmentation in
+    by combining two designed modules with Swin Transformer
+    to learn more powerful and robust features. The two modules,                      dermoscopy images [8]. Accurate and efficient medical image
+    named dense multiplicative connection (DMC) module and local                      segmentation can be employed not only to identify the features
+    pyramid attention (LPA) module, are proposed to aggregate the                     of the lesion areas but also provide a reliable basis to aid
+    multiscale context information of medical images. The DMC                         clinical diagnosis and condition research [9], [10], [11], [12]
+    module cascades the multiscale semantic feature information                       and has potential application value in surgical navigation and
+    through dense multiplicative feature fusion, which minimizes
+    the interference of shallow background noise to improve the                       disease progression monitoring.
+    feature expression and solves the problem of excessive variation                     In recent years, convolutional neural networks (CNNs)
+    in lesion size and type. Moreover, the LPA module guides the                      such as ResNet [13] have shown powerful feature extrac-
+    network to focus on the region of interest by merging the                         tion capabilities. Subsequently, the fully convolutional net-
+    global attention and the local attention, which helps to solve                    work (FCN) [14] creatively replaced the fully connected
+    similar problems. The proposed network is evaluated on two
+    public benchmark datasets for polyp segmentation task and skin                    layer in CNN with the convolutional layer to preserve the
+    lesion segmentation task as well as a clinical private dataset for                spatial information of the image for semantic segmentation
+    laparoscopic image segmentation task. Compared with existing                      tasks [15]. Inspired by FCN, a typical U-shaped network,
+    state-of-the-art (SOTA) methods, the SwinPA-Net achieves the                      named U-Net [16], is proposed to overcome problems on med-
+    most advanced performance and can outperform the second-best                      ical image segmentation. By using the encoder–decoder struc-
+    method on the mean Dice score by 1.68%, 0.8%, and 1.2% on
+    the three tasks, respectively.                                                    ture and skip connections, the network can learn the multiscale
+                                                                                      features properly and has performed well in many medical
+       Index Terms— Dense multiplicative connection (DMC) mod-                        image segmentation tasks, quickly becoming a baseline for
+    ule, local pyramid attention (LPA) module, medical image
+    segmentation.                                                                     comparing the state-of-the-art (SOTA) medical image segmen-
+                                                                                      tation algorithms. With the popularity of U-Net, some inno-
+                                                                                      vative models based on the U-shaped architecture have been
+                                                                                      proposed and achieved good results, such as UNet++ [17],
+      Manuscript received 28 March 2022; revised 7 July 2022; accepted                SegNet [18], DenseUNet [19], KiU-Net [20], and CAB U-Net
+    22 August 2022. Date of publication 19 September 2022; date of current            [21]. However, the convolutional-based deep learning networks
+    version 5 April 2024. This work was supported in part by the National Natural     have inherent defects, such as the difficulty of accurately
+    Science Foundation of China under Grant 62073126, in part by the Hunan
+    Provincial Natural Science Foundation of China under Grant 2020JJ2008,            defining the boundary features and the lack of global con-
+    in part by the Key Research and Development Program of Hunan Province             text information, which limits its further improvement in the
+    under Grant 2022WK2011, and in part by the Science and Technology                 performance of biomedical image segmentation tasks.
+    Program of Changsha under Grant kq2102009. (Hao Du and Jiazheng Wang
+    contributed equally to this work.) (Corresponding author: Min Liu.)                  To address the above issues, several novel approaches have
+      Hao Du, Jiazheng Wang, Min Liu, and Yaonan Wang are with the                    been developed in recent years, such as the Mumford–Shah
+    College of Electrical and Information Engineering and the International           model, contrastive learning, and pyramid structure. Methods
+    Scientific and Technological Innovation Cooperation Base for Biomedical
+    Image Processing, Hunan University, Changsha, Hunan 410082, China                 based on the Mumford–Shah model [22], [23] extract accurate
+    (e-mail: liu_min@hnu.edu.cn).                                                     boundary information of the original image through piece-
+      Erik Meijering is with the School of Computer Science and Engineering,          wise smoothing functions and optimization strategies, while
+    University of New South Wales, Sydney, NSW 2052, Australia (e-mail:
+    meijering@imagescience.org).                                                      methods based on contrastive learning [24], [25] regulate
+      Digital Object Identifier 10.1109/TNNLS.2022.3204090                            the distance between semantic information by exploring the
+                            2162-237X © 2022 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                                          See https://www.ieee.org/publications/rights/index.html for more information.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+    5356                                                    IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 4, APRIL 2024
+
+
+
+    pixel-level relationship between features. However, the time
+    complexity of these methods is often very high, and it is
+    difficult to accurately segment different types of lesions with
+    large differences. The pyramid structure [26], [27], [28], [29]
+    obtains multiscale contextual information by utilizing different
+    convolution rates or multiresolution input feature maps. For
+    example, Deeplab [26] adopts multiple convolution rates with
+    different receptive fields to improve the multiscale information
+    extraction ability of the model. SSPP [27] utilizes different
+    stride pooling operations to generate multiresolution feature
+    maps. However, it is difficult for these methods to effectively
+    identify small local features, and the perceptual field of these
+    methods is not well adjusted to obtain the best features for
+    lesions of different sizes at each stage.                                         Fig. 1. Difficulties in medical image segmentation. (a) Cases where the
+       Inspired by the huge achievements of transformers in                           lesions between different medical image datasets are quite large. (b) Cases
+                                                                                      where the pixel variations between the lesion and surrounding tissues are
+    natural language processing (NLP) tasks [30], several deep                        small. The areas enclosed by the green line indicate the lesion part.
+    learning networks with transformer backbone have been uti-
+    lized in the computer vision (CV) domain [31]. The vision                         cues. In each layer, the feature map is split into different sizes
+    transformer (ViT) [32] is the first transformer architecture                      and dimensions, and then, the local as well as global attention
+    designed for image classification, which encodes the input                        maps are obtained and integrated. Through the integration of
+    image as two-dimensional flattened patches with the location                      attention maps with different dimensions, the network can be
+    embeddings, producing convincing results on ImageNet by                           guided to focus on the target area, which is conducive to
+    pretraining on a large dataset. Following the technical route                     enhance the distinction of semantic features and reducing the
+    of ViT, data-efficient image transformer (DeiT) [33] can                          impact of low contrast.
+    learn the local features through the distillation token, and it                      With the above descriptions, we name the method as Swin
+    can achieve good performance in smaller datasets because                          Pyramid Aggregation network (SwinPA-Net). The proposed
+    of the data-efficient training strategy. Although the above                       SwinPA-Net is tested on three challenging medical image
+    transformer-based architecture can reach SOTA in some image                       segmentation tasks: polyp segmentation in colonoscopy
+    recognition tasks, these networks generally have high demands                     images, skin lesion segmentation in dermoscopy images, and
+    on computer hardware and face the lack of generalization                          the segmentation of loose connective tissue in laparoscopic
+    abilities. To solve these problems, Swin Transformer [34] pro-                    images. The first and second tasks are based on public
+    poses a self-attention mechanism based on shifted windows,                        benchmark datasets, while the third task is based on a clinical
+    which improves the generalization of the model and greatly                        private dataset.
+    reduces the computational complexity through cross-window                            The contribution of this work can be summarized in the
+    connections. It has achieved SOTA performance in different                        following three areas.
+    kinds of tasks, such as image classification, object detection,                      1) A U-shaped network named SwinPA-Net is proposed,
+    and semantic segmentation.                                                               which introduces two designed modules into the network
+       In this article, motivated by the success of Swin Trans-                              with Swin Transformer as backbone. During encod-
+    former and other novel methods mentioned earlier, we adapted                             ing, the proposed model employs Swin Transformer to
+    this work to the area of medical image segmentation and                                  extract features, enabling the network to have global
+    introduced two designed modules into the U-shaped network                                and dynamic receptive fields through self-attention and
+    with Swin Transformer as backbone to solve the problems                                  shifted window mechanisms. Also, the DMC and LPA
+    that still exist in medical image segmentation. For instance,                            module are proposed to enhance the feature extraction
+    there is a large gap between different types of lesions in                               capability of the SwinPA-Net. The DMC module adopts
+    various medical image datasets, with lesions having similar                              a DMC method, which can reduce the interference
+    shapes and colors to the surrounding tissues and low contrast,                           of noise on the shallow features, so that the shallow
+    as shown in Fig. 1. Specifically, the two modules, named dense                           information containing more boundary details can be
+    multiplicative connection (DMC) module and local pyramid                                 obtained. The LPA module aggregates attention cues
+    attention (LPA) module, are proposed to aggregate the multi-                             in different scales as well as guide the network to
+    scale context information of different kinds of medical images.                          enhance semantic features and emphasize the target area,
+    The DMC module cascades the multiscale semantic feature                                  resulting in accurately locating the lesion. Moreover, the
+    information through multiplicative feature fusion, guiding the                           SwinPA-Net utilizes CNN as the decoder to restore and
+    network to focus on feature information of different scales,                             integrate the local and global feature maps to obtain
+    which can reduce the interference of shallow feature noise                               more powerful and robust features.
+    and improve the expression of features. Furthermore, the DMC                         2) By evaluating the proposed method on three challenging
+    module can help the network to better identify lesion edges                              medical image segmentation tasks (polyp segmentation
+    in different sizes and solve the problem of size changes. The                            in colonoscopy images, skin lesion segmentation in
+    LPA module uses a pyramid module to aggregate attention                                  dermoscopy images, and the segmentation of loose
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+    DU et al.: SwinPA-Net: SWIN TRANSFORMER-BASED MULTISCALE FEATURE PYRAMID AGGREGATION NETWORK                                                                5357
+
+
+
+
+    Fig. 2. Framework of the proposed SwinPA-Net. The medical image is fed into the encoder composed of Swin Transformer to obtain feature maps of
+    different scales, and then, the multiscale feature information is merged through the proposed DMC module. Under the action of the LPA module, the attention
+    mechanism is used to obtain the enhanced feature map of the target area. Furthermore, the feature map is upsampled by the decoder to the same resolution
+    of the original image, and the final mask prediction is obtained. H and W denote the image height and width.
+
+          connective tissue in laparoscopic images), we demon-                        a U-shaped structure based on the decoder and encoder. First,
+          strate its good robustness and wide practicability.                         we introduce the Swin Transformer structure used in the model
+          By introducing the proposed method, the mean Dice                           and then introduce other important implementation details of
+          score was increased by 1.68%, 0.8%, and 1.2% com-                           the model, such as how the DMC module effectively integrates
+          pared with the second-best method on the three                              contextual multiscale feature information and how the LPA
+          tasks, respectively. The experimental results show that                     module combines local and global features.
+          SwinPA-Net achieves robust results and is competitive
+          with other SOTA methods.                                                    B. Swin Transformer Encoder
+       3) The Laparoscope Interoperative Vision (LIVis) dataset                          A standard transformer structure first splits the input image
+          is created for recognizing loose connective tissue of the                   equally into a series of nonoverlapping patches, and then,
+          mesorectum to avoid damage to important tissues during                      the pixels of these patches are linearly flattened into several
+          total mesorectal excision (TME) surgeries. It contains                      1-D vectors. Afterward, these vectors are passed through the
+          15 h of laparoscopic video and 1180 high-resolution                         multihead self-attention (MSA) module to calculate the self-
+          images with 1920 × 1080 pixels, which are collected                         attention and would be finally processed using Gaussian error
+          from the surgical robot at a hospital in Changsha, Hunan,                   linear unit (GELU) nonlinearity and multilayer perception
+          China. The reference of these images contains pixel                         (MLP) layers, while each module is preceded by a LayerNorm
+          fractions for loose connective tissue of the mesorectum                     (LN) layer followed by a residual connection.
+          at different stages of the surgery, which are annotated                        Due to the division of the image into small patches, the
+          and cross-verified by surgical experts. It is notable that                  standard transformer needs to calculate relationships between
+          the LIVis dataset can be used not only as a benchmark                       these patches, where implies quadratically growing computa-
+          to evaluate the performance of the proposed method but                      tional cost. Therefore, Swin Transformer employs window-
+          also to provide reference for subsequent research.                          based MSA (W-MSA) and shifted window-based MSA
+       The rest of this article is organized as follows. Section II                   (SW-MSA), which changes the regular window partitioning
+    describes the proposed image segmentation algorithm. The                          method and uses a more efficient shifted window partitioning
+    segmentation experiments on medical datasets are presented                        strategy, as shown in Fig. 3(a). Not only does it maintain
+    in Section III. Finally, we draw our conclusion in Section IV.                    efficient computation of nonoverlapping windows, but it also
+                                                                                      establishes connections between different windows. Two suc-
+                                   II. M ETHOD
+                                                                                      cessive Swin Transformer blocks use W-MSA and SW-MSA
+    A. Overview                                                                       modules, respectively, to establish the connection between
+      In this section, the overall structure of the proposed                          different windows, as shown in Fig. 3(b). ẑ l and z l represent
+    SwinPA-Net is introduced in detail, as shown in Fig. 2. It is                     the outputs of W-MSA and MLP in the lth layer, which can
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+    5358                                                    IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 4, APRIL 2024
+
+
+
+
+    Fig. 3. Structure of Swin Transformer. (a) Windows for self-attention computations in adjacent layers l and l + 1 are divided into regular window and shifted
+    window. (b) Details of the Swin Transformer.
+
+
+    be expressed by the following equations:
+                        ẑ l = W-MSA(LN(z l−1 )) + z l−1                       (1)
+                        z = MLP(LN(ẑ )) + ẑ .
+                         l                  l        l
+                                                                               (2)
+      By using the shifted window partitioning strategy, the out-
+    puts of the SW-MSA and MLP module can be expressed as
+                        ẑ l+1 = SW-MSA(LN(z l )) + z l                        (3)
+                        z l+1 = MLP(LN(ẑ l+1 )) + ẑ l+1 .                    (4)
+       In this article, considering the complexity and time effi-
+    ciency, we adopt Swin-B as the encoder for feature extraction.
+    The input image X ∈ R H ×W ×3 is split into (H /s) × (W/s)
+    nonoverlapping patches, where s represents the patch size,
+    and these patches are flattened and projected to dimension c
+    through a linear embedding layer. Next, these patch tokens are
+    fed into the Swin Transformer and sequentially go through four
+    stages to extract features. Each stage has several consecutive
+    Swin Transformer blocks, including W-MSA and SW-MSA,
+    and then uses the patch-merging module to downsample and                          Fig. 4. Different styles of feature fusion. (a) Simple skip connection is used,
+    double the dimensions of the features. The output of each stage                   but the features of different scales are not fused. (b) Dense addition connection
+                                                                                      (DAC) module: the features of different scales adopt the dense composition
+    is (H /s) × (W/s) × C, (H /2s) × (W/2s) × 2C, (H /4s) ×                           method of addition. (c) Dense concatenation connection (DCC) module: the
+    (W/4s) × 4C, and (H /8s) × (W/8s) × 8C, respectively.                             features of different scales adopt the dense concatenation method of addition.
+                                                                                      (d) DMC module: the dense composition method of multiplication is adopted
+                                                                                      between the features. The composite connections are lines representing some
+    C. DMC Module                                                                     simple operations, i.e., upsampling and 1 × 1 convolution.
+       In the medical image segmentation tasks, we hope that the
+    network can focus on the target area, but due to the different
+    sizes of the targets, especially when some lesion areas or                        when fusing shallow feature maps [35], [36], [37], the fused
+    anatomical landmarks are relatively small, it is difficult to                     image generally contains a certain amount of noise, which
+    locate the target area accurately. The main reason is that                        also affects the segmentation results. Therefore, we propose
+    the feature maps generated by the encoder would become                            the DMC module to reduce the noise of the shallow features,
+    increasingly coarse due to continuous downsampling. For a                         as shown in Fig. 4(d).
+    small target area, the boundary information in the deep feature                      In the DMC module, we fuse feature maps of different
+    maps would be turned into a few pixels or even lost altogether,                   scales with higher level semantic features to guide the network
+    which has a great impact on the accuracy of the medical image                     to focus on shallow and deep features to obtain a more
+    segmentation. A simple method is to input a large-size image                      comprehensive feature perception. At the same time, inspired
+    to obtain a larger feature map, preserving the information of                     by [38], the multiplication method can amplify the difference
+    the lesion area as much as possible, but this would incur a huge                  between the noise area and the normal area and reduce the
+    computational cost. Another method is to fuse shallow features                    noise interference caused by shallow features in the feature
+    and deep features, where the shallow feature map contains a lot                   fusion process. Specifically, the output of the encoder is
+    of detailed boundary information. However, since the shallow                      defined as E m (m = 1, . . . , 4), and the output Fm of the feature
+    feature map simultaneously retains some noise and most                            fusion stage m is the product of the encoder output of this stage
+    feature fusion methods would mix some irrelevant information                      and the encoder output of the remaining 4 − m stage, which
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+    DU et al.: SwinPA-Net: SWIN TRANSFORMER-BASED MULTISCALE FEATURE PYRAMID AGGREGATION NETWORK                                                                5359
+
+
+
+    can be expressed as follows:
+                                  
+                                  4
+                          Fm =          gi (E i ), m ≥ 1                       (5)
+                                  i=m
+
+    where g(·) represents the feature transformation, which uses
+    1 × 1 convolution to reduce the number of channels and
+    upsampling to restore the resolution. Fig. 4 illustrates the
+    difference between the multiplicative feature fusion method
+    and three other fusion methods. Fig. 4(a) adopts the jump con-
+    nection method of U-net without feature fusion, which would
+    introduce the noise of shallow information, so that the effect
+                                                                                      Fig. 5. Architecture of the LPA module. First, the feature map is divided
+    of this method on image segmentation is not much improved.                        into multiple feature vectors and the weight vector of each feature vector is
+    Fig. 4(b) and (c) utilizes the fusion method of addition and                      obtained through the attention mechanism. Subsequently, the weight vector
+    concatenation, respectively, so that shallow and deep features                    for the current dimension level is constructed by merging each weight vector
+                                                                                      and is applied to the original input feature map to obtain the attention map by
+    are merely combined, but using these two strategies would                         elementwise multiplication. At last, the output is composed of the attention
+    ignore the correlation between multiscale features. The above                     maps with different levels. The attention mechanism consists of two attention
+    three ways can be expressed as follows:                                           blocks: the CA and SA blocks.
+
+                   F2mul = g2 (E 2 ) · g3 (E 3 ) · g4 (E 4 )                   (6)    overcome these difficulties, attention mechanism is introduced
+                   F2add = g2 (E 2 ) + g3 (E 3 ) + g4 (E 4 )                   (7)    to solve this problem, which can help the network locate
+                 F2concat = concat(g2 (E 2 ), g3 (E 3 ), g4 (E 4 )).           (8)    interesting area as well as suppress useless information and
+                                                                                      has been widely used in deep learning [39]. For example, the
+      When the neural network backpropagates to calculate the                         bilateral attention decoder [40] adopts a lightweight bilateral
+    gradient, the calculations can be expressed by the following                      decoder to capture semantic and spatial information more
+    equations:                                                                        accurately. SAB Net [41] puts forward a semantic attention
+                           ∂ F2mul                                                    boosting (SAB) network that iteratively fuses contextual infor-
+                                     = g3 (E 3 ) · g4 (E 4 )                   (9)    mation across layers adaptively via semantic regularization.
+                          ∂g2 (E 2 )
+                                                                                      In this article, we propose the LPA module to guide the
+                           ∂ F2add
+                                     =1                                      (10)     network to enhance the distinction of semantic features and
+                          ∂g2 (E 2 )                                                  emphasize the target area. The structure of LPA module is
+                          ∂ F2concat                                                  shown in Fig. 5.
+                                     = concat(1, 0, 0).                      (11)
+                          ∂g2 (E 2 )                                                     The attention mechanism consists of two attention blocks:
+      It follows from (9) and (10) that when using the addition                       the spatial attention (SA) and channel attention (CA) block.
+    and concatenation methods, the gradient of each branch is                            Not all regions in the image are equally important in
+    constant and has no correlation with other branches. Therefore,                   contributing to the task, and thus, the SA module [39] is
+    the result of one branch does not affect other branches, and                      utilized as the SA block to find the task-relevant parts of
+    the network cannot smoothly learn the correlations between                        the features by using interspatial information. Given the input
+    multiple branches. In the multiplication method, the gradient                     feature, the SA A S is defined as
+    of each branch is not fixed and will be affected by other
+                                                                                                      A S = σ (ξ(Concat(Pavg (X), Pmax )))                     (12)
+    branches. In that case, if one of the branches cannot obtain
+    excellent features, the use of multiplicative fusion will magnify                 where σ is the sigmoid function, and Pmax and Pavg denote
+    the error of the branch, resulting in a large gradient. Therefore,                adaptive maximum pooling and adaptive average pooling
+    the multiplication feature fusion method can greatly constrain                    across the channel functions, respectively. ξ(·) is a convolution
+    each branch in the training process, so that each branch can                      with 7 × 7 filter.
+    obtain better features and different branches can promote                            The CA module measures the importance of features
+    each other, thereby filtering out the noise and obtaining more                    by assigning different weights to channels. In this article,
+    accurate prediction results.                                                      we adopt “squeeze and excitation” block (SE layer) [42] as
+                                                                                      the CA module, which consists of a global average pooling
+    D. LPA Module                                                                     layer and two fully connected layers, and the CA AC is defined
+        In the medical image segmentation tasks, the desirable seg-                   as
+    mentation network would only focus on the target area of the                                      AC = σ (FC2 ReLu(FC1 Poolavg (X)))                       (13)
+    lesion. However, due to the large difference between the types
+    of lesions in various medical images and the small difference                     where FC1 and FC2 represent two fully connected layers, and
+    between the color of the lesion and the surrounding tissues,                      Poolavg represents the average pooling layer.
+    it is difficult for the network to accurately identify the location                 Assume that an input feature map X ∈ R H ×W ×C has
+    of the lesion. At the same time, the network needs to learn the                   height H , width W , and several input channels C, and then,
+    complex structure of lesions with different sizes. In order to                    the pyramid structure Pi is employed to learn the multiscale
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+    5360                                                    IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 4, APRIL 2024
+
+
+
+    information of the feature map X, where Pi represents the                         different sizes of lesion shapes. In order to better train and
+    i th layer pyramid. First, the global attention map is obtained                   optimize our model, we combine Dice loss and binary cross
+    through the first layer of the pyramid. Subsequently, the                         entropy (BCE) loss to form a new loss function, which can be
+    remaining layer of the pyramid splits the feature map into                        defined as
+                                                                                                                 
+    smaller dimensions and gets more accurate lesion boundary                                                         yi p i + ε
+    predictions through the local attention mechanism. Then, the                              L DICE = 1 − 2  i                                   (14)
+                                                                                                                i yi +      i pi + ε
+    local information is merged into the attention map of the                                             
+    current layer. Finally, the attention maps of different layers                            L BCE = −       (yi ln( pi ) + (1 − yi ) ln(1 − pi )) (15)
+    Pi (X) are fused with each other to obtain the final attention                                              i
+
+    map.                                                                                             L = L DICE + L BCE                                        (16)
+        The detailed operation of Pi mainly consists of three stages.                 where y and p represent the real label of the image and
+    First, the input feature map X is split into n feature vectors of                 the predicted result, respectively, and ε is a parameter set to
+    equal size along the H , W directions. The number of vectors                      1 to improve stability. Through the combined loss function,
+    n is based on the number of layers i and grows quadratically.                     the network can converge quickly and stably and can achieve
+    As the number of pyramid layers i increases, the number of                        good results on different medical image datasets. At the same
+    n = i 2 more refined feature vectors f j ( j = 1, . . . , n) would                time, in the comparison experiment, we used this loss function
+    be gained. Second, after the feature vectors are obtained, the                    for training in different segmentation tasks for all comparison
+    channel weight vectors wcj ( j = 1, . . . , n) can be obtained                    methods.
+    by learning each feature vector with the CA block and then
+    multiplying the feature vector f j with the CA vector wcj to                                                    III. E XPERIMENTS
+    obtain the CA map Wcj ( j = 1, . . . , n). Next, the CA map
+                                                                                         The proposed SwinPA-Net and other SOTA segmentation
+    Wcj is sequentially passed through the SA block to obtain the
+                                                                                      methods were trained and tested under the same conditions
+    corresponding SA matrix ws j ( j = 1, . . . , n), and then, the
+                                                                                      on three challenging medical image datasets called the Polyp
+    CA map Wcj is multiplied by the SA matrix ws j to obtain
+                                                                                      dataset, the ISIC 2018 dataset, and the LIVis dataset. Common
+    the SA map Ws j ( j = 1, . . . , n). Finally, based on the spatial
+                                                                                      metrics were used to evaluate the performance of the proposed
+    location encoding information for the feature map at the time
+                                                                                      segmentation method. Also, an ablation study was conducted
+    of splitting, all the SA maps Ws j are reintegrated with the
+                                                                                      to demonstrate the effectiveness of different modules in the
+    inverse operation of splitting to obtain the attention map Pi (X)
+                                                                                      SwinPA-Net.
+    corresponding to the current i th pyramid level, where the size
+    of the attention map Pi (X) is the same as that of the original
+    feature map X.                                                                    A. Datasets and Implementation
+        Through the same operation, the network can be guided to                         1) Polyp Dataset: The polyp dataset consists of five
+    find the attention maps Pi (X) of different layers and would                      public datasets named Kvasir [43], CVC-ClinicDB [44],
+    finally be merged to obtain the final attention map. This can                     CVC-ColonDB [45], EndoScene [46], and ETIS [47]. These
+    effectively enhance the discriminative ability of each feature                    datasets contain 2248 images of different sizes and are from
+    in feature learning and improve the ability of the network to                     different medical institutions. To ensure fairness, we adopted
+    recognize the target area. At the same time, we embed the                         the division method in PraNet [6], where the images from
+    proposed LPA structure into the four outputs of the DMC                           Kvasir and CVC-ClinicDB datasets are randomly split into
+    module.                                                                           90% for training (1450 images in total) and 10% for testing
+                                                                                      (162 images in total). To confirm the generalization ability
+    E. Decoder                                                                        of the proposed method, the CVC-ColonDB, EndoScene, and
+       The decoder part combines the convolution blocks, upsam-                       ETIS datasets (636 images in total) which did not appear in
+    pling, and skip connections to recover the resolution of the                      the training set were also used as the testing set.
+    feature map stage by stage, as shown in Fig. 2. Specifically,                        2) ISIC 2018 Dataset: The ISIC 2018 dataset comes from
+    at each stage, the intermediate feature map is first fused with                   the Lesion Boundary Segmentation task in ISIC-2018 chal-
+    the feature information cascaded from the same stage through                      lenge [48], which contains 2594 images from different types of
+    the DMC and LPA modules output, adjusted by 3 × 3 convo-                          skin lesions collected by several leading international clinical
+    lution and upsampled using bilinear interpolation, and finally,                   centers. These skin lesion images of different resolutions have
+    the output of that stage is obtained using 3 × 3 convolution to                   corresponding manual labels as the reference standards for
+    improve the upsampling results. In particular, in the final stage                 segmentation evaluation, and the labels have been continu-
+    of the encoder path, the feature map, which is processed from                     ously confirmed and fixed by experts. Fivefold cross-validation
+    the previous stage, is recovered to the same size as the input                    dataset was performed in the experiment, which split the
+    image by the upsampling operation and 1 × 1 convolution                           dataset into 2075 images for training and 519 images for
+    adjustment of the number of channels.                                             testing.
+                                                                                         3) LIVis Dataset: LIVis dataset is a clinical private dataset
+    F. Loss Function                                                                  collected from six live TME surgeries conducted on six
+      Medical image segmentation usually has the problem                              patients using the surgical robot, as shown in Fig. 6. The
+    of unbalanced foreground and background distribution and                          TME surgery segregates the apical and visceral planes of the
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+    DU et al.: SwinPA-Net: SWIN TRANSFORMER-BASED MULTISCALE FEATURE PYRAMID AGGREGATION NETWORK                                                                5361
+
+
+                                                                                                                         TP
+                                                                                                           mIoU =                                              (18)
+                                                                                                                    FP + FN + TP
+                                                                                                                       TP
+                                                                                                           Recall =                                            (19)
+                                                                                                                    FN + TP
+                                                                                      where true positive (TP) represents the number of pixels
+                                                                                      that are correctly segmented as lesions, false positive (FP)
+                                                                                      represents the number of background pixels segmented as
+    Fig. 6. Pipeline of data acquisition by the surgical robot. (a) Surgical robot
+    is composed of the doctor console, camera system cart, and slave operator,        lesions pixels, true negative (TN) represents the number of
+    as shown in (a1)–(a3), respectively. (b) During the TME operation, the doctor     pixels that are correctly segmented as normal tissue, and false
+    works on the surgical robot. (c) LIVis dataset is obtained after (b).             negative (FN) is the number of true lesions pixels that are
+    endopelvic fascia by dissociating loose connective tissue in the                  not segmented as such. MAE represents the average value of
+    mesorectum, which minimizes the risk of a positive circum-                        the absolute error between the true value and the predicted
+    ferential margin and has a strong prognostic significance for                     value. The smaller the value, the better the segmentation. For
+    local recurrence [49], [50]. However, in order to avoid damage                    other indicators, larger values represent better segmentation
+    to important tissues such as blood vessels and nerves in the                      performance.
+    mesorectum when freeing loose connective tissue, it is very
+    important to accurately segment the loose connective tissue in                    B. Experiments on Polyp Segmentation
+    the field of vision during laparoscopy. Therefore, we created a
+                                                                                         In this section, the proposed method is compared with
+    dataset of loose connective tissue in different stages of surgery.
+                                                                                      other SOTA methods, including U-Net [16], U-Net++ [17],
+    Specifically, we sampled 1180 laparoscopic video images in
+                                                                                      PraNet [6], CPFNet [52], Transfuse-S [53], and SANet [7] on
+    stages from about 15 h of TME surgery videos, and the labels
+                                                                                      the five polyp segmentation datasets. Following the settings
+    of these images have been carefully cross-verified by surgical
+                                                                                      of PraNet, the experiments with Kvasir and ClinicDB datasets
+    experts, which can be utilized as the reference standards for
+                                                                                      were first conducted because they appeared in both the training
+    the evaluation. In the experiment, the dataset was split into
+                                                                                      set and the testing set. The results are shown in Table I,
+    844 images for training and 236 images for testing.
+                                                                                      which suggest that the proposed SwinPA-Net achieves the best
+       4) Implementation Details: Since the images in the above
+                                                                                      performance on these two datasets. Compared with the existing
+    three datasets differ significantly in image size, resolution,
+                                                                                      methods, our method improves the mDice evaluation metric
+    and lesion characteristics, the proposed SwinPA-Net and other
+                                                                                      when testing on the ClinicDB and Kvasir datasets, which
+    SOTA segmentation methods were trained and tested on dif-
+                                                                                      are 4.2% and 2.7% higher than PraNet and 2.3% and 0.7%
+    ferent datasets in the experiments, respectively. Due to the
+                                                                                      higher than Transfuse-S (a typical transformer-based method),
+    limitation of GPU resources, instead of using the original
+                                                                                      respectively.
+    image as the input of the network, the input images were
+                                                                                         The trained networks were used to test the invisible datasets
+    resized to 384 × 384 pixels for both training and testing. Data
+                                                                                      (ColonDB, EndoScene, and ETIS), and the results are shown
+    augmentation was used to expand the training sets and enhance
+                                                                                      in Table II. In particular, on the ETIS dataset with small polyp
+    segmentation performance, including random flips and random
+                                                                                      targets, our method improves by 1.2% and 13.4% compared
+    shifts along different dimensions.
+                                                                                      to the SOTA methods (SANet and PraNet). By comparing
+       During the training stage, the AdamW optimizer [51] was
+                                                                                      the reference and segmentation results, we found that the
+    adopted with a weight decay of 0.0005 and a maximum
+                                                                                      SANet and Transfuse-S failed to segment small polyps or the
+    training epoch of 100, which was reduced by a factor of
+                                                                                      segmented polyps were too large on some images, and they
+    ten after 20 and 60 epochs, respectively, while the initial
+                                                                                      were not able to identify the difference between polyps and
+    learning rate was equal to 0.0001. The network architecture
+                                                                                      normal areas well, which is the reason for their poorer results.
+    was implemented in using the PyTorch framework, and all the
+                                                                                      Additionally, for the large-area polyp target datasets (ColonDB
+    experiments were performed on a standard workstation with
+                                                                                      and ETIS), the proposed method can also achieve excellent
+    a NVIDIA GeForce GTX 3090 GPU, an Intel Core 4215R
+                                                                                      segmentation results, where the mean Dice score on the
+    CPU, and 128G RAM.
+                                                                                      ColonDB dataset is 3.4% higher compared with the second-
+       5) Performance Measures: Common evaluation metrics
+                                                                                      best method. On the EndoScene dataset, Transfuse achieves
+    were adopted to quantify the segmentation performance of
+                                                                                      the best Dice coefficient. We believe in this experiment that
+    our proposed algorithm. For the Polyp dataset, we used the
+                                                                                      the lesion areas of some images in the invisible polyp dataset
+    same evaluation metrics as in PraNet, including mean Dice
+                                                                                      are similar and have a certain continuity, as a result of which
+    coefficient (mDice), mean intersection over union (mIoU),
+                                                                                      Transfuse may have a certain advantage due to the translation
+    and mean absolute error (MAE). Additionally, metrics such
+                                                                                      invariance of CNN. Furthermore, compared with the other two
+    as mDice, mIoU, and recall were employed for quantitative
+                                                                                      datasets, the number of samples in the EndoScene dataset is
+    evaluation on the ISIC 2018 dataset. For the LIVis dataset,
+                                                                                      small (only 60 images), which means that a prediction error on
+    we used the same evaluation metrics as CPFNet. The detailed
+                                                                                      one image can lead to huge fluctuations in the overall results.
+    definition of the metrics is as follows:
+                                                                                      Therefore, the uncertainty of the results on this dataset and
+                                           2 × TP                                     the properties of Transfuse itself lead to a slight advantage of
+                         mDice =                                             (17)
+                                      FN + FP + 2 × TP                                Transfuse in the current results. Fig. 7 shows the examples
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+    5362                                                    IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 4, APRIL 2024
+
+
+
+                                                                                TABLE I
+                      Q UANTITATIVE R ESULTS OF THE T EST D ATASETS KVASIR-SEG AND C LINIC DB. B OLD I NDICATE THE B EST R ESULTS
+
+
+
+
+                                                                               TABLE II
+               Q UANTITATIVE R ESULTS OF THE I NVISIBLE D ATASETS C OLON DB, ETIS, AND E NDO S CENE . B OLD I NDICATES THE B EST R ESULTS
+
+
+
+
+    Fig. 7. Qualitative results of SwinPA-Net and other methods for the polyp segmentation task. The proposed method can improve the quality of segmentations
+    considering its advantages in learning and generalization ability.
+
+
+    of segmentation results of the different methods on the dif-                      and 3.40% compared with SOTA methods, respectively, and
+    ferent datasets, which indicate that the proposed method can                      our proposed model achieves the best performances in all
+    achieve better edge predictions both in large-area polyps and                     metrics. After analyzing the qualitative results, it is apparent
+    small-area polyps datasets.                                                       that the method used can correctly predict the location and
+                                                                                      boundary of skin lesions and recognize the lesions from
+                                                                                      normal skins, as shown in Fig. 8.
+    C. Experiments on Skin Lesion Segmentation
+       In this section, we evaluated the proposed method with other
+    six excellent networks, such as U-Net [16], U-Net++ [17],                         D. Experiment on the LIVis Segmentation
+    PraNet [6], CPF-Net [52], Transfuse-S [53], and SANet [7]                            In this section, we evaluate the proposed method on the
+    on the ISIC 2018 dataset. As shown in Table III, the pro-                         LIVis dataset with six other excellent networks, such as
+    posed method achieves better segmentation with higher qual-                       U-Net [16], U-Net++ [17], PraNet [6], CPF-Net [52],
+    ity compared with CPF-Net and Transfuse-S. The proposed                           Transfuse-S [53], and SANet [7]. As can be seen from
+    SwinPA-Net produces 0.910 on mDice, 0.854 on mIOU,                                Table IV, U-Net achieves the worst results, which may be due
+    and Recall of 0.946 with an improvement of 0.80%, 1.70%,                          to the fact that U-Net does not make full use of the multiscale
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+    DU et al.: SwinPA-Net: SWIN TRANSFORMER-BASED MULTISCALE FEATURE PYRAMID AGGREGATION NETWORK                                                                5363
+
+
+
+
+    Fig. 8. Qualitative results of SwinPA-Net and other methods for the ISIC segmentation task. The proposed model can improve the quality of segmentations
+    considering its advantages in learning and generalization ability.
+
+
+                                      TABLE III                                       scores are employed to evaluate the segmentation performance
+               Q UANTITATIVE R ESULTS OF THE ISIC 2018 D ATASET.                      in the ablation study.
+                      B OLD I NDICATES THE B EST R ESULTS
+                                                                                         Model 1 and 2 are built to compare the performance of
+                                                                                      traditional CNN and transformer structure to extract features.
+                                                                                      Model 1 changes the encoder of the U-Net structure to
+                                                                                      ResNet-152 as the backbone of feature extraction, and Model 2
+                                                                                      uses Swin Transformer to extract features while maintaining
+                                                                                      the same structure as Model 1 in the decoder. By comparing
+                                                                                      with Model 1, we can see that the accuracy of segmentation
+                                                                                      has improved in Model 2, which proves the effectiveness of
+                                                                                      Swin Transformer as encoder to extract features.
+                                                                                         Moreover, Models 3 and 4 are established to evaluate the
+                                                                                      usefulness of the DMC module and the LPA module, where
+                                                                                      the DMC module is added in Model 3 based on Model 2, and
+                                      TABLE IV                                        Model 4 adds the LPA module to Model 3. By comparing
+                 Q UANTITATIVE R ESULTS OF THE LIV IS D ATASET.                       Models 2–4, we see that the introduction of the DMC module
+                      B OLD I NDICATES THE B EST R ESULTS
+                                                                                      and the LPA module can considerably improve the mIoU and
+                                                                                      mDice scores. This is because the DMC module can fuse the
+                                                                                      features of different scales, while the LPA module can extract
+                                                                                      higher level information from local and global features, so that
+                                                                                      the model can better focus on useful features while suppressing
+                                                                                      less important features.
+                                                                                         In addition, Models 5 and 6 are constructed to compare the
+                                                                                      effects of different feature fusion methods on the segmentation
+                                                                                      results, where Model 5 utilizes the additive fusion and Model
+                                                                                      6 applies the concatenate fusion to replace the DMC module.
+                                                                                      By comparing Models 4–6, it can be seen the DMC module
+                                                                                      (Model 4) can obtain better feature expression through mutual
+                                                                                      constraints between multiscale features, which shows that the
+    features. PraNet and CPF-Net achieve approximately the same                       DMC module is more suitable for our method.
+    results, while the result of SANet is worse, which may be                            In order to verify the effectiveness of the LPA module with
+    due to the smaller lesion area of the image. It is clear that                     respect to the optimal number of layers and different parameter
+    our proposed SwinPA-Net achieves the best results on mDice,                       settings, we constructed Models 7–9, which are all identical
+    mIoU, and Recall with 91.6%, 85.8%, and 91.7%, respectively.                      to Model 4 except for the structure of the attention pyramid.
+    Fig. 9 shows some examples of the segmentation results of                         Specifically, Model 4 adopts a two-layer LPA module, whereas
+    different methods on the LIVis dataset.                                           Models 7 and 8 use one- and three-layer LPA modules, respec-
+                                                                                      tively. However, unlike the LPA module we have proposed,
+                                                                                      in the second layer of Model 9, the feature map is not split into
+    E. Ablation Study
+                                                                                      smaller feature vectors for learning. By comparing Models 4,
+      In this section, to prove the feature extraction capability                     7, and 8, we see that using a two-layer LPA module is better
+    and the effectiveness of different modules for the proposed                       than a one-layer global attention, and when the number of
+    SwinPA-Net (Model 4), an ablation study is conducted on the                       pyramid layers is increased, the segmentation result is not
+    Kvasir dataset, as shown in Table V. The mIoU and mDice                           better. The results show that the learning ability of one-layer
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+    5364                                                    IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 4, APRIL 2024
+
+
+
+
+    Fig. 9. Qualitative results of SwinPA-Net and other methods for LIVis dataset segmentation. The proposed model can improve the quality of segmentations
+    considering its advantages in learning and generalization ability.
+
+                                                                               TABLE V
+                                                            A BLATION S TUDY OF THE P ROPOSED M ETHOD
+
+
+
+
+                                                                                      and DMC module, respectively. We can observe that although
+                                                                                      the output feature map of Swin Transformer can detect the
+                                                                                      information of the target area (the area outlines with green
+                                                                                      lines in the figure), it also contains a lot of noise. After
+                                                                                      utilizing the DMC module, the model can smoothly reduce the
+                                                                                      interference of noise in the shallow area as well as improve
+                                                                                      the ability of feature expression and can also pay attention to
+                                                                                      lesion areas of different sizes. In addition, the fifth column of
+    Fig. 10. Feature maps of DMC and LPA. The first to fifth columns of the           Fig. 10 demonstrates that the LPA module captures the lesion
+    figure are the original image, the reference label, the output feature maps of    area very well, which effectively solves the problem that the
+    Swin Transformer, LPA, and DMC module, respectively.                              normal area and the lesion area are similar and improves the
+                                                                                      accuracy of segmentation.
+
+    LPA module is not good enough to learn the local features                                                     IV. C ONCLUSION
+    well. When the number of layers is deepened, it would be                             This article presents SwinPA-Net, which is a novel Swin
+    difficult for the model to learn higher dimensional information                   Transformer-based multiscale feature pyramid aggregation net-
+    due to the limited training samples and image size, resulting                     work for medical image segmentation. The core idea of
+    in the deficient model performance. Compared with Model 9,                        SwinPA-Net is to aggregate the context and boundary informa-
+    Model 4 can achieve better results, which shows that it is                        tion of medical images through the Swin Transformer encoder
+    effective to split the feature map into smaller feature vectors                   and the designed DMC and LPA modules, while filtering out
+    for learning, and the proposed LPA module does not obtain                         the noise and irrelevant information in the shallow features.
+    better performance by stacking parameters.                                        The designed modules can effectively alleviate the problem
+       At the same time, the visualization results of DMC and                         that the lesions are difficult to locate accurately due to the large
+    LPA modules are shown in Fig. 10. The first to fifth columns                      difference between the types of lesions in various medical
+    of the figure are the original image, the reference label, and                    images and the small gap between the color of the lesion and
+    the output feature maps of Swin Transformer, LPA module,                          the surrounding tissues.
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+    DU et al.: SwinPA-Net: SWIN TRANSFORMER-BASED MULTISCALE FEATURE PYRAMID AGGREGATION NETWORK                                                                 5365
+
+
+
+       The results of our extensive comparative experiments show                      [15] Y. Fang et al., “Selective feature aggregation network with area-
+    that the proposed method can achieve SOTA results in most                              boundary constraints for polyp segmentation,” in Proc. Med. Image
+                                                                                           Comput. Comput. Assist. Intervent. (MICCAI). Cham, Switzerland:
+    of the tested datasets, which fully demonstrates the excel-                            Springer, 2019, pp. 302–310.
+    lent learning ability and strong robustness of SwinPA-Net                         [16] O. Ronneberger, P. Fischer, and T. Brox, “U-Net: Convolutional net-
+    in medical image segmentation. For example, in the polyp                               works for biomedical image segmentation,” in Proc. Med. Image Com-
+                                                                                           put. Comput. Assist. Intervent. (MICCAI). Cham, Switzerland: Springer,
+    segmentation experiment, our method can segment the target                             2015, pp. 234–241.
+    area excellently in three unseen datasets, illustrating the strong                [17] Z. Zhou, M. M. R. Siddiquee, N. Tajbakhsh, and J. Liang, “UNet++: A
+                                                                                           nested U-Net architecture for medical image segmentation,” in Deep
+    adaptability of our method for different lesions. However, the                         Learning in Medical Image Analysis and Multimodal Learning for
+    method in this article has many parameters and requires a cer-                         Clinical Decision Support. Cham, Switzerland: Springer, 2018, pp. 3–11.
+    tain number of high-precision medical images to be annotated.                     [18] V. Badrinarayanan, A. Kendall, and R. Cipolla, “SegNet: A deep
+                                                                                           convolutional encoder–decoder architecture for image segmentation,”
+    In the future, our work would focus more on intraoperative                             IEEE Trans. Pattern Anal. Mach. Intell., vol. 39, no. 12, pp. 2481–2495,
+    segmentation, which implies higher requirements on the real-                           Jan. 2017.
+    time performance. In addition, it is challenging to obtain                        [19] X. Li, H. Chen, X. Qi, Q. Dou, C.-W. Fu, and P.-A. Heng,
+                                                                                           “H-DenseUNet: Hybrid densely connected UNet for liver and tumor
+    plenty of accurately labeled medical images. Therefore, in the                         segmentation from CT, volumes,” IEEE Trans. Med. Imag., vol. 37,
+    next step, we will try to explore a lightweight unsupervised                           no. 12, pp. 2663–2674, Dec. 2018.
+    segmentation method based on this method to meet the needs                        [20] J. M. J. Valanarasu, V. A. Sindagi, I. Hacihaliloglu, and V. M. Patel,
+                                                                                           “KiU-Net: Towards accurate segmentation of biomedical images using
+    of intraoperative scenarios.                                                           over-complete representations,” in Proc. Med. Image Comput. Com-
+                                                                                           put. Assist. Intervent. (MICCAI). Cham, Switzerland: Springer, 2020,
+                                   R EFERENCES                                             pp. 363–373.
+     [1] B. Lei et al., “Walking imagery evaluation in brain computer inter-          [21] X. Ding, Y. Peng, C. Shen, and T. Zeng, “CAB U-Net: An end-to-end
+         faces via a multi-view multi-level deep polynomial network,” IEEE                 category attention boosting algorithm for segmentation,” Computerized
+         Trans. Neural Syst. Rehabil. Eng., vol. 27, no. 3, pp. 497–506,                   Med. Imag. Graph., vol. 84, Sep. 2020, Art. no. 101764.
+         Mar. 2019.                                                                   [22] T. Wu, J. Shao, X. Gu, M. K. P. Ng, and T. Zeng, “Two-stage image seg-
+     [2] Q. Cui and Y. Song, “Tracking control of unknown and constrained                  mentation based on nonconvex 2 — p approximation and thresholding,”
+         nonlinear systems via neural networks with implicit weight and activa-            Appl. Math. Comput., vol. 403, Aug. 2021, Art. no. 126168.
+         tion learning,” IEEE Trans. Neural Netw. Learn. Syst., vol. 32, no. 12,      [23] C. Liu, M. K.-P. Ng, and T. Zeng, “Weighted variational model for
+         pp. 5427–5434, Dec. 2021.                                                         selective image segmentation with application to medical images,”
+     [3] Z. Ma, Y. Lai, W. B. Kleijn, Y.-Z. Song, L. Wang, and J. Guo,                     Pattern Recognit., vol. 76, pp. 367–379, Apr. 2018.
+         “Variational Bayesian learning for Dirichlet process mixture of inverted     [24] T. Zhou, W. Wang, E. Konukoglu, and L. V. Gool, “Rethinking semantic
+         Dirichlet distributions in non-Gaussian image feature modeling,” IEEE             segmentation: A prototype view,” in Proc. IEEE Conf. Comput. Vis.
+         Trans. Neural Netw. Learn. Syst., vol. 30, no. 2, pp. 449–463, Feb. 2019.         Pattern Recognit. (CVPR), Jun. 2022, pp. 2582–2593.
+     [4] Z. Yan, X. Yang, and K.-T. Cheng, “Enabling a single deep learning           [25] W. Wang, T. Zhou, F. Yu, J. Dai, E. Konukoglu, and L. V. Gool, “Explor-
+         model for accurate gland instance segmentation: A shape-aware adver-              ing cross-image pixel contrast for semantic segmentation,” in Proc.
+         sarial learning framework,” IEEE Trans. Med. Imag., vol. 39, no. 6,               IEEE/CVF Int. Conf. Comput. Vis. (ICCV), Oct. 2021, pp. 7283–7293.
+         pp. 2176–2189, Jun. 2020.                                                    [26] L.-C. Chen, Y. Zhu, G. Papandreou, F. Schroff, and H. Adam,
+     [5] Y. Zhang et al., “3D multi-attention guided multi-task learning net-              “Encoder–decoder with atrous separable convolution for semantic
+         work for automatic gastric tumor segmentation and lymph node clas-                image segmentation,” in Proc. Eur. Conf. Comput. Vis. (ECCV), 2018,
+         sification,” IEEE Trans. Med. Imag., vol. 40, no. 6, pp. 1618–1631,               pp. 801–818.
+                                                                                      [27] C. Peng and J. Ma, “Semantic segmentation using stride spatial pyra-
+         Jun. 2021.
+                                                                                           mid pooling and dual attention decoder,” Pattern Recognit., vol. 107,
+     [6] D. P. Fan et al., “PraNet: Parallel reverse attention network for
+                                                                                           Nov. 2020, Art. no. 107498.
+         polyp segmentation,” in Medical Image Computing and Computer
+                                                                                      [28] C. Peng, K. Zhang, Y. Ma, and J. Ma, “Cross fusion net: A fast semantic
+         Assisted Intervention (MICCAI). Cham, Switzerland: Springer, 2020,
+                                                                                           segmentation network for small-scale semantic information capturing in
+         pp. 263–273.
+                                                                                           aerial scenes,” IEEE Trans. Geosci. Remote Sens., vol. 60, pp. 1–13,
+     [7] J. Wei, Y. Hu, R. Zhang, Z. Li, S. K. Zhou, and S. Cui, “Shallow
+                                                                                           2022.
+         attention network for polyp segmentation,” in Proc. Med. Image Comput.       [29] W. Jiang, M. Liu, Y. Peng, L. Wu, and Y. Wang, “HDCB-Net: A neural
+         Comput. Assist. Intervent. (MICCAI). Cham, Switzerland: Springer,                 network with the hybrid dilated convolution for pixel-level crack detec-
+         2021, pp. 699–708.                                                                tion on concrete bridges,” IEEE Trans. Ind. Informat., vol. 17, no. 8,
+     [8] H. Wu, J. Pan, Z. Li, Z. Wen, and J. Qin, “Automated skin lesion                  pp. 5485–5494, Aug. 2021.
+         segmentation via an adaptive dual attention module,” IEEE Trans. Med.        [30] A. Vaswani et al., “Attention is all you need,” in Proc. Int. Conf. Advan.
+         Imag., vol. 40, no. 1, pp. 357–370, Jan. 2021.                                    Neur. Info. Process. Syst. (NeurIPS), 2017, pp. 6000–6010.
+     [9] Y. Jiang, W. Chen, M. Liu, Y. Wang, and E. Meijering, “3D neu-               [31] N. Carion et al., “End-to-end object detection with transformers,” in
+         ron microscopy image segmentation via the ray-shooting model and                  Proc. Eur. Conf. Comput. Vis. (ECCV), 2020, pp. 213–229.
+         a DC-BLSTM network,” IEEE Trans. Med. Imag., vol. 40, no. 1,                 [32] A. Dosovitskiy et al., “An image is worth 16×16 words: Transformers
+         pp. 26–37, Jan. 2021.                                                             for image recognition at scale,” in Proc. Int. Conf. Learn. Represent.
+    [10] X. Wang, M. Liu, Y. Wang, J. Fan, and E. Meijering, “A 3D tubular                 (ICLR), 2021, pp. 1–22.
+         flux model for centerline extraction in neuron, volumetric images,” IEEE     [33] H. Touvron et al., “Training data-efficient image transformers & distilla-
+         Trans. Med. Imag., vol. 41, no. 5, pp. 1069–1079, May 2022.                       tion through attention,” in Proc. Int. Conf. Mach. Learn. (ICML), 2021,
+    [11] N. Paluru et al., “Anam-Net: Anamorphic depth embedding-based                     pp. 10347–10357.
+         lightweight CNN for segmentation of anomalies in COVID-19 chest              [34] Z. Liu et al., “Swin transformer: Hierarchical vision transformer using
+         CT images,” IEEE Trans. Neural Netw. Learn. Syst., vol. 32, no. 3,                shifted windows,” in Proc. IEEE/CVF Int. Conf. Comput. Vis. (ICCV),
+         pp. 932–946, Mar. 2021.                                                           Oct. 2021, pp. 10012–10022.
+    [12] J. Ma, L. Tang, F. Fan, J. Huang, X. Mei, and Y. Ma, “SwinFusion:            [35] C. Lee, S. Xie, P. Gallagher, Z. Zhang, and Z. Tu, “Deeply-supervised
+         Cross-domain long-range learning for general image fusion via swin                nets,” in Proc. 18th Int. Conf. Artif. Intell. Statist., 2015, pp. 562–570.
+         transformer,” IEEE/CAA J. Autom. Sinica, vol. 9, no. 7, pp. 1200–1217,       [36] Y. Wei, H. Xiao, H. Shi, Z. Jie, J. Feng, and T. S. Huang, “Revisiting
+         Jul. 2022.                                                                        dilated convolution: A simple approach for weakly- and semi-supervised
+    [13] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for                  semantic segmentation,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern
+         image recognition,” in Proc. IEEE Conf. Comput. Vis. Pattern Recognit.            Recognit., Jun. 2018, pp. 7268–7277.
+         (CVPR), Jun. 2016, pp. 770–778.                                              [37] J. Lee, E. Kim, S. Lee, J. Lee, and S. Yoon, “FickleNet: Weakly and
+    [14] J. Long, E. Shelhamer, and T. Darrell, “Fully convolutional networks              semi-supervised semantic image segmentation using stochastic infer-
+         for semantic segmentation,” in Proc. IEEE Conf. Comput. Vis. Pattern              ence,” in Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR),
+         Recognit. (CVPR), Jun. 2015, pp. 3431–3440.                                       Jun. 2019, pp. 5262–5271.
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+    5366                                                    IEEE TRANSACTIONS ON NEURAL NETWORKS AND LEARNING SYSTEMS, VOL. 35, NO. 4, APRIL 2024
+
+
+
+    [38] J. Wei, Q. Wang, Z. Li, S. Wang, S. K. Zhou, and S. Cui, “Shallow                                      Jiazheng Wang (Graduate Student Member, IEEE)
+         feature matters for weakly supervised object localization,” in Proc.                                   received the bachelor’s degree from Hunan Univer-
+         IEEE/CVF Conf. Comput. Vis. Pattern Recognit. (CVPR), Jun. 2021,                                       sity, Changsha, China, in 2019, and the master’s
+         pp. 5989–5997.                                                                                         degree in signal processing and communications
+    [39] S. Woo, J. Park, J. Y. Lee, and I. S. Kweon, “CBAM: Convolutional                                      from the University of Edinburgh, Edinburgh, U.K.,
+         block attention module,” in Proc. Eur. Conf. Comput. Vis. (ECCV), 2018,                                in 2020. He is currently pursuing the Ph.D. degree
+         pp. 3–19.                                                                                              with the College of Electrical and Information Engi-
+    [40] C. Peng, T. Tian, C. Chen, X. Guo, and J. Ma, “Bilateral attention                                     neering, Hunan University.
+         decoder: A lightweight decoder for real-time semantic segmentation,”                                     His research is focused on computer vision and
+         Neural Netw., vol. 137, pp. 188–199, May 2021.                                                         medical image processing.
+    [41] X. Ding, C. Shen, T. Zeng, and Y. Peng, “SAB Net: A seman-
+         tic attention boosting framework for semantic segmentation,” IEEE
+         Trans. Neural Netw. Learn. Syst., early access, Feb. 2, 2022, doi:
+         10.1109/TNNLS.2022.3144003.
+    [42] J. Hu, L. Shen, and G. Sun, “Squeeze-and-excitation networks,” in
+         Proc. IEEE/CVF Conf. Comput. Vis. Pattern Recognit., Jun. 2018,                                      Min Liu (Member, IEEE) received the bachelor’s
+         pp. 7132–7141.                                                                                       degree from Beijing University, Beijing, China, in
+    [43] D. Jha et al., “Kvasir-SEG: A segmented polyp dataset,” in Proc. Int.                                2004, and the Ph.D. degree in electrical engineer-
+         Conf. Multimedia Model. (MMM), 2020, pp. 451–462.                                                    ing from the University of California at Riverside,
+    [44] J. Silva, A. Histace, O. Romain, X. Dray, and B. Granado, “Toward                                    Riverside, CA, USA, in 2012.
+         embedded detection of polyps in WCE images for early diagnosis of                                      He is a Professor with the College of Electri-
+         colorectal cancer,” Int. J. Comput. Assist. Radiol. Surg., vol. 9, no. 2,                            cal and Information Engineering, Hunan University,
+         pp. 283–293, Mar. 2014.                                                                              Changsha, China. He was a Research Scientist with
+    [45] J. Bernal et al., “WM-DOVA maps for accurate polyp highlighting in                                   the University of California at Santa Barbara, Santa
+         colonoscopy: Validation vs. saliency maps from physicians,” Comput.                                  Barbara, CA, USA. His research interests include
+         Med. Imag. Graph., vol. 43, pp. 99–111, Jul. 2015.                                                   computer vision and image processing.
+    [46] N. Tajbakhsh, S. R. Gurudu, and J. Liang, “Automated polyp detection in       Dr. Liu is an Associate Editor of the IEEE T RANSACTIONS ON N EURAL
+         colonoscopy videos using shape and context information,” IEEE Trans.
+                                                                                      N ETWORKS AND L EARNING S YSTEMS .
+         Med. Imag., vol. 35, no. 2, pp. 630–644, Feb. 2015.
+    [47] D. Vázquez et al., “A benchmark for endoluminal scene segmentation
+         of colonoscopy images,” J. Healthcare Eng., vol. 2017, pp. 1–9, 2017.
+    [48] J. C. Caicedo et al., “Nucleus segmentation across imaging experi-
+         ments: The 2018 data science bowl,” Nature methods, vol. 16, no. 12,
+         pp. 1247–1253, 2019.                                                                                   Yaonan Wang received the Ph.D. degree in electri-
+    [49] V. S. Jayaprakasam et al., “MRI radiomics features of mesorectal fat                                   cal engineering from Hunan University, Changsha,
+         can predict response to neoadjuvant chemoradiation therapy and tumor                                   China, in 1994.
+         recurrence in patients with locally advanced rectal cancer,” Eur. Radiol.,                               Since 1995, he has been a Professor with the
+         vol. 32, no. 2, pp. 971–980, Jul. 2021.                                                                College of Electrical and Information Engineering,
+    [50] A. Cameron, “Management of rectal cancer,” in Current Surgical                                         Hunan University. From 1994 to 1995, he was
+         Therapy, vol. 4, 13th ed. Amsterdam, The Netherlands: Elsevier, 2019,                                  a Post-Doctoral Research Fellow with the Nor-
+         pp. 249–252. [Online]. Available: https://www.elsevier.com/books/                                      mal University of Defense Technology, Changsha.
+         current-surgical-therapy/ca-meron/978-0-323-64059-6                                                    From 1998 to 2000, he was supported as a
+    [51] I. Loshchilov and F. Hutter, “Decoupled weight decay regularization,”                                  Senior Humboldt Fellow by the Federal Republic of
+         2017, arXiv:1711.05101.                                                                                Germany, University of Bremen, Bremen, Germany.
+    [52] S. Feng et al., “CPFNet: Context pyramid fusion network for med-             From 2001 to 2004, he was a Visiting Professor with the University of Bremen.
+         ical image segmentation,” IEEE Trans. Med. Imag., vol. 39, no. 10,           His research interests include robotics and image processing.
+         pp. 3008–3018, Oct. 2020.                                                      Prof. Wang is a member of the Chinese Academy of Engineering.
+    [53] Y. Zhang, H. Liu, and Q. Hu, “TransFuse: Fusing transformers and
+         CNNs for medical image segmentation,” in Medical Image Computing
+         and Computer Assisted Intervention (MICCAI). 2021, pp. 14–24.
+
+                                                                                                               Erik Meijering (Fellow, IEEE) received the
+                                                                                                               Ph.D. degree from Utrecht University, Utrecht,
+                                                                                                               The Netherlands, in 2000.
+                                                                                                                 He is a Professor of biomedical image computing
+                                                                                                               with the School of Computer Science and Engineer-
+                                                                                                               ing, University of New South Wales, Sydney, NSW,
+                                                                                                               Australia.
+                              Hao Du (Graduate Student Member, IEEE) received                                    Prof. Meijering is an Associate Editor of the IEEE
+                              the bachelor’s degree in automation from Hunan                                   T RANSACTIONS ON M EDICAL I MAGING, a former
+                              University, Changsha, China, in 2020, where he                                   Associate Editor and Guest Editor of the IEEE
+                              is currently pursuing the master’s degree with the                               T RANSACTIONS ON I MAGE P ROCESSING, and a
+                              College of Electrical and Information Engineering.      Guest Editor of IEEE Signal Processing Magazine. He was the Chair of the
+                                His research interests include computer vision and    IEEE Signal Processing Society (SPS) Technical Committee on Bio Imaging
+                              medical image processing.                               and Signal Processing from 2018 to 2019 and the Technical Program Chair of
+                                                                                      the IEEE International Symposium on Biomedical Imaging in 2006, 2010, and
+                                                                                      2018, respectively. He also served/serves on a variety of other international
+                                                                                      conference, advisory, and review boards. He is an SPS Distinguished Lecturer
+                                                                                      from 2022 to 2023.
+
+
+
+
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 12,2026 at 06:11:56 UTC from IEEE Xplore. Restrictions apply.
+
