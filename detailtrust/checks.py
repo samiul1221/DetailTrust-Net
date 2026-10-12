@@ -221,11 +221,46 @@ def check_nifti_adapter():
     return dict(status="passed")
 
 
+def check_optimizer_resume():
+    """A saved Stage B update resumes to identical weights and stochastic loss."""
+    from .model import build_model
+    cfg = configuration("smoke", patch=(16, 16, 16), synthetic=True, precision="float32")
+    variant = experiment_registry()["B5"]
+    seed_everything(91)
+    model = build_model(variant, checkpoint_blocks=False)
+    configure_stage(model, "B", variant)
+    optimizer, scheduler = make_optimizer(model, "B", 3, cfg)
+    scaler = torch.amp.GradScaler("cuda", enabled=False)
+    store = SyntheticStore(size=16)
+    subjects = list(store.records)
+    split = make_split([dict(id=s) for s in subjects], cfg.split_seed)
+    batches = list(make_loader(PatchDataset(store, subjects[:2], cfg.patch, cfg.seed, 2)))
+    train_update(model, batches[0], optimizer, scaler, "B", cfg, variant, torch.device("cpu"))
+    scheduler.step()
+    with tempfile.TemporaryDirectory() as temporary:
+        path = Path(temporary)/"resume.pt"
+        save_checkpoint(path, model, optimizer, scheduler, scaler, "B", 1, .0, .0,
+                        cfg, variant, split, [], "resume_test")
+        expected = train_update(model, batches[1], optimizer, scaler, "B", cfg, variant, torch.device("cpu"))
+        scheduler.step()
+        restored = build_model(variant, checkpoint_blocks=False)
+        configure_stage(restored, "B", variant)
+        opt2, scheduler2 = make_optimizer(restored, "B", 3, cfg)
+        scaler2 = torch.amp.GradScaler("cuda", enabled=False)
+        load_checkpoint(path, restored, torch.device("cpu"), opt2, scheduler2, scaler2, "resume_test")
+        actual = train_update(restored, batches[1], opt2, scaler2, "B", cfg, variant, torch.device("cpu"))
+        scheduler2.step()
+        assert expected == actual
+        assert scheduler.state_dict() == scheduler2.state_dict()
+        for name, value in model.state_dict().items():
+            torch.testing.assert_close(value, restored.state_dict()[name], rtol=0, atol=0)
+
+
 def run_unit_checks():
     checks = [check_labels_and_splits, check_gaussian_and_haar, check_availability_and_anchor,
               check_fusion_and_stability, check_utility_sign_and_detachment, check_model_and_gradients,
               check_frozen_stage_and_roundtrip, check_patch_stream_and_metrics,
-              check_sliding_identity_and_leakage, check_json_and_registry, check_nifti_adapter]
+              check_sliding_identity_and_leakage, check_json_and_registry, check_optimizer_resume, check_nifti_adapter]
     results = []
     seed_everything(7)
     for check in checks:

@@ -8,3 +8,4 @@ detailtrust_outputs/
 *.npy
 *.nii
 *.nii.gz
+output_dump/*/

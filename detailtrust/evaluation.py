@@ -99,6 +99,29 @@ def evaluation_conditions(cfg, final=False):
     return conditions
 
 
+def benchmark_inference(model, store, subject, cfg, device):
+    """One whole-volume warmup followed by repeated timed reconstructions."""
+    images, _, _ = store.load(subject)
+    available = np.ones(4, np.float32)
+    warmup = sliding_window(model, images, available, cfg, device)
+    del warmup
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
+    times = []
+    for _ in range(cfg.inference_repeats):
+        before = synchronized_time(device)
+        result = sliding_window(model, images, available, cfg, device)
+        times.append(synchronized_time(device)-before)
+        windows = result["runtime"]["windows"]
+        del result
+    return dict(status="measured", subject=subject, warmup_volumes=1,
+                repeated_seconds=times, median_seconds=float(np.median(times)),
+                p90_seconds=float(np.quantile(times, .9)), volume_shape=list(images.shape[1:]),
+                patch=list(cfg.patch), windows=windows, includes_cpu_reconstruction=True,
+                peak_allocated_bytes=torch.cuda.max_memory_allocated(device) if device.type == "cuda" else None,
+                peak_reserved_bytes=torch.cuda.max_memory_reserved(device) if device.type == "cuda" else None)
+
+
 def apply_condition(images, subject, condition, seed):
     """Same seed and damage for all variants, independent of execution order."""
     flags = np.asarray(condition["available"], np.float32)
@@ -204,7 +227,12 @@ def evaluate_condition(model, store, subjects, split_manifest, split, condition,
         damaged, flags = apply_condition(images, subject, condition, cfg.split_seed)
         output = sliding_window(model, damaged, flags, cfg, device, stage, analysis)
         prediction = output["logits"].argmax(0).numpy()
-        rows += subject_metrics(prediction, truth, metadata["spacing"], subject, experiment, condition["id"], split, cfg.surface_tolerance_mm)
+        patient_rows = subject_metrics(prediction, truth, metadata["spacing"], subject, experiment, condition["id"], split, cfg.surface_tolerance_mm)
+        et_volume = float((truth == 3).sum() * np.prod(metadata["spacing"]))
+        size_group = "absent" if not et_volume else "not_stratified" if cfg.small_et_threshold_mm3 is None else "small" if et_volume <= cfg.small_et_threshold_mm3 else "larger"
+        for row in patient_rows:
+            row.update(et_volume_mm3=et_volume, et_size_group=size_group, small_et_threshold_mm3=cfg.small_et_threshold_mm3)
+        rows += patient_rows
         loss = segmentation_loss(output["logits"][None], torch.from_numpy(np.asarray(truth).astype(np.int64))[None])
         losses.append(float(loss))
         timings.append(dict(subject=subject, experiment=experiment, condition=condition["id"], split=split, **output["runtime"]))

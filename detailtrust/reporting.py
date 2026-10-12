@@ -57,6 +57,9 @@ def write_csv(path, rows):
 def collect_results(statuses):
     records = dict(rows=[], gates=[], corrections=[], stability=[], stability_checks=[], timings=[], history=[])
     for experiment, status in statuses.items():
+        if not status.get("stages"):
+            for source, history in status.get("partial_history", {}).items():
+                records["history"] += [dict(row, experiment=experiment, source=source, incomplete=True) for row in history]
         for stage in status.get("stages", []):
             records["history"] += [dict(row, experiment=experiment, shared=stage.get("shared", False)) for row in stage["history"]]
         for split in ("validation", "test"):
@@ -120,7 +123,13 @@ def build_report(cfg, split, integrity, statuses, best_checkpoint, checks, profi
     records = collect_results(statuses)
     summary = aggregate_metrics(records["rows"])
     environment = environment_record(cfg.output_dir)
-    comparisons = {str(seed): paired_patient_comparison(records["rows"], f"B5_s{seed}", f"B4_s{seed}") for seed in cfg.seeds}
+    comparisons = {f"{seed}_{partition}_{endpoint}": paired_patient_comparison(records["rows"], f"B5_s{seed}", f"B4_s{seed}",
+                   partition=partition, endpoint=endpoint)
+                   for seed in cfg.seeds for partition in ("validation", "test") for endpoint in ("overall", "degraded", "clean_ET")}
+    for key, status in statuses.items():
+        comparator = f"B4_s{status['seed']}" if status["variant_id"] in ("B5", "A1") else f"B1_s{status['seed']}"
+        status["comparison"] = paired_patient_comparison(records["rows"], key, comparator)
+        status["seed_count_for_this_record"] = 1 if status.get("checkpoint") else 0
     report = {key: None for key in REPORT_FIELDS}
     report.update(schema_version="1.0.0", project=dict(name="DetailTrust-Net", evidence_level=cfg.mode,
                   synthetic=cfg.synthetic, hypothesis="Utility-supervised removable detail corrections improve segmentation versus segmentation-only gates"),
@@ -150,9 +159,11 @@ def build_report(cfg, split, integrity, statuses, best_checkpoint, checks, profi
         detail_branch_contributions=records["corrections"], utility_gate_analysis=records["gates"],
         stability_analysis=dict(records=records["stability"], enumeration_checks=records["stability_checks"],
                                 scope="fixed computed contributions; not correctness or whole-input removal"),
-        ablation_study=statuses, statistical_analysis=dict(paired_patient_comparisons=comparisons, seed_count=len(cfg.seeds),
+        ablation_study=statuses, statistical_analysis=dict(paired_patient_comparisons=comparisons, requested_seed_count=len(cfg.seeds),
+                 completed_seed_counts={v: sum(r.get("checkpoint") is not None for r in statuses.values() if r["variant_id"] == v) for v in experiment_registry()},
                  limitation="Single seed is preliminary; bootstrap conditions on weights. No voxel-level independent-sample inference."),
-        runtime_and_memory=dict(profiles=profiles, full_volume_timings=records["timings"]),
+        runtime_and_memory=dict(profiles=profiles, full_volume_timings=records["timings"],
+                               inference_benchmarks={k: v.get("inference_benchmark") for k, v in statuses.items()}),
         reproducibility=dict(checks=checks, json_nonfinite_policy="null, with undefined-case counts", cuda_determinism="warn_only; exact bitwise cross-device reproducibility not promised"),
         warnings=["No improvement or novelty claim follows from a smoke/pilot run.", "A large gate or correction is not necessarily useful.",
                   "Mounted dataset licence/version must be checked against dataset card and original BraTS terms."],

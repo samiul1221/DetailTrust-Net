@@ -126,10 +126,16 @@ def verify_stability_enumeration(base, contributions, tolerance=1e-5):
                 subset_count=16, voxel_count=winner.numel())
 
 
-def paired_patient_comparison(rows, candidate, baseline, bootstrap_seed=42):
+def paired_patient_comparison(rows, candidate, baseline, bootstrap_seed=42, partition="validation", endpoint="overall"):
     """Resample patients after averaging their matched region/condition scores."""
     scores = {}
     for row in rows:
+        if row["split"] != partition or "_remove_detail_" in row["condition"] or row["condition"].endswith("_base_only"):
+            continue
+        if endpoint == "degraded" and row["condition"].startswith("clean"):
+            continue
+        if endpoint == "clean_ET" and (row["condition"] != "clean_m15" or row["region"] != "ET"):
+            continue
         if row["experiment"] in (candidate, baseline) and row["region"] in REGIONS:
             key = (row["subject"], row["condition"], row["region"], row["split"])
             scores.setdefault(key, {})[row["experiment"]] = row["dice"]
@@ -145,6 +151,7 @@ def paired_patient_comparison(rows, candidate, baseline, bootstrap_seed=42):
     sampled = rng.choice(difference, size=(2000, len(difference)), replace=True).mean(1)
     base_mean = float(pairs[:, 1].mean())
     return dict(status="completed", candidate=candidate, baseline=baseline,
+                partition=partition, endpoint=endpoint,
                 patients=sorted(patient_values), patient_count=len(difference),
                 absolute_dice_difference=float(difference.mean()),
                 relative_difference=float(difference.mean() / base_mean) if base_mean else None,

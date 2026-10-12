@@ -90,7 +90,8 @@ def build_notebook(destination=OUTPUT):
         if importlib.util.find_spec("torch") is None:
             raise RuntimeError("Select Kaggle's GPU Python image with PyTorch installed.")
         ''', "dependencies")
-    code("\n".join(imports), "central_imports")
+    centralized = "\n".join(imports).replace("import matplotlib.pyplot as plt", 'matplotlib.use("Agg")\nimport matplotlib.pyplot as plt')
+    code(centralized, "central_imports")
     module("config", "### Named settings and experiment registry\nEvery mode keeps widths 32/64/128/256/320. Updates are sampled patches; an epoch is a logging interval.")
     code('''
         # The main settings you edit before Save Version / Run All.
@@ -198,6 +199,15 @@ def build_notebook(destination=OUTPUT):
     code('''
         train_ids = split["train"][:min(cfg.train_subjects, len(split["train"]))]
         val_ids = split["validation"][:cfg.val_subjects]
+        # Define the small-ET stratum using training labels only, before evaluation.
+        et_volumes = []
+        for subject_id in train_ids:
+            _, training_labels, geometry = store.load(subject_id)
+            volume = float((training_labels == 3).sum() * np.prod(geometry["spacing"]))
+            if volume > 0:
+                et_volumes.append(volume)
+        cfg = replace(cfg, small_et_threshold_mm3=float(np.quantile(et_volumes, .25)) if et_volumes else None)
+        del training_labels
         example_id = train_ids[0]
         example_images, example_labels, example_geometry = store.load(example_id)
         print("Example:", example_id, example_images.shape, np.unique(example_labels), example_geometry["spacing"])
@@ -323,6 +333,11 @@ def build_notebook(destination=OUTPUT):
         print(best_checkpoint)
         ''', "best_checkpoint_export")
     code('''
+        report, records, summary = build_report(cfg, split, integrity, statuses, best_checkpoint, checks, profiles, dataset_evidence)
+        artifacts = export_report(report, records, summary, output_dir)
+        print("Report:", output_dir / "detailtrust_report.json")
+        ''', "report_export")
+    code('''
         if best_checkpoint["status"] == "saved":
             state = torch.load(best_checkpoint["path"], map_location=device, weights_only=False)
             best_model = DetailTrustNet(**state["architecture"]).to(device)
@@ -335,12 +350,27 @@ def build_notebook(destination=OUTPUT):
             if device.type == "cuda": torch.cuda.empty_cache()
         ''', "example_contribution_figure")
     code('''
-        report, records, summary = build_report(cfg, split, integrity, statuses, best_checkpoint, checks, profiles, dataset_evidence)
-        artifacts = export_report(report, records, summary, output_dir)
-        print("Report:", output_dir / "detailtrust_report.json")
-        ''', "report_export")
-    readme = (ROOT/"README-detailtrust.md").read_text(encoding="utf-8") if (ROOT/"README-detailtrust.md").exists() else "Run the notebook top to bottom. All actual results are in detailtrust_report.json."
-    code(f'(output_dir / "README.md").write_text({readme!r}, encoding="utf-8")', "save_runtime_readme")
+        runtime_readme = """DetailTrust-Net run artifacts
+
+        Read detailtrust_report.json first: experiment_status distinguishes completed,
+        paused, failed and not_run experiments. Smoke and synthetic results demonstrate
+        execution only. Metrics are patient macro averages with explicit empty cases.
+        No test result exists unless RUN_FINAL_TEST and PROTOCOL_LOCKED were enabled.
+
+        To resume: attach this output as a Kaggle input, set RESUME_DIRECTORY to its
+        detailtrust folder and retain the same dataset, split, mode and training settings.
+        Run the complete notebook. It restores latest optimizer/RNG checkpoints and
+        separately selects best validation weights. /kaggle/working is session storage;
+        commit notebook outputs or download them before the session is discarded.
+
+        To load trusted weights after running the model definition cells:
+        state = torch.load('best_detailtrust_model.pt', map_location='cpu', weights_only=False)
+        model = DetailTrustNet(**state['architecture'])
+        model.load_state_dict(state['model_state'], strict=True)
+        model.eval()
+        """
+        (output_dir / "README.md").write_text(runtime_readme, encoding="utf-8")
+        ''', "save_runtime_readme")
     code('''
         artifact_verification = verify_artifacts(output_dir)
         for name, result in artifact_verification.items():

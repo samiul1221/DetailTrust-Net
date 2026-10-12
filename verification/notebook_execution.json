@@ -1,0 +1,1005 @@
+{
+  "evidence": "CPU synthetic cell execution, not real-data/CUDA verification",
+  "substitutions": [
+    "dependencies",
+    "configuration",
+    "execute_unit_checks",
+    "subject_inventory"
+  ],
+  "cells": [
+    {
+      "cell": "dependencies",
+      "modified_for_cpu": true,
+      "status": "passed",
+      "seconds": 6.70000008540228e-05,
+      "output": ""
+    },
+    {
+      "cell": "central_imports",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 3.639410699994187,
+      "output": ""
+    },
+    {
+      "cell": "config.constants_16",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 7.249999907799065e-05,
+      "output": ""
+    },
+    {
+      "cell": "config.constants_17",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 6.969999230932444e-05,
+      "output": ""
+    },
+    {
+      "cell": "config.constants_18",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 6.639999628532678e-05,
+      "output": ""
+    },
+    {
+      "cell": "config.constants_19",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 6.33999879937619e-05,
+      "output": ""
+    },
+    {
+      "cell": "config.constants_20",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 6.930000381544232e-05,
+      "output": ""
+    },
+    {
+      "cell": "config.constants_21",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 8.440000237897038e-05,
+      "output": ""
+    },
+    {
+      "cell": "config.RunConfig",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0021567000076174736,
+      "output": ""
+    },
+    {
+      "cell": "config.configuration",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0003468000068096444,
+      "output": ""
+    },
+    {
+      "cell": "config.experiment_registry",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.000275999991572462,
+      "output": ""
+    },
+    {
+      "cell": "config.seed_everything",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00011740000627469271,
+      "output": ""
+    },
+    {
+      "cell": "config.safe_json",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00020020001102238894,
+      "output": ""
+    },
+    {
+      "cell": "config.write_json",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0001412999990861863,
+      "output": ""
+    },
+    {
+      "cell": "config.file_hash",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00011449999874457717,
+      "output": ""
+    },
+    {
+      "cell": "config.environment_record",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00016530000721104443,
+      "output": ""
+    },
+    {
+      "cell": "configuration",
+      "modified_for_cpu": true,
+      "status": "passed",
+      "seconds": 1.563606700001401,
+      "output": ""
+    },
+    {
+      "cell": "gpu_detection",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0013027000095462427,
+      "output": "Training device: cpu\n"
+    },
+    {
+      "cell": "output_and_resume",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.003472900003544055,
+      "output": ""
+    },
+    {
+      "cell": "environment_storage",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.06778389999817591,
+      "output": "{'python': '3.10.11', 'platform': 'Windows-10-10.0.26300-SP0', 'packages': {'torch': '2.10.0', 'numpy': '2.2.6', 'scipy': '1.15.3', 'nibabel': None, 'matplotlib': '3.10.8', 'nbformat': '5.10.4'}, 'cuda': None, 'gpu_name': None, 'gpu_count': 0, 'gpu_memory_bytes': None, 'free_disk_bytes': 26762231808}\n"
+    },
+    {
+      "cell": "initialize_metadata",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.010935500002233312,
+      "output": ""
+    },
+    {
+      "cell": "data.discover_dataset_root",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.000302100001135841,
+      "output": ""
+    },
+    {
+      "cell": "data.discover_subjects",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0004822999908355996,
+      "output": ""
+    },
+    {
+      "cell": "data.remap_labels",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00023580000561196357,
+      "output": ""
+    },
+    {
+      "cell": "data.load_subject",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0006643999950028956,
+      "output": ""
+    },
+    {
+      "cell": "data.inventory_geometry",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0003630999999586493,
+      "output": ""
+    },
+    {
+      "cell": "data.make_split",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002435000060359016,
+      "output": ""
+    },
+    {
+      "cell": "data.assert_split",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002739000046858564,
+      "output": ""
+    },
+    {
+      "cell": "data.normalize_foreground",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00032219999411609024,
+      "output": ""
+    },
+    {
+      "cell": "data.image_crop",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002463999990141019,
+      "output": ""
+    },
+    {
+      "cell": "data.prepare_subject",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00020199999562464654,
+      "output": ""
+    },
+    {
+      "cell": "data.SubjectStore",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00040779999108053744,
+      "output": ""
+    },
+    {
+      "cell": "data.sample_availability",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00011399999493733048,
+      "output": ""
+    },
+    {
+      "cell": "data.extract_patch",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00035689999640453607,
+      "output": ""
+    },
+    {
+      "cell": "data.corrupt_image",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.000538099993718788,
+      "output": ""
+    },
+    {
+      "cell": "data.training_augmentation",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002690999972401187,
+      "output": ""
+    },
+    {
+      "cell": "data.PatchDataset",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002936999953817576,
+      "output": ""
+    },
+    {
+      "cell": "data.make_loader",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 7.999999797903001e-05,
+      "output": ""
+    },
+    {
+      "cell": "data.SyntheticStore",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00041649999911896884,
+      "output": ""
+    },
+    {
+      "cell": "visuals.plot_subject",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002308000111952424,
+      "output": ""
+    },
+    {
+      "cell": "visuals.plot_corrections",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00036029999318998307,
+      "output": ""
+    },
+    {
+      "cell": "dataset_path",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 8.879999222699553e-05,
+      "output": ""
+    },
+    {
+      "cell": "subject_inventory",
+      "modified_for_cpu": true,
+      "status": "passed",
+      "seconds": 0.002404200000455603,
+      "output": "Usable labelled subjects: 12 Excluded: 0\n"
+    },
+    {
+      "cell": "geometry_label_audit",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.002281799999764189,
+      "output": ""
+    },
+    {
+      "cell": "subject_split",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0028165999974589795,
+      "output": "{'train': 7, 'validation': 1, 'test': 4} CUSTOM split\n"
+    },
+    {
+      "cell": "preprocessing_example",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.6685236999910558,
+      "output": "Example: synthetic_007 (4, 16, 16, 16) [0 1 2 3] [1.0, 1.0, 1.0]\n"
+    },
+    {
+      "cell": "dataset_evidence",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.042915300000458956,
+      "output": ""
+    },
+    {
+      "cell": "dataloader_shape_check",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.10668880000594072,
+      "output": "{'images': (1, 4, 24, 24, 24), 'labels': (1, 16, 16, 16), 'available': (1, 4), 'resolution': (1, 3)}\n"
+    },
+    {
+      "cell": "model.availability_maps",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00046490000386256725,
+      "output": ""
+    },
+    {
+      "cell": "model.gaussian_kernel",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0004192000051261857,
+      "output": ""
+    },
+    {
+      "cell": "model.gaussian_blur",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0007876000017859042,
+      "output": ""
+    },
+    {
+      "cell": "model.GaussianSplit",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.000880400009918958,
+      "output": ""
+    },
+    {
+      "cell": "model.HaarSplit",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0005657000001519918,
+      "output": ""
+    },
+    {
+      "cell": "model.ResidualBlock",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0012475000112317502,
+      "output": ""
+    },
+    {
+      "cell": "model.run_block",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0003446000046096742,
+      "output": ""
+    },
+    {
+      "cell": "model.ResidualUNet",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0014573999942513183,
+      "output": ""
+    },
+    {
+      "cell": "model.modality_identity",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0003536000003805384,
+      "output": ""
+    },
+    {
+      "cell": "model.DetailCorrection",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0006578000029549003,
+      "output": ""
+    },
+    {
+      "cell": "model.SpatialUtilityGate",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0007392999978037551,
+      "output": ""
+    },
+    {
+      "cell": "model.fuse_logits",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0004721000004792586,
+      "output": ""
+    },
+    {
+      "cell": "model.DetailTrustNet",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0015029000060167164,
+      "output": ""
+    },
+    {
+      "cell": "model.build_model",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.000182400006451644,
+      "output": ""
+    },
+    {
+      "cell": "model.parameter_counts",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0004726000042865053,
+      "output": ""
+    },
+    {
+      "cell": "reference_model_shapes",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.35482259999844246,
+      "output": "{'total': 16934644, 'trainable': 16934644, 'by_child': {'backbone': 16910468, 'splitter': 12, 'refiner': 22979, 'gate': 1185}}\n{'logits': (1, 4, 16, 16, 16), 'base': (1, 4, 16, 16, 16), 'corrections': (1, 4, 3, 16, 16, 16), 'gates': (1, 4, 1, 16, 16, 16), 'contributions': (1, 4, 4, 16, 16, 16), 'detail': (1, 4, 16, 16, 16), 'available': (1, 4)}\n"
+    },
+    {
+      "cell": "losses.region_probabilities",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0001686000032350421,
+      "output": ""
+    },
+    {
+      "cell": "losses.region_labels",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00010650001058820635,
+      "output": ""
+    },
+    {
+      "cell": "losses.segmentation_loss",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00025320000713691115,
+      "output": ""
+    },
+    {
+      "cell": "losses.utility_targets",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00029379999614320695,
+      "output": ""
+    },
+    {
+      "cell": "losses.balanced_gate_bce",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0003296000068075955,
+      "output": ""
+    },
+    {
+      "cell": "losses.resolution_occupancy_loss",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002801000082399696,
+      "output": ""
+    },
+    {
+      "cell": "losses.stage_objective",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0007633999921381474,
+      "output": ""
+    },
+    {
+      "cell": "metrics.binary_metrics",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0004141000099480152,
+      "output": ""
+    },
+    {
+      "cell": "metrics.lesion_metrics",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00024280000070575625,
+      "output": ""
+    },
+    {
+      "cell": "metrics.subject_metrics",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00017510000907350332,
+      "output": ""
+    },
+    {
+      "cell": "metrics.aggregate_metrics",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00033560000883881,
+      "output": ""
+    },
+    {
+      "cell": "metrics.stability_bound",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0001545999984955415,
+      "output": ""
+    },
+    {
+      "cell": "metrics.verify_stability_enumeration",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00021519999427255243,
+      "output": ""
+    },
+    {
+      "cell": "metrics.paired_patient_comparison",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00038579999818466604,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.synchronized_time",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 7.169999298639596e-05,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.autocast_context",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 7.729999197181314e-05,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.window_starts",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00010069999552797526,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.sliding_window",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0010426999942865223,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.evaluation_conditions",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002884999994421378,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.benchmark_inference",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00023659999715164304,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.apply_condition",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00019530000281520188,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.descriptive_values",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00013559999933931977,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.safe_spearman",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 8.769999840296805e-05,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.contribution_analysis",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0008083000138867646,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.evaluate_condition",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00047339999582618475,
+      "output": ""
+    },
+    {
+      "cell": "evaluation.validation_score",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00020160000713076442,
+      "output": ""
+    },
+    {
+      "cell": "training.SessionBudgetReached",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 9.669999417383224e-05,
+      "output": ""
+    },
+    {
+      "cell": "training.configure_stage",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00026270000671502203,
+      "output": ""
+    },
+    {
+      "cell": "training.make_optimizer",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00029260000155773014,
+      "output": ""
+    },
+    {
+      "cell": "training.random_states",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0001016000023810193,
+      "output": ""
+    },
+    {
+      "cell": "training.restore_random_states",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00031519999902229756,
+      "output": ""
+    },
+    {
+      "cell": "training.save_checkpoint",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00022279999393504113,
+      "output": ""
+    },
+    {
+      "cell": "training.load_checkpoint",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0001664000010350719,
+      "output": ""
+    },
+    {
+      "cell": "training.train_update",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00020090000180061907,
+      "output": ""
+    },
+    {
+      "cell": "training.training_fingerprint",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00015780000831000507,
+      "output": ""
+    },
+    {
+      "cell": "training.run_training_stage",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0007905000093160197,
+      "output": ""
+    },
+    {
+      "cell": "training.train_stage_a",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 7.840000034775585e-05,
+      "output": ""
+    },
+    {
+      "cell": "training.train_stage_b",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 7.220001134555787e-05,
+      "output": ""
+    },
+    {
+      "cell": "training.train_stage_c",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 7.090000144671649e-05,
+      "output": ""
+    },
+    {
+      "cell": "training.profile_training_stages",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00039590000233147293,
+      "output": ""
+    },
+    {
+      "cell": "experiments.copy_candidate_weights",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00021840000408701599,
+      "output": ""
+    },
+    {
+      "cell": "experiments.train_candidate",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0001472000003559515,
+      "output": ""
+    },
+    {
+      "cell": "experiments.evaluate_experiment",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00033599999733269215,
+      "output": ""
+    },
+    {
+      "cell": "experiments.run_experiment_sweep",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0011331999994581565,
+      "output": ""
+    },
+    {
+      "cell": "experiments.export_best_detailtrust",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0003622000076575205,
+      "output": ""
+    },
+    {
+      "cell": "reporting.constants_9",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 6.779999239370227e-05,
+      "output": ""
+    },
+    {
+      "cell": "reporting.constants_14",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 9.610000415705144e-05,
+      "output": ""
+    },
+    {
+      "cell": "reporting.implementation_decisions",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 7.720000576227903e-05,
+      "output": ""
+    },
+    {
+      "cell": "reporting.write_csv",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00024760000815149397,
+      "output": ""
+    },
+    {
+      "cell": "reporting.collect_results",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0009139000030700117,
+      "output": ""
+    },
+    {
+      "cell": "reporting.generate_plots",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.000898600002983585,
+      "output": ""
+    },
+    {
+      "cell": "reporting.build_report",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0011498999956529588,
+      "output": ""
+    },
+    {
+      "cell": "reporting.export_report",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.000221800000872463,
+      "output": ""
+    },
+    {
+      "cell": "reporting.verify_artifacts",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00017720001051202416,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_labels_and_splits",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002984999882755801,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_gaussian_and_haar",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002572999947005883,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_availability_and_anchor",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002472000051056966,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_fusion_and_stability",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002601999876787886,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_utility_sign_and_detachment",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00021840000408701599,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_model_and_gradients",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00024839999969117343,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_frozen_stage_and_roundtrip",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00029379999614320695,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_patch_stream_and_metrics",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00032279999868478626,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_sliding_identity_and_leakage",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00021810000180266798,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_json_and_registry",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002727999963099137,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_nifti_adapter",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.000258400003076531,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_optimizer_resume",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0004054000019095838,
+      "output": ""
+    },
+    {
+      "cell": "checks.run_unit_checks",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00016959999629762024,
+      "output": ""
+    },
+    {
+      "cell": "checks.tiny_overfit_check",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0002057999954558909,
+      "output": ""
+    },
+    {
+      "cell": "execute_unit_checks",
+      "modified_for_cpu": true,
+      "status": "passed",
+      "seconds": 4.994937000010395,
+      "output": "check_labels_and_splits: passed\ncheck_gaussian_and_haar: passed\ncheck_availability_and_anchor: passed\ncheck_fusion_and_stability: passed\ncheck_utility_sign_and_detachment: passed\ncheck_model_and_gradients: passed\ncheck_frozen_stage_and_roundtrip: passed\ncheck_patch_stream_and_metrics: passed\ncheck_sliding_identity_and_leakage: passed\ncheck_json_and_registry: passed\ncheck_optimizer_resume: passed\ncheck_nifti_adapter: blocked\n"
+    },
+    {
+      "cell": "tiny_overfit_execution",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 1.348310200002743,
+      "output": "Repeated patch loss decreased: True\n"
+    },
+    {
+      "cell": "gpu_profile_execution",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 1.1440480000019306,
+      "output": "[{'stage': 'A', 'warmup': 0, 'measured_updates': 1, 'median_step_seconds': 0.22737510000297334, 'p90_step_seconds': 0.22737510000297334, 'peak_allocated_bytes': None, 'peak_reserved_bytes': None, 'device': 'cpu', 'patch': [16, 16, 16], 'includes_loading': True}, {'stage': 'B', 'warmup': 0, 'measured_updates': 1, 'median_step_seconds': 0.4761074000125518, 'p90_step_seconds': 0.4761074000125518, 'peak_allocated_bytes': None, 'peak_reserved_bytes': None, 'device': 'cpu', 'patch': [16, 16, 16], 'includes_loading': True}, {'stage': 'C', 'warmup': 0, 'measured_updates': 1, 'median_step_seconds': 0.1374264000041876, 'p90_step_seconds': 0.1374264000041876, 'peak_allocated_bytes': None, 'peak_reserved_bytes': None, 'device': 'cpu', 'patch': [16, 16, 16], 'includes_loading': True}]\nMeasured-step extrapolation for ONE B5 run, excluding validation: 0.0 hours\n"
+    },
+    {
+      "cell": "run_experiments",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 25.264742699990165,
+      "output": "B0_s1729 RAW 1/3: loss=2.2901, best_val=0.0000\nB0_s1729 RAW 2/3: loss=1.8248, best_val=0.0000\nB0_s1729 RAW 3/3: loss=1.6533, best_val=0.0000\nB1_s1729 RAW 1/3: loss=2.2889, best_val=0.0000\nB1_s1729 RAW 2/3: loss=1.8232, best_val=0.0000\nB1_s1729 RAW 3/3: loss=1.6510, best_val=0.0000\nshared_candidates_s1729 A 1/1: loss=2.2738, best_val=0.0000\nshared_candidates_s1729 B 1/1: loss=2.5384, best_val=0.0000\nB2_s1729 B 1/1: loss=2.2338, best_val=0.0000\nB4_s1729 C 1/1: loss=1.5956, best_val=0.0000\nB5_s1729 C 1/1: loss=1.6654, best_val=0.0000\n{'B0_s1729': 'completed', 'B1_s1729': 'completed', 'B2_s1729': 'completed', 'B3_s1729': 'not_run', 'B4_s1729': 'completed', 'B5_s1729': 'completed', 'A1_s1729': 'not_run', 'A2_s1729': 'not_run', 'A3_s1729': 'not_run', 'A4_s1729': 'not_run', 'A5_s1729': 'not_run', 'A6_s1729': 'not_run', 'A7_s1729': 'not_run'}\n"
+    },
+    {
+      "cell": "best_checkpoint_export",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.33210179999878164,
+      "output": "{'status': 'saved', 'path': 'detailtrust_outputs\\\\notebook_verification\\\\best_detailtrust_model.pt', 'sha256': '51d2987eb9d3c08b5b7c77919fcc1c7563a3b5a446f4ef3dc8f18ceac19c6dc8', 'size_bytes': 67792459, 'selected_epoch': 1, 'selected_update': 1, 'seed': 1729, 'validation_score': 0.0, 'criterion': 'mean patient Dice across WT,TC,ET on clean validation', 'architecture': {'split': 'learned', 'anchored': True, 'gate': 'spatial', 'checkpoint_blocks': True}, 'format': 'PyTorch full resume checkpoint v1', 'strict_state_dict_load': 'passed', 'source_experiment': 'B5_s1729'}\n"
+    },
+    {
+      "cell": "report_export",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 3.197510899990448,
+      "output": "notebook::reporting.generate_plots:44: MatplotlibDeprecationWarning: The 'labels' parameter of boxplot() has been renamed 'tick_labels' since Matplotlib 3.9; support for the old name will be dropped in 3.11.\nnotebook::reporting.generate_plots:44: MatplotlibDeprecationWarning: The 'labels' parameter of boxplot() has been renamed 'tick_labels' since Matplotlib 3.9; support for the old name will be dropped in 3.11.\nReport: detailtrust_outputs\\notebook_verification\\detailtrust_report.json\n"
+    },
+    {
+      "cell": "example_contribution_figure",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.5001316999987466,
+      "output": ""
+    },
+    {
+      "cell": "save_runtime_readme",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.00049409999337513,
+      "output": ""
+    },
+    {
+      "cell": "verify_artifacts",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.016763699997682124,
+      "output": "best_detailtrust_model.pt saved\nbest_detailtrust_model_config.json saved\ndetailtrust_report.json saved\ntraining_history.json saved\nablation_results.json saved\nsplit_manifest.json saved\nexperiment_config.json saved\nmetrics_per_subject.csv saved\nmetrics_summary.csv saved\ngate_analysis.csv saved\ncorrection_contributions.csv saved\nstability_analysis.json saved\nREADME.md saved\n"
+    },
+    {
+      "cell": "read_report_example",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.10444170000846498,
+      "output": "Evidence level: smoke\nBest checkpoint: {'architecture': {'anchored': True, 'checkpoint_blocks': True, 'gate': 'spatial', 'split': 'learned'}, 'criterion': 'mean patient Dice across WT,TC,ET on clean validation', 'format': 'PyTorch full resume checkpoint v1', 'path': 'detailtrust_outputs\\\\notebook_verification\\\\best_detailtrust_model.pt', 'seed': 1729, 'selected_epoch': 1, 'selected_update': 1, 'sha256': '51d2987eb9d3c08b5b7c77919fcc1c7563a3b5a446f4ef3dc8f18ceac19c6dc8', 'size_bytes': 67792459, 'source_experiment': 'B5_s1729', 'status': 'saved', 'strict_state_dict_load': 'passed', 'validation_score': 0.0}\nFinal test: not_run\nExperiments: {'A1_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A2_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A3_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A4_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A5_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A6_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A7_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'B0_s1729': {'reason': None, 'status': 'completed'}, 'B1_s1729': {'reason': None, 'status': 'completed'}, 'B2_s1729': {'reason': None, 'status': 'completed'}, 'B3_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'B4_s1729': {'reason': None, 'status': 'completed'}, 'B5_s1729': {'reason': None, 'status': 'completed'}}\n"
+    }
+  ]
+}

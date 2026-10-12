@@ -111,6 +111,19 @@ state. Inference receives images/availability only, never a segmentation mask.
 
 ## Edit locally and sync changes
 
+On this Windows machine, `uv` is already installed. From a **normal PowerShell**
+terminal, use the launcher to obtain Python 3.11 and the current sync dependencies:
+
+```powershell
+cd C:\D\project\bt
+.\kaggle.ps1 --kernel YOUR_USERNAME/detailtrust-net --run --download --wait 43200
+```
+
+This command requests a GPU run and then waits for completion before downloading
+outputs into `output_dump/`. It does not modify Codex permissions or `.env`.
+For a later output download alone: `.\kaggle.ps1 --download`.
+The cloud launch depends on valid credentials, dataset access and available GPU quota.
+
 Edit `detailtrust/*.py` and the teaching/runtime cells in `build_notebook.py`. Then:
 
 ```powershell
@@ -128,8 +141,9 @@ Sync needs Python 3.11+ and a current official CLI:
 It reads `KAGGLE_API_TOKEN` from your local `.env` or environment without printing
 it. The staging folder includes only the generated notebook and metadata. `.env`
 is never uploaded. API output/errors are suppressed; failures tell you what to
-check without displaying credentials. The script refuses an older CLI that cannot
-save without running. Do not edit the generated notebook locally and then rebuild:
+check without displaying credentials. GPU uploads work with Kaggle CLI 2.2.4.
+Save-only uploads require the newer `--no-run` option; if absent, the script stops
+that operation rather than starting unwanted training. Do not edit the generated notebook locally and then rebuild:
 source changes belong in the builder/modules, or a rebuild will replace them.
 
 ## Current evidence limits

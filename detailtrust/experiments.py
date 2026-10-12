@@ -9,7 +9,7 @@ import torch
 from .config import experiment_registry, seed_everything, write_json, file_hash
 from .model import build_model, parameter_counts, DetailTrustNet
 from .training import run_training_stage, SessionBudgetReached, load_checkpoint
-from .evaluation import evaluation_conditions, evaluate_condition, sliding_window, synchronized_time
+from .evaluation import evaluation_conditions, evaluate_condition, sliding_window, synchronized_time, benchmark_inference
 
 
 def copy_candidate_weights(target, source_checkpoint, device):
@@ -39,7 +39,8 @@ def evaluate_experiment(model, store, subjects, split, partition, experiment, cf
     for condition in evaluation_conditions(cfg, final=partition == "test"):
         path = Path(folder)/partition/(condition["id"] + ".json")
         expected = dict(subjects=subjects, condition=condition, checkpoint_hash=checkpoint_hash,
-                        split_hash=split["sha256"], patch=list(cfg.patch), surface_tolerance=cfg.surface_tolerance_mm)
+                        split_hash=split["sha256"], patch=list(cfg.patch), surface_tolerance=cfg.surface_tolerance_mm,
+                        small_et_threshold_mm3=cfg.small_et_threshold_mm3)
         if path.exists():
             saved = json.loads(path.read_text())
             if saved["identity"] != expected:
@@ -101,10 +102,12 @@ def run_experiment_sweep(store, split, cfg, device):
                         if shared_checkpoint is None:
                             seed_everything(seed)  # Independent of which gate variant runs first.
                             candidate = build_model(registry["B5"], cfg.checkpoint_blocks).to(device)
-                            shared_stages = train_candidate(candidate, store, train_ids, val_ids, split, seeded,
-                                            registry["B5"], root/f"shared_candidates_s{seed}", device, training_deadline)
+                            try:
+                                shared_stages = train_candidate(candidate, store, train_ids, val_ids, split, seeded,
+                                                registry["B5"], root/f"shared_candidates_s{seed}", device, training_deadline)
+                            finally:
+                                del candidate
                             shared_checkpoint = shared_stages[-1]["checkpoint"]
-                            del candidate
                         copy_candidate_weights(model, shared_checkpoint, device)
                         stages = [dict(s, shared=True) for s in shared_stages]
                         record["shared_stage_b_checkpoint"] = shared_checkpoint
@@ -125,6 +128,20 @@ def run_experiment_sweep(store, split, cfg, device):
                               training_seconds=sum(s["training_seconds"] for s in stages),
                               incremental_training_seconds=sum(s["training_seconds"] for s in stages if not s.get("shared")))
                 write_json(status_path, record)
+                benchmark_path = folder/"inference_benchmark.json"
+                benchmark_identity = dict(checkpoint_sha256=selected["checkpoint_sha256"],
+                    subject=val_ids[0], patch=list(cfg.patch), precision=cfg.precision,
+                    repeats=cfg.inference_repeats, device=str(device))
+                if benchmark_path.exists():
+                    benchmark_saved = json.loads(benchmark_path.read_text())
+                    if benchmark_saved.get("identity") != benchmark_identity:
+                        raise ValueError("Inference benchmark configuration changed; use a fresh output directory.")
+                    record["inference_benchmark"] = benchmark_saved["result"]
+                elif time.perf_counter() < deadline:
+                    record["inference_benchmark"] = benchmark_inference(model, store, val_ids[0], cfg, device)
+                    write_json(benchmark_path, dict(identity=benchmark_identity, result=record["inference_benchmark"]))
+                else:
+                    record["inference_benchmark"] = dict(status="not_run", reason="time cap")
                 record["validation"] = evaluate_experiment(model, store, val_ids, split, "validation", experiment,
                                                            cfg, device, folder, selected["checkpoint_sha256"], deadline)
                 if cfg.run_final_test:
@@ -140,6 +157,10 @@ def run_experiment_sweep(store, split, cfg, device):
             except Exception as error:
                 record.update(status="failed", reason=f"{type(error).__name__}: {error}")
             finally:
+                if record["status"] in ("paused", "failed"):
+                    record["partial_history"] = {str(p.relative_to(root)): json.loads(p.read_text())
+                        for directory in (folder, root/f"shared_candidates_s{seed}") if directory.exists()
+                        for p in directory.rglob("history.json")}
                 if model is not None:
                     del model
                 if device.type == "cuda":

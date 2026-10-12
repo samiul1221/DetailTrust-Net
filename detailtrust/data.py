@@ -115,6 +115,7 @@ def inventory_geometry(records, output_path):
             images, labels, metadata = load_subject(record)
             metadata["status"] = "passed"
             metadata["foreground_voxels"] = [int((x != 0).sum()) for x in images]
+            metadata["et_volume_mm3"] = float((labels == 3).sum() * np.prod(metadata["spacing"]))
             # Hash image arrays for exact duplicate detection without label-based features.
             metadata["image_sha256"] = hashlib.sha256(images.tobytes()).hexdigest()
             metadata["file_sizes"] = {m: Path(p).stat().st_size for m, p in record["files"].items()}

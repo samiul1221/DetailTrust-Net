@@ -140,7 +140,8 @@ def run_training_stage(model, store, subjects, validation_subjects, split, cfg, 
         state = load_checkpoint(latest, model, device, optimizer, scheduler, scaler, fingerprint)
         completed, history = state["update"], state["history"]
         best_score, stale, prior_seconds = state["best_validation_score"], state["stale_validations"], state["elapsed_training_seconds"]
-    dataset = PatchDataset(store, subjects, cfg.patch, cfg.seed, max(0, updates-completed),
+    already_stopped = bool(cfg.early_stopping_patience and stale >= cfg.early_stopping_patience)
+    dataset = PatchDataset(store, subjects, cfg.patch, cfg.seed, 0 if already_stopped else max(0, updates-completed),
                            cfg.corruption_probability if variant["corruption"] else 0., start=stream_offset + completed)
     loader = make_loader(dataset)
     started, saved = time.perf_counter(), time.perf_counter()

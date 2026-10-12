@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "checks": [
+    "GPU launch without no-run support",
+    "save-only never silently executes",
+    "failed help diagnostics",
+    "status parsing",
+    "checkpoint hash verification",
+    "incomplete experiment rejection",
+    "initialization report rejection",
+    "no output download while running"
+  ],
+  "live_api_executed": false
+}

@@ -55,8 +55,10 @@ class RunConfig:
     max_hours: float = 1.5
     profile_warmup: int = 1
     profile_updates: int = 2
+    inference_repeats: int = 2
     early_stopping_patience: int | None = None
     surface_tolerance_mm: float = 1.0
+    small_et_threshold_mm3: float | None = None
     nonzero_threshold: float = 1e-5
     variants: tuple = ("B0", "B1", "B2", "B4", "B5")
     run_final_test: bool = False
