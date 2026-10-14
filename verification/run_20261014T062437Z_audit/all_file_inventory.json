@@ -1,0 +1,955 @@
+[
+  {
+    "bytes": 22491165,
+    "parsed_items": 13,
+    "parsed_type": "dict",
+    "path": "detailtrust\\ablation_results.json",
+    "sha256": "4435f2ccdecb3c76f240da560057d39f99c4d2737cedded94263566145b5032c",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 8132,
+    "parsed_items": 5,
+    "parsed_type": "dict",
+    "path": "detailtrust\\artifact_manifest.json",
+    "sha256": "ba35bf83085253b6f4faf42ee03a5ecac4e79c334bdf2a054402eb3b92b03cb5",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 975,
+    "parsed_items": 13,
+    "parsed_type": "dict",
+    "path": "detailtrust\\artifact_verification.json",
+    "sha256": "559123cab56c3993afc9863b7d7570769a05f7edd343f091888329938b4da3cd",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 68094847,
+    "model_deserialization": "not_run: local PyTorch unavailable",
+    "path": "detailtrust\\best_detailtrust_model.pt",
+    "payload_crc": "passed",
+    "sha256": "c3e3cbeeef00104695546777d1f4033bb4f9694d4412f7adeeb6dc112e957aa5",
+    "status": "read_and_hashed",
+    "zip_members": 105
+  },
+  {
+    "bytes": 401,
+    "parsed_items": 6,
+    "parsed_type": "dict",
+    "path": "detailtrust\\best_detailtrust_model_config.json",
+    "sha256": "2e0ba4b4a98d4c693d35643aceeaa44ea3255ad72e4d252617934e5fb05bdc96",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 1040,
+    "parsed_items": 3,
+    "parsed_type": "list",
+    "path": "detailtrust\\compute_profile.json",
+    "sha256": "4cb30a2b5f6e6f074f5c7098e6a1ab4b6b5e342bd58e8d8a896a3b454e6198e3",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 230938,
+    "path": "detailtrust\\correction_contributions.csv",
+    "sha256": "8a1edd133e234ebde756aebf468cffb17ad527ad1e8f3ccf11e86605b6b81460",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 15622,
+    "parsed_items": 5,
+    "parsed_type": "dict",
+    "path": "detailtrust\\dataset_discovery.json",
+    "sha256": "c10fd85817c4c4420d75e56cb400613881feb87469e5c1a7b7e970485dd587ba",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 17593,
+    "parsed_items": 11,
+    "parsed_type": "dict",
+    "path": "detailtrust\\dataset_evidence.json",
+    "sha256": "0d8f734e3f82a52143be02a8b11e0eb093b18b3a9ca1fb6042427d6407741cbd",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 490297,
+    "parsed_items": 368,
+    "parsed_type": "list",
+    "path": "detailtrust\\dataset_integrity.json",
+    "sha256": "591684a5398510e4b6763940ad89055a95816247a02e6011ceaf50aabb76c1ba",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 45464445,
+    "parsed_items": 36,
+    "parsed_type": "dict",
+    "path": "detailtrust\\detailtrust_report.json",
+    "sha256": "7eab6f5163ca00341c73e38047ad0f52468d39c69b02a8de6f21425a3004cfe5",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 382,
+    "parsed_items": 8,
+    "parsed_type": "dict",
+    "path": "detailtrust\\environment.json",
+    "sha256": "fe1bfa2d2f83c7b6f77d9dfc50372936a4bfeecf522f10a76eb7555050f66cc1",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 1199,
+    "parsed_items": 44,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiment_config.json",
+    "sha256": "60dab7aa84202e9fa6172a359c369d5df67a144c449f8440fd149ff6a82acb47",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 800,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\inference_benchmark.json",
+    "sha256": "e53694842573b74619c3339a9a107525010b525217c63e06b28f1d580afbd026",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 68094847,
+    "model_deserialization": "not_run: local PyTorch unavailable",
+    "path": "detailtrust\\experiments\\B5_s1729\\refinement\\best.pt",
+    "payload_crc": "passed",
+    "sha256": "c3e3cbeeef00104695546777d1f4033bb4f9694d4412f7adeeb6dc112e957aa5",
+    "status": "read_and_hashed",
+    "zip_members": 105
+  },
+  {
+    "bytes": 585571,
+    "parsed_items": 1500,
+    "parsed_type": "list",
+    "path": "detailtrust\\experiments\\B5_s1729\\refinement\\history.json",
+    "sha256": "3274ba8860728e5b4dbca91c86b8969b6c0781d483ef3cede6198fc2ccbb0e34",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 68095057,
+    "model_deserialization": "not_run: local PyTorch unavailable",
+    "path": "detailtrust\\experiments\\B5_s1729\\refinement\\latest.pt",
+    "payload_crc": "passed",
+    "sha256": "62c3820fe1f85261bf1a41488f7bd3faa291669c7d5539109c8a0ca75c2279d1",
+    "status": "read_and_hashed",
+    "zip_members": 105
+  },
+  {
+    "bytes": 625311,
+    "parsed_items": 15,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\refinement\\stage_result.json",
+    "sha256": "c8d05962d1236b18b69490f1cd8ee48413809f91133c4ea0a84424d125e1df40",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 21367930,
+    "parsed_items": 23,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\result.json",
+    "sha256": "1f4c6ddcf5b8eadcf6d25ae5a0f5e7e9bc30e6be72d910378acf9f79158e244c",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 465207,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m01.json",
+    "sha256": "734e63e29dc3767949e1e7b5a2f3dff004745c9423b8c6e1c2ab2eebec4ef6e0",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 467462,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m02.json",
+    "sha256": "4ac227f310042a73caa312025b3f084b70358110cfedb83d9879421c132f8f64",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 467681,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m03.json",
+    "sha256": "1bdecb5956a9095bdab6d3f868fad3d25f2f03f0a3a8b7899dfea51b381b710e",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 467481,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m04.json",
+    "sha256": "48ff4c7c5e022eecb2781a20a03f53f452b65b77ede57d18b46267155ffc9bbe",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 467721,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m05.json",
+    "sha256": "b5315051694b54eee154944caea23ddfca5671240267779cf8561e31d432dd97",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 467880,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m06.json",
+    "sha256": "ae9ce7ccc5272727d64780282268a9dcfd9c44a64fec2109a2d762b497711890",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 467290,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m07.json",
+    "sha256": "0805adac33a1e6b61108b92a2342944d226eacb64e0e88254afb101cc9568885",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 466769,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m08.json",
+    "sha256": "56317b6f3e7771927efbea96c134661d0b5cac9b10b019fba8fac9e57532bb51",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 468144,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m09.json",
+    "sha256": "a43c125bb2de5a8b1e6809d38c55e1f86da708ff827d5a826058f9c280f9069a",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 467493,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m10.json",
+    "sha256": "723e083ec24dcbb6cefd9ab3f142bffca048f00e65a867c26ccebd7d9c96ec59",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 467492,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m11.json",
+    "sha256": "4dd7ff3ad601b430960988a79dc9ca3b01b27e64f4b798fdd310e6414127c33b",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 467250,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m12.json",
+    "sha256": "042cc564dc7ff854065a5b05628dcfeba9306b10a05c01119d10ade6a92752e7",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 467533,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m13.json",
+    "sha256": "a33940b7d1d8e7b518d93908e2000856fb1a0c9095e821a89f603e7b9a5b682e",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 467326,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m14.json",
+    "sha256": "af2dd0075b992afffc29eac87ba10c35534ef66738b0472a028148725180f98c",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 5048290,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m15.json",
+    "sha256": "3d40701a4cd920399f285ccdc342ad9832a31a33aba5c91f921c47571b351b5b",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 470418,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\noise1_m13_flair.json",
+    "sha256": "13aa50be47118e4d2da5c4c67d0eb6dbe036d87dc50a7c042eda3a094235bc71",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 470020,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\noise1_m15_flair.json",
+    "sha256": "0065d102c2f9a2f27fb7dddc54e02e50bf0d70829cee1ea75ecbe5b518e89a8c",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 470279,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\noise2_m13_flair.json",
+    "sha256": "531c480be92500710f7030a69628b1683f948b27c69a148e01fa543506716c9d",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 470011,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\noise2_m15_flair.json",
+    "sha256": "e3a4a9770f3f0b5e04ec99582538a3a75590dbebfda50fcde3fcbfe11f89ef08",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 472191,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\resolution1_m13_flair.json",
+    "sha256": "ac0d3f4f9803e17e67e2694884a4b9ae7378659338808928a53f2df77be4d193",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 471988,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\resolution1_m15_flair.json",
+    "sha256": "300976b7e7cb98a9adf4f81f239b2a621cdee4cedc52c2fce5b9b19a147165bb",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 472316,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\resolution2_m13_flair.json",
+    "sha256": "fcc4b87a79a1e4082eebb96fe5b49309a52d9db083182bcc9937a01e7f09f172",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 472091,
+    "parsed_items": 2,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\B5_s1729\\validation\\resolution2_m15_flair.json",
+    "sha256": "1faf865635fa2caa3950558b2e3efa71d6580885df22adad4794e0552325cff8",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 203454266,
+    "model_deserialization": "not_run: local PyTorch unavailable",
+    "path": "detailtrust\\experiments\\shared_candidates_s1729\\A\\best.pt",
+    "payload_crc": "passed",
+    "sha256": "e7eac10593dd21d94e14de8fbda75be76558f4d7f512ed982fadce45cf2f0a6d",
+    "status": "read_and_hashed",
+    "zip_members": 285
+  },
+  {
+    "bytes": 1222791,
+    "parsed_items": 4000,
+    "parsed_type": "list",
+    "path": "detailtrust\\experiments\\shared_candidates_s1729\\A\\history.json",
+    "sha256": "fa18ee07d3be26f90652fb02fddf62033d8d952f019e56bbf25ed65ed3716125",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 203801268,
+    "model_deserialization": "not_run: local PyTorch unavailable",
+    "path": "detailtrust\\experiments\\shared_candidates_s1729\\A\\latest.pt",
+    "payload_crc": "passed",
+    "sha256": "716f00017283ba6cb39dfc936a464fc69d6775159c99887d75fdcace61075a4e",
+    "status": "read_and_hashed",
+    "zip_members": 285
+  },
+  {
+    "bytes": 1311576,
+    "parsed_items": 15,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\shared_candidates_s1729\\A\\stage_result.json",
+    "sha256": "1e54bffcd956a16bb857e40aae7c00395f7415f012a6d8d4df12db56428ed269",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 204198816,
+    "model_deserialization": "not_run: local PyTorch unavailable",
+    "path": "detailtrust\\experiments\\shared_candidates_s1729\\B\\best.pt",
+    "payload_crc": "passed",
+    "sha256": "bcc1bbc0c6a7fff375ca31807a46d7c920f322f0309369ad72ba137d068798f8",
+    "status": "read_and_hashed",
+    "zip_members": 303
+  },
+  {
+    "bytes": 1718671,
+    "parsed_items": 4500,
+    "parsed_type": "list",
+    "path": "detailtrust\\experiments\\shared_candidates_s1729\\B\\history.json",
+    "sha256": "16fbf32ded0683322599cf2f95a6d506cc72a409f1ce96d5c2bba32a2672a256",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 204207422,
+    "model_deserialization": "not_run: local PyTorch unavailable",
+    "path": "detailtrust\\experiments\\shared_candidates_s1729\\B\\latest.pt",
+    "payload_crc": "passed",
+    "sha256": "21c88c8a169cb9015c95e90f5f888c63749343f019381a676e0b07a4df2dde5a",
+    "status": "read_and_hashed",
+    "zip_members": 303
+  },
+  {
+    "bytes": 1836459,
+    "parsed_items": 15,
+    "parsed_type": "dict",
+    "path": "detailtrust\\experiments\\shared_candidates_s1729\\B\\stage_result.json",
+    "sha256": "771d630cd90f295279823d53c063d01bff3776a8ec3ecaca6e69f649cf34c14c",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 998520,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_learning_rate.json",
+    "sha256": "8b7f7764dc0483fd8df520287fc296534c0f610c3a13cb54c09894cf9a457648",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 14734,
+    "path": "detailtrust\\figures\\B5_s1729_learning_rate.pdf",
+    "sha256": "ad36657e26b30ffb50743bba96bcf8d39ff43b7b4e5c4d68ebc0171a425986f8",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 224814,
+    "path": "detailtrust\\figures\\B5_s1729_learning_rate.png",
+    "sha256": "d74b3765a7d530c4021a2b128437b5b5d13c11d4b8616ba2d230e1ec9bc65e9f",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 46732,
+    "path": "detailtrust\\figures\\B5_s1729_learning_rate.svg",
+    "sha256": "921029044c95218c1da6a403f64f76ffbfe35c454a09f07524eec5b3b3f63bd3",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 1668629,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_training_objectives.json",
+    "sha256": "1e98ff734a249a6166ea0db3b9239918e87726f4c9990d3037475e2597cb507f",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 225454,
+    "path": "detailtrust\\figures\\B5_s1729_training_objectives.pdf",
+    "sha256": "5c6731983478e6b6356c7cb044f01609a6a88ba9f37767457bbd1ac5bfafe234",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 406989,
+    "path": "detailtrust\\figures\\B5_s1729_training_objectives.png",
+    "sha256": "98634310c3d7cd7115250deb3c4ad1b5a2367c59890f835b4c87b580a963455e",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 570484,
+    "path": "detailtrust\\figures\\B5_s1729_training_objectives.svg",
+    "sha256": "4fdb6c731e1cee2f6c7629247ec90aa236291925d34f0e5b0477dcd69bb5114e",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 183410,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_validation_boundaries.json",
+    "sha256": "8378dc8abfa0875ea669d123333f26c6a013be769250b5502058a6101d804f64",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 19268,
+    "path": "detailtrust\\figures\\B5_s1729_validation_boundaries.pdf",
+    "sha256": "be601ef45687989d2b2c29027964eecffd1a0aac787b24514013114f57658703",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 214193,
+    "path": "detailtrust\\figures\\B5_s1729_validation_boundaries.png",
+    "sha256": "bfa601cabcdbe30de618a367ec873b19b7948fb5d28192a1c41adfeb2043c125",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 71491,
+    "path": "detailtrust\\figures\\B5_s1729_validation_boundaries.svg",
+    "sha256": "4e054470f7694538e17e398934d9c796444062b834a67f2a94bb8ca29d1fdba8",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 125497,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_validation_contributions.json",
+    "sha256": "f9531c992e9a2d95b41d79a5ca5d6791506a53cf6cc1329d005dc046a3efccf5",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 25423,
+    "path": "detailtrust\\figures\\B5_s1729_validation_contributions.pdf",
+    "sha256": "f1977e4512f89d6c08a082678365835093dc9c82cb0579b01791e908b46bd0b2",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 217852,
+    "path": "detailtrust\\figures\\B5_s1729_validation_contributions.png",
+    "sha256": "f42afc7417715a1ad2041253c5d24ce283adabeea5150db82d6117285587337e",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 122786,
+    "path": "detailtrust\\figures\\B5_s1729_validation_contributions.svg",
+    "sha256": "d17de6856b5f2235fa5be3434364e669700c8c175e320e356ca934300411b275",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 1531311,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_validation_corruption.json",
+    "sha256": "e4fc16b31ac1444267e9d585688151fc66272a4677f1d82cfde47c1c9528066e",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 31347,
+    "path": "detailtrust\\figures\\B5_s1729_validation_corruption.pdf",
+    "sha256": "61141e54e953d7b20059b120b32260deb9d882f9d6b66e80e65f43faaf19ee81",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 272421,
+    "path": "detailtrust\\figures\\B5_s1729_validation_corruption.png",
+    "sha256": "edbd57988a69854b5a5cb4d80e68d225946d9d83a60184049f3b3babbdd4e7fc",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 164966,
+    "path": "detailtrust\\figures\\B5_s1729_validation_corruption.svg",
+    "sha256": "8d4732fd4fdb9a5b2736c0f788fb77c8324539e10b8abc3cdb0c0f89d3bbed05",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 882444,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_validation_detail_removal.json",
+    "sha256": "01003a9610b1c451462aad58fbe1425585e618740e0c6e26351ffea299b86a0c",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 23696,
+    "path": "detailtrust\\figures\\B5_s1729_validation_detail_removal.pdf",
+    "sha256": "ddf7ac03ac913ef2b8dba93f534130dac02629400dda39afb2bf0fb142a452e3",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 217545,
+    "path": "detailtrust\\figures\\B5_s1729_validation_detail_removal.png",
+    "sha256": "785b46c8c04b342a6a2b37d115b61d2ab5cccd40f827158bc8a00783359a11bd",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 107265,
+    "path": "detailtrust\\figures\\B5_s1729_validation_detail_removal.svg",
+    "sha256": "7ec9518601fa5e23a0856bcb012d00de8eb43af6d187f572d13bdd7e2e21e5c4",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 183407,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_validation_detection.json",
+    "sha256": "1f79eadef6ed77e6a5f56dc57d782c6c81c60228937ee3098889e0b49ff256b6",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 18959,
+    "path": "detailtrust\\figures\\B5_s1729_validation_detection.pdf",
+    "sha256": "6fd24403eef352dce8f36ee41c74d8815a8d34b2ce49b3f7e0ea22b283215c89",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 192010,
+    "path": "detailtrust\\figures\\B5_s1729_validation_detection.png",
+    "sha256": "88f0d6cf61d8972688ecd262c3164fde727722a27d8284fa50cce5316e3a0a79",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 71228,
+    "path": "detailtrust\\figures\\B5_s1729_validation_detection.svg",
+    "sha256": "f2f2024ea866b621e8ac4c28e1bb3faea903d865215fbb162e6a1da04271d610",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 61229,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_validation_et_size.json",
+    "sha256": "35894e85faf48fe9a3bef541e2b1976e5e01b1498bccbfe95336400fe6c24edc",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 13469,
+    "path": "detailtrust\\figures\\B5_s1729_validation_et_size.pdf",
+    "sha256": "c4d0a4d38da8f693701426193e16c41f945f7a0927c65c52bd03b3c2f7c0c624",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 78397,
+    "path": "detailtrust\\figures\\B5_s1729_validation_et_size.png",
+    "sha256": "fadb41e6972dab2eecd7f3d38de65849146de2ea32e33f4c95b286807a1afcf9",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 20101,
+    "path": "detailtrust\\figures\\B5_s1729_validation_et_size.svg",
+    "sha256": "26972af15b90c20c7decc08c89ccae4258e71fad7323050f33aea3af23ae8a18",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 329248,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_validation_gate_utility.json",
+    "sha256": "364c08231f79cf44e37e1d2a9c75336e2f0e8254fdd492fcaa999a4f9d298fe2",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 20815,
+    "path": "detailtrust\\figures\\B5_s1729_validation_gate_utility.pdf",
+    "sha256": "8faeebead28a4ab8ec32d03f08cfbed971480545b8578a92fa529437f866ffc0",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 161160,
+    "path": "detailtrust\\figures\\B5_s1729_validation_gate_utility.png",
+    "sha256": "9aa1a0390401e912226f01bffa6a21feb1d6aec8d1dd5ec79d80f6460312814b",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 80938,
+    "path": "detailtrust\\figures\\B5_s1729_validation_gate_utility.svg",
+    "sha256": "05a8b3dafd593b914cf30a5ab269fd001941eb952a403a762fa4d59053684c1c",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 2746960,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_validation_missing_modalities.json",
+    "sha256": "6bf44afeab2f87c4ecaed2658a205064e13c5ed920f709473f71c7995b4c3d09",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 58839,
+    "path": "detailtrust\\figures\\B5_s1729_validation_missing_modalities.pdf",
+    "sha256": "9edefd318aac7381d540a4b8a81b63c32da5a2d55010ac8007ea789e935e2710",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 313623,
+    "path": "detailtrust\\figures\\B5_s1729_validation_missing_modalities.png",
+    "sha256": "1e0e058c6a559e3301c9244513ef567913717acb79d16e5990fd40ae323c8292",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 65785,
+    "path": "detailtrust\\figures\\B5_s1729_validation_missing_modalities.svg",
+    "sha256": "75284c7cdf58305ebc067035833d76826b5cc4781ef64f446458198d540efa73",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 183401,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_validation_overlap.json",
+    "sha256": "3b06ebd69947d7feb8690c53a870e47a8bb5713bf2fc72e2ca2ed7aab86697ce",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 18567,
+    "path": "detailtrust\\figures\\B5_s1729_validation_overlap.pdf",
+    "sha256": "51c8de52742e4a8a3626cc6c4dcb6e5562b12e0b5975faa52a507eeee89b6fbf",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 181464,
+    "path": "detailtrust\\figures\\B5_s1729_validation_overlap.png",
+    "sha256": "611ae2c0b1178ef742354e7cf00144b5a7c3e2c40c9dbcc64265c33d773ed1f7",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 71866,
+    "path": "detailtrust\\figures\\B5_s1729_validation_overlap.svg",
+    "sha256": "fb720e05e81e73ea62d4dd6d3c605d14882eab92c1d4f6c72a641426752d10fa",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 24296,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_validation_stability.json",
+    "sha256": "198a80589ebb6093d28bea56ff74f7162b47bd17967b6c2a508ba3315afcb614",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 15566,
+    "path": "detailtrust\\figures\\B5_s1729_validation_stability.pdf",
+    "sha256": "7a48da0f54e23cb6574767038d5a6f901b4408120b67d1766ac3f09097b81c97",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 144144,
+    "path": "detailtrust\\figures\\B5_s1729_validation_stability.png",
+    "sha256": "6589f5893e33de7215a3061a4ad271e600f0be2db23bdaf17e4d72898f990232",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 30995,
+    "path": "detailtrust\\figures\\B5_s1729_validation_stability.svg",
+    "sha256": "98671a4a44d4cca50bb44d85110132972212a02756d13d5c129b1d96e7141b03",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 538131,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\B5_s1729_validation_trajectory.json",
+    "sha256": "77fa1c872135597e623165a05e4273ab3d6cb758825f658c33590a3a324b649c",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 15427,
+    "path": "detailtrust\\figures\\B5_s1729_validation_trajectory.pdf",
+    "sha256": "cdf32945fdd8c6335e09233c07b8631011ba85c254952bc46d77b19676611bc2",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 123614,
+    "path": "detailtrust\\figures\\B5_s1729_validation_trajectory.png",
+    "sha256": "43ef031cfe385b6f0b7d3bbea73ee010daa0d9711ac755ead681f907931e1648",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 46114,
+    "path": "detailtrust\\figures\\B5_s1729_validation_trajectory.svg",
+    "sha256": "b02e863e08266d7331adccf3f09206997368798ebf0209b2cf4485c6dab1d658",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 548648,
+    "path": "detailtrust\\figures\\BraTS20_Training_205_display_source.npz",
+    "sha256": "e34ee24f29a2aaf3065fde9658373e07f7157c9ea226037c8c98d8d25dccb994",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 1175,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\BraTS20_Training_205_et_contribution_maps.json",
+    "sha256": "003f517c2eb1c3034d427270eb6a251103454f35e77e4233e90b732315a6202d",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 56964,
+    "path": "detailtrust\\figures\\BraTS20_Training_205_et_contribution_maps.pdf",
+    "sha256": "86f367e5a7cdeb1d3554be4a32e5845fa2ad81b90be95bdb51c2ac6f7d6482d8",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 138164,
+    "path": "detailtrust\\figures\\BraTS20_Training_205_et_contribution_maps.png",
+    "sha256": "2b78bae5b0bb175537fd818a2da2d8adc2cb509c7b2106d6f2a258fa6d8e7746",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 124900,
+    "path": "detailtrust\\figures\\BraTS20_Training_205_et_contribution_maps.svg",
+    "sha256": "4a903fdb9808ecc33216c2c14125b89def39a071f38ed4d457bbf468459c95d7",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 1198,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\BraTS20_Training_205_segmentation_views.json",
+    "sha256": "097e68809ae73174da7f0eac0bf0ad896a08f4d05cd669f8a27abf586b2ecf40",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 111372,
+    "path": "detailtrust\\figures\\BraTS20_Training_205_segmentation_views.pdf",
+    "sha256": "7a378a219f02e769d4950af08c16ff04d20600786e74832dbcbe8960226d1596",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 313085,
+    "path": "detailtrust\\figures\\BraTS20_Training_205_segmentation_views.png",
+    "sha256": "66bb135ce2d5e907861c08d3ec821187aca7aac7a4bc55b4af1bff36dd00a68e",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 244413,
+    "path": "detailtrust\\figures\\BraTS20_Training_205_segmentation_views.svg",
+    "sha256": "4ce48a6e3a54717fa288f4b71d4e96062fb7934a5e9248de8411741cb83e64c1",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 1090,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\BraTS20_Training_205_spatial_gates.json",
+    "sha256": "e2a3fc98f58c198c3644442bff75a66b5504cb202fc4108ee3408da0a3368f32",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 59351,
+    "path": "detailtrust\\figures\\BraTS20_Training_205_spatial_gates.pdf",
+    "sha256": "60f156e9e25f57852fd0f5640a0253896214b46af32a4d00f34cacb88e9ebcb7",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 139516,
+    "path": "detailtrust\\figures\\BraTS20_Training_205_spatial_gates.png",
+    "sha256": "d298d2d3f6b6c7f257a9603adb93a9507839e763ed80c714c0a180b81f992348",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 117558,
+    "path": "detailtrust\\figures\\BraTS20_Training_205_spatial_gates.svg",
+    "sha256": "f09f14dac4848af070cc6c5039542185b5287891d29b5eed5a1f0761f2ddeb62",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 281752,
+    "path": "detailtrust\\figures\\example_corrections.png",
+    "sha256": "16d60376983d3c7727a9c6fc3865f0bda1d13ec6962f1c2fc01f651924b9b005",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 7312,
+    "parsed_items": 14,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\paper_figures_manifest.json",
+    "sha256": "1423f47324f2de7b5c2b9ff4ead45bbd344dce937d5662c16bec14ae15db7dc0",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 228776,
+    "path": "detailtrust\\figures\\preprocessing.png",
+    "sha256": "ed9f99f6259851f59d8dcb623ec44e600539d82b33cc93189d2838eb63bea2d0",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 1686,
+    "parsed_items": 3,
+    "parsed_type": "dict",
+    "path": "detailtrust\\figures\\qualitative_manifest.json",
+    "sha256": "1d1fbeb1edcbb0d6bc2dce034da8668b2bba751d012064005769de0fdd4602a6",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 354,
+    "path": "detailtrust\\figures\\README.md",
+    "sha256": "8ba6837d89a4c358f3da1d67d33c95e0da51d84b64a603ef62869b8d0fb4852a",
+    "status": "read_and_hashed",
+    "text_lines": 5
+  },
+  {
+    "bytes": 816796,
+    "path": "detailtrust\\gate_analysis.csv",
+    "sha256": "0bfedc608ef102ccebaf7eea92c62c8f35b1f2d4f8b0028dd15b4940c1446d89",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 4966706,
+    "path": "detailtrust\\metrics_per_subject.csv",
+    "sha256": "a1581b7ce40f4c141ef3ed338f4c1324e503319c1c112aa4363a6b0453e6f91a",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 648844,
+    "path": "detailtrust\\metrics_summary.csv",
+    "sha256": "3505f029c98ff00ba3a1cb650dff2e98ca555bfa49d08533dc6f940f73265159",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 1378,
+    "path": "detailtrust\\README.md",
+    "sha256": "d9c1c67e7e3c7720002d3893ac7f668b8edca230865dd6bd8cff847e72bd73a1",
+    "status": "read_and_hashed",
+    "text_lines": 24
+  },
+  {
+    "bytes": 527,
+    "parsed_items": 5,
+    "parsed_type": "dict",
+    "path": "detailtrust\\resume_restore.json",
+    "sha256": "b5bb8bd63a3e23f97f6d6ba9e7b7c8b8bed46f465273ec85f2af2ae30888c781",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 10603,
+    "parsed_items": 8,
+    "parsed_type": "dict",
+    "path": "detailtrust\\split_manifest.json",
+    "sha256": "ca3f576897fffc4eff06b7b8ea1444d59005b9142c455bde5e283a2d7e08ba75",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 127027,
+    "parsed_items": 3,
+    "parsed_type": "dict",
+    "path": "detailtrust\\stability_analysis.json",
+    "sha256": "f97435aac2cf40f39d9e7898c28928fe01b627971c94f787ad4b9d607494f1eb",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 633,
+    "parsed_items": 4,
+    "parsed_type": "dict",
+    "path": "detailtrust\\tiny_overfit_check.json",
+    "sha256": "a49df1c0b2d0e71cc7b83a36f0cbb1bc8a557446813b9fe423822a733915e9aa",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 4028529,
+    "parsed_items": 10000,
+    "parsed_type": "list",
+    "path": "detailtrust\\training_history.json",
+    "sha256": "1cc4737ed787a2545fd3fe8cbd94163541109e72c6184acbd2528908bb2bbbd0",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 1447,
+    "parsed_items": 13,
+    "parsed_type": "list",
+    "path": "detailtrust\\unit_checks.json",
+    "sha256": "86a7519274df394eaf8ea8ae47c3282befce8ccaf2b609f7647e635e3e54d082",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 73183,
+    "fatal_error_markers": [],
+    "last_timestamp_seconds": 17876.115638324,
+    "parsed_items": 599,
+    "parsed_type": "list",
+    "path": "detailtrust-net-reproducible-brats-experiments.log",
+    "sha256": "6c723e51e775b12a551ea7de502150d7b4fee03c6cbb961ae97ed9cbff3d0360",
+    "status": "read_and_hashed"
+  },
+  {
+    "bytes": 405,
+    "parsed_items": 11,
+    "parsed_type": "dict",
+    "path": "download_manifest.json",
+    "sha256": "4bfd32a6399299c2a3ff7dc6b9316eb49f33879bf1b86c34f63a6b203a9b3e2f",
+    "status": "read_and_hashed"
+  }
+]

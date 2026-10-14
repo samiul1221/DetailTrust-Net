@@ -1,0 +1,15 @@
+{
+  "baseline_training_status": "partial",
+  "bundle_bytes": 409026352,
+  "bundle_hashes_verified": true,
+  "bundle_id": "d86a83a51ed6489e4aa6f7d19731a942ab061fc37dc5cd139d99e5003a1cb19c",
+  "cells": 252,
+  "cloud_execution": "not_run",
+  "code_cells": 155,
+  "fingerprint_matches_current_code": true,
+  "history_matches_latest": true,
+  "notebook": "C:\\D\\project\\bt\\detailtrust_b0_resume.ipynb",
+  "source_unchanged": true,
+  "split_matches_b5": true,
+  "status": "passed"
+}

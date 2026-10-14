@@ -1,0 +1,3318 @@
+{
+  "json": [
+    {
+      "path": "detailtrust\\ablation_results.json",
+      "bytes": 16809482,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "A1_s1729",
+        "A2_s1729",
+        "A3_s1729",
+        "A4_s1729",
+        "A5_s1729",
+        "A6_s1729",
+        "A7_s1729",
+        "B0_s1729",
+        "B1_s1729",
+        "B2_s1729",
+        "B3_s1729",
+        "B4_s1729",
+        "B5_s1729"
+      ],
+      "length": 13
+    },
+    {
+      "path": "detailtrust\\artifact_manifest.json",
+      "bytes": 7709,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "correction_contributions.csv",
+        "figures",
+        "gate_analysis.csv",
+        "metrics_per_subject.csv",
+        "metrics_summary.csv"
+      ],
+      "length": 5
+    },
+    {
+      "path": "detailtrust\\artifact_verification.json",
+      "bytes": 975,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "README.md",
+        "ablation_results.json",
+        "best_detailtrust_model.pt",
+        "best_detailtrust_model_config.json",
+        "correction_contributions.csv",
+        "detailtrust_report.json",
+        "experiment_config.json",
+        "gate_analysis.csv",
+        "metrics_per_subject.csv",
+        "metrics_summary.csv",
+        "split_manifest.json",
+        "stability_analysis.json",
+        "training_history.json"
+      ],
+      "length": 13
+    },
+    {
+      "path": "detailtrust\\best_detailtrust_model_config.json",
+      "bytes": 401,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "architecture",
+        "label_mapping",
+        "modality_order",
+        "preprocessing",
+        "seed",
+        "variant_id"
+      ],
+      "length": 6
+    },
+    {
+      "path": "detailtrust\\compute_profile.json",
+      "bytes": 1040,
+      "status": "parsed",
+      "type": "list",
+      "top_keys": null,
+      "length": 3
+    },
+    {
+      "path": "detailtrust\\dataset_discovery.json",
+      "bytes": 15622,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "adapter",
+        "discovered",
+        "eligible",
+        "excluded",
+        "unmatched_nifti"
+      ],
+      "length": 5
+    },
+    {
+      "path": "detailtrust\\dataset_evidence.json",
+      "bytes": 17593,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "discovery",
+        "identifier",
+        "inventory_hash",
+        "licence",
+        "mounted_files_verified",
+        "official_test_labels_used",
+        "original_terms",
+        "patient_identity_limit",
+        "source",
+        "version",
+        "version_status"
+      ],
+      "length": 11
+    },
+    {
+      "path": "detailtrust\\dataset_integrity.json",
+      "bytes": 490297,
+      "status": "parsed",
+      "type": "list",
+      "top_keys": null,
+      "length": 368
+    },
+    {
+      "path": "detailtrust\\detailtrust_report.json",
+      "bytes": 33955632,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "ablation_study",
+        "architecture",
+        "architecture_equations",
+        "best_checkpoint",
+        "class_metrics",
+        "data_splits",
+        "dataset",
+        "dataset_integrity",
+        "detail_branch_contributions",
+        "environment",
+        "experiment_status",
+        "hardware",
+        "implementation_deviations",
+        "label_mapping",
+        "limitations",
+        "missing_modality_robustness",
+        "model_complexity",
+        "model_parameters",
+        "per_subject_metrics",
+        "preprocessing",
+        "project",
+        "random_seeds",
+        "region_metrics",
+        "reproducibility",
+        "runtime_and_memory",
+        "schema_version",
+        "spatial_corruption_robustness",
+        "stability_analysis",
+        "statistical_analysis",
+        "test_metrics",
+        "training_configuration",
+        "training_history",
+        "training_stages",
+        "utility_gate_analysis",
+        "validation_metrics",
+        "warnings"
+      ],
+      "length": 36
+    },
+    {
+      "path": "detailtrust\\environment.json",
+      "bytes": 382,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "cuda",
+        "free_disk_bytes",
+        "gpu_count",
+        "gpu_memory_bytes",
+        "gpu_name",
+        "packages",
+        "platform",
+        "python"
+      ],
+      "length": 8
+    },
+    {
+      "path": "detailtrust\\experiment_config.json",
+      "bytes": 1199,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "batch_size",
+        "branch_dropout",
+        "cache_gb",
+        "checkpoint_blocks",
+        "checkpoint_seconds",
+        "corruption_probability",
+        "data_root",
+        "dataset_version",
+        "early_stopping_patience",
+        "epoch_updates",
+        "gate_lr",
+        "inference_repeats",
+        "lr",
+        "max_hours",
+        "mode",
+        "nonzero_threshold",
+        "output_dir",
+        "patch",
+        "precision",
+        "profile_updates",
+        "profile_warmup",
+        "protocol_locked",
+        "resume_dir",
+        "robustness",
+        "run_final_test",
+        "seed",
+        "seeds",
+        "small_et_threshold_mm3",
+        "split_seed",
+        "surface_tolerance_mm",
+        "synthetic",
+        "train_subjects",
+        "training_budget_fraction",
+        "updates_a",
+        "updates_b",
+        "updates_c",
+        "utility_tau",
+        "utility_weight",
+        "val_subjects",
+        "validation_every",
+        "variants",
+        "warmup_updates",
+        "weight_decay",
+        "workers"
+      ],
+      "length": 44
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\inference_benchmark.json",
+      "bytes": 800,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\refinement\\history.json",
+      "bytes": 585571,
+      "status": "parsed",
+      "type": "list",
+      "top_keys": null,
+      "length": 1500
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\refinement\\stage_result.json",
+      "bytes": 625316,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "checkpoint",
+        "checkpoint_bytes",
+        "checkpoint_sha256",
+        "history",
+        "parameter_counts",
+        "peak_allocated_bytes",
+        "peak_reserved_bytes",
+        "selected_epoch",
+        "selected_update",
+        "stage",
+        "status",
+        "training_seconds",
+        "updates_completed",
+        "updates_planned",
+        "validation_score"
+      ],
+      "length": 15
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\result.json",
+      "bytes": 15950787,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "checkpoint",
+        "checkpoint_sha256",
+        "configuration",
+        "description",
+        "evidence_level",
+        "exact_run_configuration",
+        "incremental_training_seconds",
+        "inference_benchmark",
+        "parameters",
+        "reason",
+        "scientific_comparison_status",
+        "seed",
+        "shared_stage_b_checkpoint",
+        "split_hash",
+        "stages",
+        "status",
+        "test",
+        "train_subjects",
+        "training_seconds",
+        "validation",
+        "validation_selection_score",
+        "validation_subjects",
+        "variant_id"
+      ],
+      "length": 23
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m01.json",
+      "bytes": 465207,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m02.json",
+      "bytes": 467462,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m03.json",
+      "bytes": 467681,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m04.json",
+      "bytes": 467481,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m05.json",
+      "bytes": 467721,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m06.json",
+      "bytes": 467880,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m07.json",
+      "bytes": 467290,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m08.json",
+      "bytes": 466769,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m09.json",
+      "bytes": 468144,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m10.json",
+      "bytes": 467493,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m11.json",
+      "bytes": 467492,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m12.json",
+      "bytes": 277862,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\B5_s1729\\validation\\clean_m15.json",
+      "bytes": 5048290,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "identity",
+        "result"
+      ],
+      "length": 2
+    },
+    {
+      "path": "detailtrust\\experiments\\shared_candidates_s1729\\A\\history.json",
+      "bytes": 1222791,
+      "status": "parsed",
+      "type": "list",
+      "top_keys": null,
+      "length": 4000
+    },
+    {
+      "path": "detailtrust\\experiments\\shared_candidates_s1729\\A\\stage_result.json",
+      "bytes": 1311576,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "checkpoint",
+        "checkpoint_bytes",
+        "checkpoint_sha256",
+        "history",
+        "parameter_counts",
+        "peak_allocated_bytes",
+        "peak_reserved_bytes",
+        "selected_epoch",
+        "selected_update",
+        "stage",
+        "status",
+        "training_seconds",
+        "updates_completed",
+        "updates_planned",
+        "validation_score"
+      ],
+      "length": 15
+    },
+    {
+      "path": "detailtrust\\experiments\\shared_candidates_s1729\\B\\history.json",
+      "bytes": 1718671,
+      "status": "parsed",
+      "type": "list",
+      "top_keys": null,
+      "length": 4500
+    },
+    {
+      "path": "detailtrust\\experiments\\shared_candidates_s1729\\B\\stage_result.json",
+      "bytes": 1836461,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "checkpoint",
+        "checkpoint_bytes",
+        "checkpoint_sha256",
+        "history",
+        "parameter_counts",
+        "peak_allocated_bytes",
+        "peak_reserved_bytes",
+        "selected_epoch",
+        "selected_update",
+        "stage",
+        "status",
+        "training_seconds",
+        "updates_completed",
+        "updates_planned",
+        "validation_score"
+      ],
+      "length": 15
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_learning_rate.json",
+      "bytes": 998520,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_training_objectives.json",
+      "bytes": 1668629,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_boundaries.json",
+      "bytes": 183410,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_contributions.json",
+      "bytes": 125497,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_detail_removal.json",
+      "bytes": 882444,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_detection.json",
+      "bytes": 183407,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_et_size.json",
+      "bytes": 61229,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_gate_utility.json",
+      "bytes": 329248,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_missing_modalities.json",
+      "bytes": 2306043,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_overlap.json",
+      "bytes": 183401,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_stability.json",
+      "bytes": 24296,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_trajectory.json",
+      "bytes": 538131,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_et_contribution_maps.json",
+      "bytes": 1175,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_segmentation_views.json",
+      "bytes": 1198,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_spatial_gates.json",
+      "bytes": 1090,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "caption",
+        "formats",
+        "journal_requirements",
+        "source"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\figures\\paper_figures_manifest.json",
+      "bytes": 6899,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "B5_s1729_learning_rate",
+        "B5_s1729_training_objectives",
+        "B5_s1729_validation_boundaries",
+        "B5_s1729_validation_contributions",
+        "B5_s1729_validation_corruption",
+        "B5_s1729_validation_detail_removal",
+        "B5_s1729_validation_detection",
+        "B5_s1729_validation_et_size",
+        "B5_s1729_validation_gate_utility",
+        "B5_s1729_validation_missing_modalities",
+        "B5_s1729_validation_overlap",
+        "B5_s1729_validation_stability",
+        "B5_s1729_validation_trajectory",
+        "variant_comparison"
+      ],
+      "length": 14
+    },
+    {
+      "path": "detailtrust\\figures\\qualitative_manifest.json",
+      "bytes": 1686,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "et_contribution_maps",
+        "segmentation_views",
+        "spatial_gates"
+      ],
+      "length": 3
+    },
+    {
+      "path": "detailtrust\\resume_restore.json",
+      "bytes": 428,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "bundle_id",
+        "progress",
+        "source",
+        "status",
+        "verified_files"
+      ],
+      "length": 5
+    },
+    {
+      "path": "detailtrust\\split_manifest.json",
+      "bytes": 10603,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "official",
+        "protocol",
+        "published_author_ids_recovered",
+        "seed",
+        "sha256",
+        "test",
+        "train",
+        "validation"
+      ],
+      "length": 8
+    },
+    {
+      "path": "detailtrust\\stability_analysis.json",
+      "bytes": 127027,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "enumeration_checks",
+        "records",
+        "scope"
+      ],
+      "length": 3
+    },
+    {
+      "path": "detailtrust\\tiny_overfit_check.json",
+      "bytes": 633,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "interpretation",
+        "loss_decreased",
+        "losses",
+        "status"
+      ],
+      "length": 4
+    },
+    {
+      "path": "detailtrust\\training_history.json",
+      "bytes": 4028529,
+      "status": "parsed",
+      "type": "list",
+      "top_keys": null,
+      "length": 10000
+    },
+    {
+      "path": "detailtrust\\unit_checks.json",
+      "bytes": 1448,
+      "status": "parsed",
+      "type": "list",
+      "top_keys": null,
+      "length": 13
+    },
+    {
+      "path": "download_manifest.json",
+      "bytes": 471,
+      "status": "parsed",
+      "type": "dict",
+      "top_keys": [
+        "success",
+        "selected_experiments",
+        "best_checkpoint_hash_verified",
+        "evidence_level",
+        "synthetic",
+        "reason",
+        "kernel",
+        "downloaded_at_utc",
+        "kaggle_status",
+        "download_command_succeeded",
+        "cache_excluded"
+      ],
+      "length": 11
+    }
+  ],
+  "csv": [
+    {
+      "path": "detailtrust\\correction_contributions.csv",
+      "rows": 980,
+      "fields": [
+        "absolute_candidate_mean",
+        "absolute_contribution_mean",
+        "class_order",
+        "condition",
+        "experiment",
+        "modality",
+        "nonnegligible_fraction",
+        "region",
+        "signed_contribution_mean",
+        "split",
+        "subject",
+        "threshold",
+        "voxel_count"
+      ]
+    },
+    {
+      "path": "detailtrust\\gate_analysis.csv",
+      "rows": 980,
+      "fields": [
+        "candidate_utility_spearman",
+        "condition",
+        "count",
+        "energy_utility_spearman",
+        "experiment",
+        "gate_utility_spearman",
+        "helpful_fraction",
+        "histogram_counts",
+        "histogram_edges",
+        "interpretation",
+        "mean",
+        "measured_gated_utility_mean",
+        "median",
+        "modality",
+        "q05",
+        "q95",
+        "region",
+        "split",
+        "subject",
+        "voxel_count"
+      ]
+    },
+    {
+      "path": "detailtrust\\metrics_per_subject.csv",
+      "rows": 6034,
+      "fields": [
+        "absolute_volume_error_mm3",
+        "aggregation",
+        "both_empty",
+        "condition",
+        "dice",
+        "et_size_group",
+        "et_volume_mm3",
+        "experiment",
+        "fn",
+        "fp",
+        "fp_mm3",
+        "hd95_convention",
+        "hd95_mm",
+        "iou",
+        "lesion_precision",
+        "lesion_recall",
+        "matched_lesions",
+        "metric_scope",
+        "one_empty",
+        "precision",
+        "predicted_lesions",
+        "prediction_voxels",
+        "recall",
+        "reference_lesions",
+        "region",
+        "small_et_threshold_mm3",
+        "specificity",
+        "split",
+        "subject",
+        "surface_convention",
+        "surface_dice",
+        "surface_tolerance_mm",
+        "tn",
+        "tp",
+        "truth_voxels",
+        "undefined_policy"
+      ]
+    },
+    {
+      "path": "detailtrust\\metrics_summary.csv",
+      "rows": 126,
+      "fields": [
+        "absolute_volume_error_mm3",
+        "aggregation",
+        "both_empty_count",
+        "condition",
+        "dice",
+        "experiment",
+        "fp_mm3",
+        "hd95_mm",
+        "iou",
+        "lesion_precision",
+        "lesion_recall",
+        "one_empty_count",
+        "precision",
+        "recall",
+        "region",
+        "specificity",
+        "split",
+        "subject_count",
+        "subjects",
+        "surface_dice"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "path": "detailtrust\\figures\\B5_s1729_learning_rate.pdf",
+      "bytes": 14734,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:23 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       864 x 273.6 pts\nPage rot:        0\nFile size:       14734 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_learning_rate.png",
+      "bytes": 224814,
+      "size": [
+        3600,
+        1140
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_learning_rate.svg",
+      "bytes": 46732,
+      "width": "864pt",
+      "height": "273.6pt",
+      "viewBox": "0 0 864 273.6",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_training_objectives.pdf",
+      "bytes": 225454,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:20 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       864 x 273.6 pts\nPage rot:        0\nFile size:       225454 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_training_objectives.png",
+      "bytes": 406989,
+      "size": [
+        3600,
+        1140
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_training_objectives.svg",
+      "bytes": 570484,
+      "width": "864pt",
+      "height": "273.6pt",
+      "viewBox": "0 0 864 273.6",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_boundaries.pdf",
+      "bytes": 19268,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:26 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       648 x 324 pts\nPage rot:        0\nFile size:       19268 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_boundaries.png",
+      "bytes": 214193,
+      "size": [
+        2700,
+        1350
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_boundaries.svg",
+      "bytes": 71491,
+      "width": "648pt",
+      "height": "324pt",
+      "viewBox": "0 0 648 324",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_contributions.pdf",
+      "bytes": 25423,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:32 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       720 x 324 pts\nPage rot:        0\nFile size:       25423 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_contributions.png",
+      "bytes": 217852,
+      "size": [
+        3000,
+        1350
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_contributions.svg",
+      "bytes": 122786,
+      "width": "720pt",
+      "height": "324pt",
+      "viewBox": "0 0 720 324",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_detail_removal.pdf",
+      "bytes": 23696,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:34 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       864 x 324 pts\nPage rot:        0\nFile size:       23696 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_detail_removal.png",
+      "bytes": 217545,
+      "size": [
+        3600,
+        1350
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_detail_removal.svg",
+      "bytes": 107265,
+      "width": "864pt",
+      "height": "324pt",
+      "viewBox": "0 0 864 324",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_detection.pdf",
+      "bytes": 18959,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:26 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       648 x 324 pts\nPage rot:        0\nFile size:       18959 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_detection.png",
+      "bytes": 192010,
+      "size": [
+        2700,
+        1350
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_detection.svg",
+      "bytes": 71228,
+      "width": "648pt",
+      "height": "324pt",
+      "viewBox": "0 0 648 324",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_et_size.pdf",
+      "bytes": 13469,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:27 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       432 x 288 pts\nPage rot:        0\nFile size:       13469 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_et_size.png",
+      "bytes": 78397,
+      "size": [
+        1800,
+        1200
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_et_size.svg",
+      "bytes": 20101,
+      "width": "432pt",
+      "height": "288pt",
+      "viewBox": "0 0 432 288",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_gate_utility.pdf",
+      "bytes": 20815,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:31 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       720 x 324 pts\nPage rot:        0\nFile size:       20815 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_gate_utility.png",
+      "bytes": 161160,
+      "size": [
+        3000,
+        1350
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_gate_utility.svg",
+      "bytes": 80938,
+      "width": "720pt",
+      "height": "324pt",
+      "viewBox": "0 0 720 324",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_missing_modalities.pdf",
+      "bytes": 55704,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:29 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       936 x 345.6 pts\nPage rot:        0\nFile size:       55704 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_missing_modalities.png",
+      "bytes": 309478,
+      "size": [
+        3900,
+        1440
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_missing_modalities.svg",
+      "bytes": 64437,
+      "width": "936pt",
+      "height": "345.6pt",
+      "viewBox": "0 0 936 345.6",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_overlap.pdf",
+      "bytes": 18567,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:24 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       648 x 324 pts\nPage rot:        0\nFile size:       18567 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_overlap.png",
+      "bytes": 181464,
+      "size": [
+        2700,
+        1350
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_overlap.svg",
+      "bytes": 71866,
+      "width": "648pt",
+      "height": "324pt",
+      "viewBox": "0 0 648 324",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_stability.pdf",
+      "bytes": 15566,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:33 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       720 x 288 pts\nPage rot:        0\nFile size:       15566 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_stability.png",
+      "bytes": 144144,
+      "size": [
+        3000,
+        1200
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_stability.svg",
+      "bytes": 30995,
+      "width": "720pt",
+      "height": "288pt",
+      "viewBox": "0 0 720 288",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_trajectory.pdf",
+      "bytes": 15427,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:22 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       864 x 273.6 pts\nPage rot:        0\nFile size:       15427 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_trajectory.png",
+      "bytes": 123614,
+      "size": [
+        3600,
+        1140
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\B5_s1729_validation_trajectory.svg",
+      "bytes": 46114,
+      "width": "864pt",
+      "height": "273.6pt",
+      "viewBox": "0 0 864 273.6",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_display_source.npz",
+      "bytes": 548648,
+      "arrays": {
+        "Axial_FLAIR": {
+          "shape": [
+            240,
+            240
+          ],
+          "finite": true
+        },
+        "Axial_Reference": {
+          "shape": [
+            240,
+            240
+          ],
+          "finite": true
+        },
+        "Axial_Base": {
+          "shape": [
+            240,
+            240
+          ],
+          "finite": true
+        },
+        "Axial_Final": {
+          "shape": [
+            240,
+            240
+          ],
+          "finite": true
+        },
+        "Coronal_FLAIR": {
+          "shape": [
+            155,
+            240
+          ],
+          "finite": true
+        },
+        "Coronal_Reference": {
+          "shape": [
+            155,
+            240
+          ],
+          "finite": true
+        },
+        "Coronal_Base": {
+          "shape": [
+            155,
+            240
+          ],
+          "finite": true
+        },
+        "Coronal_Final": {
+          "shape": [
+            155,
+            240
+          ],
+          "finite": true
+        },
+        "Sagittal_FLAIR": {
+          "shape": [
+            155,
+            240
+          ],
+          "finite": true
+        },
+        "Sagittal_Reference": {
+          "shape": [
+            155,
+            240
+          ],
+          "finite": true
+        },
+        "Sagittal_Base": {
+          "shape": [
+            155,
+            240
+          ],
+          "finite": true
+        },
+        "Sagittal_Final": {
+          "shape": [
+            155,
+            240
+          ],
+          "finite": true
+        },
+        "spatial_gates": {
+          "shape": [
+            4,
+            240,
+            240
+          ],
+          "finite": true
+        },
+        "et_contribution_maps": {
+          "shape": [
+            4,
+            240,
+            240
+          ],
+          "finite": true
+        }
+      },
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_et_contribution_maps.pdf",
+      "bytes": 56964,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:28:04 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       864 x 273.6 pts\nPage rot:        0\nFile size:       56964 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_et_contribution_maps.png",
+      "bytes": 138164,
+      "size": [
+        3600,
+        1140
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_et_contribution_maps.svg",
+      "bytes": 124900,
+      "width": "864pt",
+      "height": "273.6pt",
+      "viewBox": "0 0 864 273.6",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_segmentation_views.pdf",
+      "bytes": 111372,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:27:59 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       792 x 648 pts\nPage rot:        0\nFile size:       111372 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_segmentation_views.png",
+      "bytes": 313085,
+      "size": [
+        3300,
+        2700
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_segmentation_views.svg",
+      "bytes": 244413,
+      "width": "792pt",
+      "height": "648pt",
+      "viewBox": "0 0 792 648",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_spatial_gates.pdf",
+      "bytes": 59351,
+      "pdfinfo": "Creator:         Matplotlib v3.10.0, https://matplotlib.org\nProducer:        Matplotlib pdf backend v3.10.0\nCreationDate:    Wed Oct 14 02:28:02 2026 India Standard Time\nCustom Metadata: no\nMetadata Stream: no\nTagged:          no\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       864 x 273.6 pts\nPage rot:        0\nFile size:       59351 bytes\nOptimized:       no\nPDF version:     1.4\n",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_spatial_gates.png",
+      "bytes": 139516,
+      "size": [
+        3600,
+        1140
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        299.9994,
+        299.9994
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\BraTS20_Training_205_spatial_gates.svg",
+      "bytes": 117558,
+      "width": "864pt",
+      "height": "273.6pt",
+      "viewBox": "0 0 864 273.6",
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\example_corrections.png",
+      "bytes": 281752,
+      "size": [
+        2700,
+        450
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        150.01239999999999,
+        150.01239999999999
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    },
+    {
+      "path": "detailtrust\\figures\\preprocessing.png",
+      "bytes": 228776,
+      "size": [
+        2250,
+        450
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        150.01239999999999,
+        150.01239999999999
+      ],
+      "extrema": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          255
+        ],
+        [
+          255,
+          255
+        ]
+      ],
+      "status": "read"
+    }
+  ],
+  "metrics": {
+    "per_subject_rows": 6034,
+    "report_groups": 126,
+    "summary_csv_rows": 126,
+    "recomputed_means": 1170,
+    "max_mean_discrepancy": 0.0,
+    "recomputed_other_statistics": 5544,
+    "max_other_statistics_discrepancy": 0.0,
+    "issues": [],
+    "partitions": {
+      "validation": 6034
+    },
+    "conditions": {
+      "clean_m15": 343,
+      "clean_m15_remove_detail_t1": 343,
+      "clean_m15_remove_detail_t1ce": 343,
+      "clean_m15_remove_detail_t2": 343,
+      "clean_m15_remove_detail_flair": 343,
+      "clean_m15_base_only": 343,
+      "clean_m01": 343,
+      "clean_m02": 343,
+      "clean_m03": 343,
+      "clean_m04": 343,
+      "clean_m05": 343,
+      "clean_m06": 343,
+      "clean_m07": 343,
+      "clean_m08": 343,
+      "clean_m09": 343,
+      "clean_m10": 343,
+      "clean_m11": 343,
+      "clean_m12": 203
+    },
+    "empty_ET_clean": [
+      {
+        "subject": "BraTS20_Training_278",
+        "truth_voxels": 0,
+        "prediction_voxels": 18966,
+        "dice": 0.0
+      },
+      {
+        "subject": "BraTS20_Training_306",
+        "truth_voxels": 0,
+        "prediction_voxels": 2492,
+        "dice": 0.0
+      },
+      {
+        "subject": "BraTS20_Training_263",
+        "truth_voxels": 0,
+        "prediction_voxels": 3178,
+        "dice": 0.0
+      },
+      {
+        "subject": "BraTS20_Training_286",
+        "truth_voxels": 0,
+        "prediction_voxels": 151,
+        "dice": 0.0
+      }
+    ],
+    "worst_ET_clean": [
+      {
+        "subject": "BraTS20_Training_278",
+        "dice": 0.0,
+        "truth_voxels": 0
+      },
+      {
+        "subject": "BraTS20_Training_306",
+        "dice": 0.0,
+        "truth_voxels": 0
+      },
+      {
+        "subject": "BraTS20_Training_263",
+        "dice": 0.0,
+        "truth_voxels": 0
+      },
+      {
+        "subject": "BraTS20_Training_286",
+        "dice": 0.0,
+        "truth_voxels": 0
+      },
+      {
+        "subject": "BraTS20_Training_086",
+        "dice": 0.0761904761904762,
+        "truth_voxels": 106
+      },
+      {
+        "subject": "BraTS20_Training_074",
+        "dice": 0.09375660257764631,
+        "truth_voxels": 22496
+      },
+      {
+        "subject": "BraTS20_Training_232",
+        "dice": 0.35540430274444246,
+        "truth_voxels": 9523
+      },
+      {
+        "subject": "BraTS20_Training_318",
+        "dice": 0.41750607849947896,
+        "truth_voxels": 1855
+      }
+    ]
+  },
+  "csv_json_cross_checks": {
+    "metrics_per_subject.csv": {
+      "rows_matched": 6034,
+      "fields_matched": 186219
+    },
+    "metrics_summary.csv": {
+      "rows_matched": 126,
+      "fields_matched": 2520
+    },
+    "gate_analysis.csv": {
+      "rows_matched": 980,
+      "fields_matched": 19600
+    },
+    "correction_contributions.csv": {
+      "rows_matched": 980,
+      "fields_matched": 12740
+    }
+  },
+  "training": [
+    {
+      "stage": "A",
+      "status": "completed",
+      "updates_completed": 4000,
+      "updates_planned": 4000,
+      "selected_update": 2000,
+      "validation_score": 0.7104968509513776,
+      "training_seconds": 14128.414365493001,
+      "history_rows": 4000,
+      "contiguous_updates": true,
+      "nonfinite_loss_rows": 0,
+      "first_100_mean_loss": 1.2249467170238495,
+      "last_100_mean_loss": 0.6467484168708324
+    },
+    {
+      "stage": "B",
+      "status": "completed",
+      "updates_completed": 4500,
+      "updates_planned": 4500,
+      "selected_update": 4500,
+      "validation_score": 0.7403095389482739,
+      "training_seconds": 19679.439088513,
+      "history_rows": 4500,
+      "contiguous_updates": true,
+      "nonfinite_loss_rows": 0,
+      "first_100_mean_loss": 0.9455452443659306,
+      "last_100_mean_loss": 0.8708951684832573
+    },
+    {
+      "stage": "C",
+      "status": "completed",
+      "updates_completed": 1500,
+      "updates_planned": 1500,
+      "selected_update": 1500,
+      "validation_score": 0.7379039350859942,
+      "training_seconds": 4624.549728477001,
+      "history_rows": 1500,
+      "contiguous_updates": true,
+      "nonfinite_loss_rows": 0,
+      "first_100_mean_loss": 0.6641933764517307,
+      "last_100_mean_loss": 0.6779447214305401
+    }
+  ],
+  "gates": [
+    {
+      "modality": "t1",
+      "region": "brain",
+      "patients": 49,
+      "mean_patient_mean": 0.5018377193254606,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5003338267608565,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 1.2759989101828161e-05,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.04524828825617595,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.054317449281689446,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1",
+      "region": "background",
+      "patients": 49,
+      "mean_patient_mean": 0.5006357137279038,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5002651768071311,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 7.237813341862188e-07,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.056524353835095735,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.06695017106063002,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1",
+      "region": "WT",
+      "patients": 49,
+      "mean_patient_mean": 0.519458874221984,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5123108309142443,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 0.00046220651994394293,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.03378619235367705,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.03267437439739877,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1",
+      "region": "TC",
+      "patients": 49,
+      "mean_patient_mean": 0.5367751970345395,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.531636787920582,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 0.0044181637118638215,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.07751010218307999,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.07304163434843695,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1",
+      "region": "ET",
+      "patients": 49,
+      "mean_patient_mean": 0.536920494977858,
+      "mean_valid_patients": 45,
+      "median_patient_mean": 0.5326132280959024,
+      "median_valid_patients": 45,
+      "measured_gated_utility_mean_patient_mean": 0.003943850932975895,
+      "measured_gated_utility_mean_valid_patients": 45,
+      "gate_utility_spearman_patient_mean": 0.03149508857875276,
+      "gate_utility_spearman_valid_patients": 45,
+      "candidate_utility_spearman_patient_mean": 0.03019844612386541,
+      "candidate_utility_spearman_valid_patients": 45
+    },
+    {
+      "modality": "t1ce",
+      "region": "brain",
+      "patients": 49,
+      "mean_patient_mean": 0.5099867315295137,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5041870693771207,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 0.0013690406199109893,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.037033006370503996,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.04626706820946622,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1ce",
+      "region": "background",
+      "patients": 49,
+      "mean_patient_mean": 0.5053987253664467,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5040204756113947,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -0.000288044475897847,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.06338780997293116,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.07093452228815794,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1ce",
+      "region": "WT",
+      "patients": 49,
+      "mean_patient_mean": 0.5831029781554765,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5681841124077233,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 0.0367628958608423,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.12419819899161534,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.10946362487640816,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1ce",
+      "region": "TC",
+      "patients": 49,
+      "mean_patient_mean": 0.6294075057814175,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.6210054457187653,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 0.09338643293701854,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.16823516972758104,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.15178505586522315,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1ce",
+      "region": "ET",
+      "patients": 49,
+      "mean_patient_mean": 0.6382664803441258,
+      "mean_valid_patients": 45,
+      "median_patient_mean": 0.6315754201677111,
+      "median_valid_patients": 45,
+      "measured_gated_utility_mean_patient_mean": 0.059204347351462475,
+      "measured_gated_utility_mean_valid_patients": 45,
+      "gate_utility_spearman_patient_mean": 0.00648856626027912,
+      "gate_utility_spearman_valid_patients": 45,
+      "candidate_utility_spearman_patient_mean": -0.008187225718495384,
+      "candidate_utility_spearman_valid_patients": 45
+    },
+    {
+      "modality": "t2",
+      "region": "brain",
+      "patients": 49,
+      "mean_patient_mean": 0.49896964840725905,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.4985552947131955,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -3.2319668982418825e-05,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.05265736400113073,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.060508744356871,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t2",
+      "region": "background",
+      "patients": 49,
+      "mean_patient_mean": 0.4987406210697718,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.4985643132608764,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -3.4034212369176914e-06,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.06787490448551108,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.07655652511766305,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t2",
+      "region": "WT",
+      "patients": 49,
+      "mean_patient_mean": 0.5010627149780146,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.49737014697522536,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -0.001172867245147746,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.020427948560692827,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.020963511421791113,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t2",
+      "region": "TC",
+      "patients": 49,
+      "mean_patient_mean": 0.5114475991955293,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.507083536106713,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -0.0030972214410249594,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.020717335566938968,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.017007979871361913,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t2",
+      "region": "ET",
+      "patients": 49,
+      "mean_patient_mean": 0.512798985998811,
+      "mean_valid_patients": 45,
+      "median_patient_mean": 0.5089188946617974,
+      "median_valid_patients": 45,
+      "measured_gated_utility_mean_patient_mean": -0.0010113088244300646,
+      "measured_gated_utility_mean_valid_patients": 45,
+      "gate_utility_spearman_patient_mean": -0.04504181747977316,
+      "gate_utility_spearman_valid_patients": 45,
+      "candidate_utility_spearman_patient_mean": -0.04345887474176937,
+      "candidate_utility_spearman_valid_patients": 45
+    },
+    {
+      "modality": "flair",
+      "region": "brain",
+      "patients": 49,
+      "mean_patient_mean": 0.49881606241382287,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.4976925442413408,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -7.434769661683407e-05,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.03603327786963134,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.036077692478119226,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "flair",
+      "region": "background",
+      "patients": 49,
+      "mean_patient_mean": 0.49809214013630143,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.49764391597436397,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -2.8606807010261517e-05,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.03138356286423198,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.03209371872506404,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "flair",
+      "region": "WT",
+      "patients": 49,
+      "mean_patient_mean": 0.5089361871321088,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5048285935606275,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -0.0018269264817657744,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.028756785587771803,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.026285626968261856,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "flair",
+      "region": "TC",
+      "patients": 49,
+      "mean_patient_mean": 0.5164327927561799,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5118629433670823,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -0.002414072185460174,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.07095755190767727,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.06840059552295735,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "flair",
+      "region": "ET",
+      "patients": 49,
+      "mean_patient_mean": 0.5129888974580151,
+      "mean_valid_patients": 45,
+      "median_patient_mean": 0.5087390138043297,
+      "median_valid_patients": 45,
+      "measured_gated_utility_mean_patient_mean": 0.0007836441877669939,
+      "measured_gated_utility_mean_valid_patients": 45,
+      "gate_utility_spearman_patient_mean": 0.059036958821683534,
+      "gate_utility_spearman_valid_patients": 45,
+      "candidate_utility_spearman_patient_mean": 0.05552302529423895,
+      "candidate_utility_spearman_valid_patients": 45
+    }
+  ],
+  "checkpoint_hash": "c3e3cbeeef00104695546777d1f4033bb4f9694d4412f7adeeb6dc112e957aa5",
+  "checkpoint_hash_matches": true,
+  "experiment_status": "evaluation_partial",
+  "test": {
+    "reason": "test remains sealed; enable only with locked main protocol",
+    "status": "not_run"
+  },
+  "conditions": [
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "corruption": null,
+        "id": "clean_m15"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "corruption": null,
+        "id": "clean_m01"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "corruption": null,
+        "id": "clean_m02"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          1,
+          1,
+          0,
+          0
+        ],
+        "corruption": null,
+        "id": "clean_m03"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "corruption": null,
+        "id": "clean_m04"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          1,
+          0,
+          1,
+          0
+        ],
+        "corruption": null,
+        "id": "clean_m05"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          0,
+          1,
+          1,
+          0
+        ],
+        "corruption": null,
+        "id": "clean_m06"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          1,
+          1,
+          1,
+          0
+        ],
+        "corruption": null,
+        "id": "clean_m07"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "corruption": null,
+        "id": "clean_m08"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "corruption": null,
+        "id": "clean_m09"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          0,
+          1,
+          0,
+          1
+        ],
+        "corruption": null,
+        "id": "clean_m10"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074",
+        "BraTS20_Training_252",
+        "BraTS20_Training_008",
+        "BraTS20_Training_006",
+        "BraTS20_Training_317",
+        "BraTS20_Training_200",
+        "BraTS20_Training_002",
+        "BraTS20_Training_114",
+        "BraTS20_Training_061",
+        "BraTS20_Training_286",
+        "BraTS20_Training_220",
+        "BraTS20_Training_327",
+        "BraTS20_Training_016",
+        "BraTS20_Training_062",
+        "BraTS20_Training_258",
+        "BraTS20_Training_098",
+        "BraTS20_Training_225",
+        "BraTS20_Training_233",
+        "BraTS20_Training_232",
+        "BraTS20_Training_239",
+        "BraTS20_Training_184"
+      ],
+      "condition": {
+        "available": [
+          1,
+          1,
+          0,
+          1
+        ],
+        "corruption": null,
+        "id": "clean_m11"
+      },
+      "reason": null,
+      "status": "completed"
+    },
+    {
+      "completed_subjects": [
+        "BraTS20_Training_205",
+        "BraTS20_Training_251",
+        "BraTS20_Training_015",
+        "BraTS20_Training_035",
+        "BraTS20_Training_102",
+        "BraTS20_Training_195",
+        "BraTS20_Training_173",
+        "BraTS20_Training_209",
+        "BraTS20_Training_314",
+        "BraTS20_Training_134",
+        "BraTS20_Training_353",
+        "BraTS20_Training_318",
+        "BraTS20_Training_129",
+        "BraTS20_Training_073",
+        "BraTS20_Training_086",
+        "BraTS20_Training_192",
+        "BraTS20_Training_346",
+        "BraTS20_Training_127",
+        "BraTS20_Training_278",
+        "BraTS20_Training_306",
+        "BraTS20_Training_092",
+        "BraTS20_Training_049",
+        "BraTS20_Training_358",
+        "BraTS20_Training_360",
+        "BraTS20_Training_126",
+        "BraTS20_Training_217",
+        "BraTS20_Training_019",
+        "BraTS20_Training_263",
+        "BraTS20_Training_074"
+      ],
+      "condition": {
+        "available": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "corruption": null,
+        "id": "clean_m12"
+      },
+      "reason": "time cap; resume remaining patients",
+      "status": "partial"
+    },
+    {
+      "condition": {
+        "available": [
+          1,
+          0,
+          1,
+          1
+        ],
+        "corruption": null,
+        "id": "clean_m13"
+      },
+      "reason": "session time cap; resume evaluation",
+      "status": "not_run"
+    },
+    {
+      "condition": {
+        "available": [
+          0,
+          1,
+          1,
+          1
+        ],
+        "corruption": null,
+        "id": "clean_m14"
+      },
+      "reason": "session time cap; resume evaluation",
+      "status": "not_run"
+    },
+    {
+      "condition": {
+        "available": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "corruption": {
+          "axis": 2,
+          "family": "noise",
+          "local": true,
+          "modality": 3,
+          "severity": 0.075
+        },
+        "id": "noise1_m15_flair"
+      },
+      "reason": "session time cap; resume evaluation",
+      "status": "not_run"
+    },
+    {
+      "condition": {
+        "available": [
+          1,
+          0,
+          1,
+          1
+        ],
+        "corruption": {
+          "axis": 2,
+          "family": "noise",
+          "local": true,
+          "modality": 3,
+          "severity": 0.075
+        },
+        "id": "noise1_m13_flair"
+      },
+      "reason": "session time cap; resume evaluation",
+      "status": "not_run"
+    },
+    {
+      "condition": {
+        "available": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "corruption": {
+          "axis": 2,
+          "family": "noise",
+          "local": true,
+          "modality": 3,
+          "severity": 0.15
+        },
+        "id": "noise2_m15_flair"
+      },
+      "reason": "session time cap; resume evaluation",
+      "status": "not_run"
+    },
+    {
+      "condition": {
+        "available": [
+          1,
+          0,
+          1,
+          1
+        ],
+        "corruption": {
+          "axis": 2,
+          "family": "noise",
+          "local": true,
+          "modality": 3,
+          "severity": 0.15
+        },
+        "id": "noise2_m13_flair"
+      },
+      "reason": "session time cap; resume evaluation",
+      "status": "not_run"
+    },
+    {
+      "condition": {
+        "available": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "corruption": {
+          "axis": 2,
+          "family": "resolution",
+          "local": true,
+          "modality": 3,
+          "severity": 2.5
+        },
+        "id": "resolution1_m15_flair"
+      },
+      "reason": "session time cap; resume evaluation",
+      "status": "not_run"
+    },
+    {
+      "condition": {
+        "available": [
+          1,
+          0,
+          1,
+          1
+        ],
+        "corruption": {
+          "axis": 2,
+          "family": "resolution",
+          "local": true,
+          "modality": 3,
+          "severity": 2.5
+        },
+        "id": "resolution1_m13_flair"
+      },
+      "reason": "session time cap; resume evaluation",
+      "status": "not_run"
+    },
+    {
+      "condition": {
+        "available": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "corruption": {
+          "axis": 2,
+          "family": "resolution",
+          "local": true,
+          "modality": 3,
+          "severity": 3.5
+        },
+        "id": "resolution2_m15_flair"
+      },
+      "reason": "session time cap; resume evaluation",
+      "status": "not_run"
+    },
+    {
+      "condition": {
+        "available": [
+          1,
+          0,
+          1,
+          1
+        ],
+        "corruption": {
+          "axis": 2,
+          "family": "resolution",
+          "local": true,
+          "modality": 3,
+          "severity": 3.5
+        },
+        "id": "resolution2_m13_flair"
+      },
+      "reason": "session time cap; resume evaluation",
+      "status": "not_run"
+    }
+  ],
+  "contact_sheets": [
+    "C:\\D\\project\\bt\\verification\\run_20261014_audit\\figures_1.png",
+    "C:\\D\\project\\bt\\verification\\run_20261014_audit\\figures_2.png",
+    "C:\\D\\project\\bt\\verification\\run_20261014_audit\\figures_3.png",
+    "C:\\D\\project\\bt\\verification\\run_20261014_audit\\figures_4.png",
+    "C:\\D\\project\\bt\\verification\\run_20261014_audit\\figures_5.png"
+  ]
+}

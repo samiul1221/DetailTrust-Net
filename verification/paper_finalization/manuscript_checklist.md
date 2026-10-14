@@ -1,0 +1,25 @@
+# Manuscript and reporting checks
+
+- [x] All author names and their order match the supplied list; NSUT affiliation preserved.
+- [x] Single main.tex, inline IEEE numerical bibliography, references in first-citation order.
+- [x] Default IEEEtran conference class; no custom body font, margin, negative spacing, or page-count hack.
+- [x] Architecture equations and channel counts agree with inspected PyTorch source.
+- [x] All three completed B5 training stages and selected updates are recorded.
+- [x] Baseline checkpoint training exposure and augmentation/inference differences are disclosed.
+- [x] Dataset provenance, custom split, eligibility, label mapping, orientation, and spacing are stated.
+- [x] Patient pairing and 20,000-draw bootstrap independently checked; uncertainty is conditional on weights.
+- [x] All quantitative tables distinguish validation from the untouched internal test.
+- [x] Positive differences, ET uncertainty, boundary trade-offs, and negative gate-stage result are retained.
+- [x] Empty-mask conventions and valid-count changes accompany boundary results.
+- [x] Branch-removal interventions are distinguished from MRI removal and trained ablations.
+- [x] All image figures are measured; patient/slice selection and visualization scales are disclosed.
+- [x] Label supervision does not become an inference input; no fake scans or curves are generated.
+- [x] Humanizer review preserves LaTeX, equations, variable names, references, and numerical meaning.
+- [x] All 18 references have supporting bibliographic sources; newest issue metadata refreshed.
+- [x] Official BraTS guidance's three required publications are cited.
+- [x] No invented ethics approval, funding, emails, ORCIDs, or contribution statements.
+- [x] All ten PDFs and previews open; text bounds and font embedding checked.
+- [x] Overleaf ZIP contains only manuscript, figures, and concise documentation; no Python/data/secrets.
+- [ ] Actual manuscript compilation and final page layout — no TeX engine available here.
+- [ ] Confirm mirror release/terms and target venue's rules — author decision before submission.
+- [ ] Matched gating controls, multiple seeds, sealed test, external evaluation — further research.

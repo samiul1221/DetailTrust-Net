@@ -53,6 +53,7 @@ class RunConfig:
     corruption_probability: float = 0.5
     checkpoint_seconds: float = 1200
     max_hours: float = 1.5
+    training_budget_fraction: float = 0.9
     profile_warmup: int = 1
     profile_updates: int = 2
     inference_repeats: int = 2
@@ -60,7 +61,7 @@ class RunConfig:
     surface_tolerance_mm: float = 1.0
     small_et_threshold_mm3: float | None = None
     nonzero_threshold: float = 1e-5
-    variants: tuple = ("B0", "B1", "B2", "B4", "B5")
+    variants: tuple = ("B5",)
     run_final_test: bool = False
     protocol_locked: bool = False
     robustness: str = "smoke"
@@ -85,6 +86,7 @@ def configuration(mode: str = "smoke", **overrides) -> RunConfig:
                          updates_b=4500, updates_c=1500, epoch_updates=100,
                          validation_every=500, profile_warmup=5, profile_updates=100,
                          max_hours=9, robustness="complete", cache_gb=8,
+                         training_budget_fraction=0.7,
                          seeds=(1729, 1730, 1731),
                          variants=("B0", "B1", "B2", "B4", "B5", "B3", "A1",
                                    "A2", "A3", "A4", "A5", "A6", "A7")),
@@ -95,6 +97,7 @@ def configuration(mode: str = "smoke", **overrides) -> RunConfig:
     assert cfg.batch_size == 1, "This audited pipeline specifies batch size one."
     assert all(p >= 16 and p % 16 == 0 for p in cfg.patch)
     assert cfg.workers == 0, "Zero workers preserves exact patch-stream resume."
+    assert 0 < cfg.training_budget_fraction < 1
     if cfg.run_final_test:
         assert cfg.protocol_locked and mode in ("main", "extended")
         assert not cfg.synthetic

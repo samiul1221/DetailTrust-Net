@@ -12,7 +12,7 @@ import nbformat
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "detailtrust_kaggle.ipynb"
-MODULES = ("config", "data", "model", "losses", "metrics", "evaluation", "training", "experiments", "reporting", "visuals", "checks")
+MODULES = ("config", "resume", "data", "model", "losses", "metrics", "evaluation", "training", "experiments", "paper_figures", "reporting", "visuals", "checks")
 
 
 def build_notebook(destination=OUTPUT):
@@ -65,6 +65,10 @@ def build_notebook(destination=OUTPUT):
     spatial gates trained with segmentation loss alone? B5 versus B4 is the key
     controlled comparison. This is a hypothesis, not an established improvement.
 
+    **Current execution choice: B5 only.** Train the complete proposed model first.
+    Baselines and ablations remain available but are not run unless selected.
+    This run measures B5 performance; it cannot establish gains over other models.
+
     Upload this notebook, attach the [BraTS 2020 NIfTI mirror](https://www.kaggle.com/datasets/awsaf49/brats20-dataset-training-validation),
     enable a GPU, and choose **Save Version → Run All**. Default mode is a pipeline
     smoke run on real data; select `pilot` or `main` after it passes. Inputs must be
@@ -93,15 +97,17 @@ def build_notebook(destination=OUTPUT):
     centralized = "\n".join(imports).replace("import matplotlib.pyplot as plt", 'matplotlib.use("Agg")\nimport matplotlib.pyplot as plt')
     code(centralized, "central_imports")
     module("config", "### Named settings and experiment registry\nEvery mode keeps widths 32/64/128/256/320. Updates are sampled patches; an epoch is a logging interval.")
+    module('resume', '### Verified continuation\nThe uploader attaches a private checkpoint input and sets its exact bundle ID. A missing or incompatible checkpoint stops execution; it never falls back to fresh weights.')
     code('''
         # The main settings you edit before Save Version / Run All.
         MODE = "smoke"                # smoke, pilot, main, extended
-        EXPERIMENTS = ("B0", "B1", "B2", "B4", "B5")
+        EXPERIMENTS = ("B5",)         # full model only; add baselines later if needed
         SYNTHETIC_TEST_ONLY = False    # True ONLY for pipeline debugging, never research
         RUN_FINAL_TEST = False        # keep False during development
         PROTOCOL_LOCKED = False       # must be True before final test evaluation
         OUTPUT_DIRECTORY = "/kaggle/working/detailtrust"
         RESUME_DIRECTORY = None       # attached prior output, e.g. /kaggle/input/my-run/detailtrust
+        RESUME_BUNDLE_ID = None       # set automatically by kaggle.ps1 for continuation
         cfg = configuration(MODE, variants=EXPERIMENTS, output_dir=OUTPUT_DIRECTORY,
                             synthetic=SYNTHETIC_TEST_ONLY, resume_dir=RESUME_DIRECTORY,
                             run_final_test=RUN_FINAL_TEST, protocol_locked=PROTOCOL_LOCKED)
@@ -125,6 +131,8 @@ def build_notebook(destination=OUTPUT):
         output_dir = Path(cfg.output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         (output_dir / "figures").mkdir(exist_ok=True)
+        if RESUME_BUNDLE_ID:
+            restore_resume_bundle(RESUME_BUNDLE_ID, output_dir, cfg)
         if cfg.resume_dir:
             previous = Path(cfg.resume_dir)
             assert previous.is_dir() and previous.resolve() != output_dir.resolve()
@@ -184,7 +192,8 @@ def build_notebook(destination=OUTPUT):
             # Reads each labelled case once; can take several minutes. Progress is
             # saved after every subject, including failures.
             integrity = inventory_geometry(subjects, output_dir / "dataset_integrity.json")
-            store = SubjectStore(subjects, output_dir / "cache", cfg.cache_gb)
+            # Temporary preprocessing only: outside committed /kaggle/working outputs.
+            store = SubjectStore(subjects, Path("/tmp/detailtrust_cache"), cfg.cache_gb)
         write_json(output_dir / "dataset_integrity.json", integrity)
         ''', "geometry_label_audit")
     code('''
@@ -201,13 +210,18 @@ def build_notebook(destination=OUTPUT):
         val_ids = split["validation"][:cfg.val_subjects]
         # Define the small-ET stratum using training labels only, before evaluation.
         et_volumes = []
-        for subject_id in train_ids:
-            _, training_labels, geometry = store.load(subject_id)
-            volume = float((training_labels == 3).sum() * np.prod(geometry["spacing"]))
-            if volume > 0:
-                et_volumes.append(volume)
+        if not cfg.synthetic:
+            # The integrity audit already measured these volumes. Avoid reading
+            # and normalizing the entire training pool a second time.
+            et_volumes = [row["et_volume_mm3"] for row in integrity
+                          if row["id"] in train_ids and row["et_volume_mm3"] > 0]
+        else:
+            for subject_id in train_ids:
+                _, training_labels, geometry = store.load(subject_id)
+                volume = float((training_labels == 3).sum() * np.prod(geometry["spacing"]))
+                if volume > 0:
+                    et_volumes.append(volume)
         cfg = replace(cfg, small_et_threshold_mm3=float(np.quantile(et_volumes, .25)) if et_volumes else None)
-        del training_labels
         example_id = train_ids[0]
         example_images, example_labels, example_geometry = store.load(example_id)
         print("Example:", example_id, example_images.shape, np.unique(example_labels), example_geometry["spacing"])
@@ -288,12 +302,15 @@ def build_notebook(destination=OUTPUT):
     macro Dice. Pause at the time cap and resume from attached outputs.
     """)
     module("experiments", """## H — Experiment execution
+    The current selection is B5 only, running A (base), B (corrections), then C
+    (utility gates). These stages are parts of one model, not ablation experiments.
     The registry controls every variant. B0 and B1 train for the full update budget.
     B2/B3/B4/B5/A1/A6 reuse the same A/B candidate checkpoint, with matched gate
     initialization for B4/B5/A1. B2 gets an extra B-style refinement interval so
     the total optimizer-update count matches. This does not imply equal GPU cost.
     Secondary ablations are fully executable; unselected runs receive `not_run`.
     """)
+    module('paper_figures', '## Paper figure exports\nMeasured training and patient results are exported as PNG (300 DPI), PDF and SVG, with captions and source records. Missing evaluations are recorded, never plotted as successes. Validation and test data are separate. Journal-specific formatting remains to be checked.')
     module("reporting", """## I — Report and artifact generation
     JSON uses null for undefined values and includes the reason/count. CSV and
     figures contain actual records only. A missing trained checkpoint is recorded
@@ -343,9 +360,12 @@ def build_notebook(destination=OUTPUT):
             best_model = DetailTrustNet(**state["architecture"]).to(device)
             best_model.load_state_dict(state["model_state"], strict=True)
             chosen_subject = val_ids[0]  # prespecified, never chosen for a flattering result
-            shown_images, shown_labels, _ = store.load(chosen_subject)
+            shown_images, shown_labels, shown_metadata = store.load(chosen_subject)
             shown_output = sliding_window(best_model, shown_images, np.ones(4, np.float32), cfg, device, analysis=True)
             plot_corrections(shown_images, shown_labels, shown_output, output_dir / "figures" / "example_corrections.png")
+            qualitative_figures = plot_qualitative_paper(shown_images, shown_labels, shown_output,
+                output_dir / "figures", chosen_subject, shown_metadata['spacing'])
+            write_json(output_dir / 'figures' / 'qualitative_manifest.json', qualitative_figures)
             del best_model, shown_output, state
             if device.type == "cuda": torch.cuda.empty_cache()
         ''', "example_contribution_figure")
@@ -362,6 +382,12 @@ def build_notebook(destination=OUTPUT):
         Run the complete notebook. It restores latest optimizer/RNG checkpoints and
         separately selects best validation weights. /kaggle/working is session storage;
         commit notebook outputs or download them before the session is discarded.
+
+        The local launcher automates continuation: .\\kaggle.ps1 --mode main --run
+        It attaches a private hash-verified checkpoint bundle. --fresh deliberately
+        starts new weights. --download excludes cache before transfer.
+        Paper figures: figures/paper_figures_manifest.json and qualitative_manifest.json.
+        Each exported figure has PNG/PDF/SVG and a caption/source-data sidecar.
 
         To load trusted weights after running the model definition cells:
         state = torch.load('best_detailtrust_model.pt', map_location='cpu', weights_only=False)

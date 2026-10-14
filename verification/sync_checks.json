@@ -1,6 +1,14 @@
 {
   "status": "passed",
   "checks": [
+    "existing notebook identity recovery",
+    "exact identity preferred",
+    "ambiguous/missing/truncated inventory rejected",
+    "existing title preserved",
+    "actual acknowledged URL persisted",
+    "credential-redacted diagnostics",
+    "server error despite zero exit",
+    "versionless upload acknowledgment",
     "GPU launch without no-run support",
     "save-only never silently executes",
     "failed help diagnostics",
@@ -8,7 +16,13 @@
     "checkpoint hash verification",
     "incomplete experiment rejection",
     "initialization report rejection",
-    "no output download while running"
+    "no output download while running",
+    "cache excluded before transfer",
+    "resume dataset found by exact owned inventory",
+    "private resume dataset creation/readiness",
+    "403 status fallback verified through owned dataset manifest",
+    "blank/BOM/CRLF/quoted CSV rows handled without indexing errors",
+    "empty/similar-name file listing waits for readiness; exact dataset retry never recreates"
   ],
   "live_api_executed": false
 }

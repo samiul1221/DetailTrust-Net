@@ -10,6 +10,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from .config import write_json, safe_json, environment_record, experiment_registry, LABEL_MAPPING, MODALITIES
 from .metrics import aggregate_metrics, paired_patient_comparison
+from .paper_figures import generate_paper_figures
 
 REPORT_FIELDS = ("schema_version", "project", "architecture", "architecture_equations", "implementation_deviations",
                  "environment", "hardware", "dataset", "dataset_integrity", "label_mapping", "preprocessing",
@@ -70,53 +71,8 @@ def collect_results(statuses):
 
 
 def generate_plots(records, summary, output_dir):
-    """Only measured values appear in figures; missing figures are recorded."""
-    directory = Path(output_dir)/"figures"
-    directory.mkdir(exist_ok=True)
-    artifacts = {}
-    if records["history"]:
-        fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-        experiments = sorted({r["experiment"] for r in records["history"]})
-        for experiment in experiments:
-            rows = [r for r in records["history"] if r["experiment"] == experiment]
-            axes[0].plot(range(len(rows)), [r["total"] for r in rows], label=experiment)
-            valid = [(i, r["validation_dice"]) for i, r in enumerate(rows) if "validation_dice" in r]
-            if valid:
-                axes[1].plot(*zip(*valid), marker="o", label=experiment)
-        axes[0].set(xlabel="Logged optimizer update", ylabel="Training objective")
-        axes[1].set(xlabel="Logged optimizer update", ylabel="Clean validation macro Dice", ylim=(0, 1))
-        axes[0].legend(fontsize=7); axes[1].legend(fontsize=7)
-        fig.tight_layout(); fig.savefig(directory/"learning_curves.png", dpi=150); plt.close(fig)
-        artifacts["learning_curves"] = str(directory/"learning_curves.png")
-    for plot_name, condition in (("validation_results", "clean_m15"), ("ablation_comparisons", "clean_m15")):
-        selected = [r for r in summary if r["condition"] == condition and r["split"] == "validation" and r["region"] == "ET"]
-        if selected:
-            fig, ax = plt.subplots(figsize=(max(7, len(selected)), 4))
-            ax.bar([r["experiment"] for r in selected], [r["dice"]["mean"] for r in selected])
-            ax.set(ylabel="ET Dice: patient macro mean", ylim=(0, 1), title="Measured validation; assess training budgets before ranking")
-            ax.tick_params(axis="x", rotation=45)
-            fig.tight_layout(); fig.savefig(directory/(plot_name+".png"), dpi=150); plt.close(fig)
-            artifacts[plot_name] = str(directory/(plot_name+".png"))
-    selected = [r for r in summary if r["region"] == "WT" and "remove_detail" not in r["condition"] and "base_only" not in r["condition"]]
-    if selected:
-        fig, ax = plt.subplots(figsize=(13, 5))
-        for experiment in sorted({r["experiment"] for r in selected}):
-            rows = sorted([r for r in selected if r["experiment"] == experiment and r["split"] == "validation"], key=lambda r: r["condition"])
-            ax.plot([r["condition"] for r in rows], [r["dice"]["mean"] for r in rows], ".-", label=experiment)
-        ax.set(ylabel="WT Dice", ylim=(0, 1)); ax.tick_params(axis="x", rotation=90); ax.legend(fontsize=7)
-        fig.tight_layout(); fig.savefig(directory/"robustness.png", dpi=150); plt.close(fig)
-        artifacts["robustness"] = str(directory/"robustness.png")
-    for name, key, value, label in (("gate_distributions", "gates", "mean", "Mean gate per subject/modality"),
-                                    ("correction_contributions", "corrections", "absolute_contribution_mean", "Mean |logit contribution|")):
-        selected = [r for r in records[key] if r["region"] == "brain" and r.get(value) is not None]
-        if selected:
-            fig, ax = plt.subplots(figsize=(9, 4))
-            experiments = sorted({r["experiment"] for r in selected})
-            ax.boxplot([[r[value] for r in selected if r["experiment"] == ex] for ex in experiments], labels=experiments)
-            ax.set(ylabel=label); ax.tick_params(axis="x", rotation=45)
-            fig.tight_layout(); fig.savefig(directory/(name+".png"), dpi=150); plt.close(fig)
-            artifacts[name] = str(directory/(name+".png"))
-    return artifacts
+    """Render measured patient results in PNG/PDF/SVG, with caption/data sidecars."""
+    return generate_paper_figures(records, output_dir)
 
 
 def build_report(cfg, split, integrity, statuses, best_checkpoint, checks, profiles, dataset_evidence):
@@ -164,7 +120,8 @@ def build_report(cfg, split, integrity, statuses, best_checkpoint, checks, profi
                  limitation="Single seed is preliminary; bootstrap conditions on weights. No voxel-level independent-sample inference."),
         runtime_and_memory=dict(profiles=profiles, full_volume_timings=records["timings"],
                                inference_benchmarks={k: v.get("inference_benchmark") for k, v in statuses.items()}),
-        reproducibility=dict(checks=checks, json_nonfinite_policy="null, with undefined-case counts", cuda_determinism="warn_only; exact bitwise cross-device reproducibility not promised"),
+        reproducibility=dict(checks=checks, json_nonfinite_policy="null, with undefined-case counts", cuda_determinism="warn_only; exact bitwise cross-device reproducibility not promised",
+            resume_restore=json.loads((Path(cfg.output_dir)/'resume_restore.json').read_text()) if (Path(cfg.output_dir)/'resume_restore.json').exists() else None),
         warnings=["No improvement or novelty claim follows from a smoke/pilot run.", "A large gate or correction is not necessarily useful.",
                   "Mounted dataset licence/version must be checked against dataset card and original BraTS terms."],
         limitations=["Synthetic corruption is not clinical missingness or scanner-domain validation.",

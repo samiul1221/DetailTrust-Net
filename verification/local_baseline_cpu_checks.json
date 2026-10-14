@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "evidence": "offline/synthetic checks, no real segmentation evaluation",
+  "checks": [
+    "cell/script syntax",
+    "blank/BOM/pagination CSV handling",
+    "49-cohort file selector pattern",
+    "missing/duplicate MRI rejection",
+    "paired comparison arithmetic",
+    "duplicate comparator rejection",
+    "PNG/PDF/SVG export",
+    "single-file direct and ZIP downloads exercised with mocked CLI",
+    "download resumes without any network requests when all selected files exist",
+    "credentials excluded from download manifest",
+    "only requested validation filenames are materialized"
+  ],
+  "runtime_execution": "blocked: dependencies could not download in agent sandbox (socket 10013)",
+  "actual_training_updates": 0
+}

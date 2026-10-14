@@ -140,6 +140,7 @@ def run_training_stage(model, store, subjects, validation_subjects, split, cfg, 
         state = load_checkpoint(latest, model, device, optimizer, scheduler, scaler, fingerprint)
         completed, history = state["update"], state["history"]
         best_score, stale, prior_seconds = state["best_validation_score"], state["stale_validations"], state["elapsed_training_seconds"]
+        print(f'Resuming {stage}: {completed}/{updates} updates already saved; {max(0, updates-completed)} remaining.', flush=True)
     already_stopped = bool(cfg.early_stopping_patience and stale >= cfg.early_stopping_patience)
     dataset = PatchDataset(store, subjects, cfg.patch, cfg.seed, 0 if already_stopped else max(0, updates-completed),
                            cfg.corruption_probability if variant["corruption"] else 0., start=stream_offset + completed)
@@ -164,6 +165,7 @@ def run_training_stage(model, store, subjects, validation_subjects, split, cfg, 
                    patches_per_second=1/seconds, learning_rate=optimizer.param_groups[0]["lr"], **terms)
         validate_now = completed % cfg.validation_every == 0 or completed == updates
         if validate_now:
+            print(f"{directory.parent.name} {stage} {completed}/{updates}: validating {len(validation_subjects)} subjects", flush=True)
             val_start = synchronized_time(device)
             score, val_loss = validation_score(model, store, validation_subjects, split, cfg, device,
                                                 "A" if stage == "RAW" else stage)

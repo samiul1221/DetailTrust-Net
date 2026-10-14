@@ -5,6 +5,7 @@ import io
 import json
 import time
 import traceback
+import tempfile
 import nbformat
 from build_notebook import build_notebook
 
@@ -12,14 +13,16 @@ from build_notebook import build_notebook
 def main():
     path = build_notebook()
     notebook = nbformat.read(path, as_version=4)
-    namespace = {"__name__": "__main__"}
+    temporary = tempfile.TemporaryDirectory(prefix='detailtrust-notebook-test-')
+    namespace = {"__name__": "__main__", "VERIFICATION_OUTPUT": temporary.name}
     records = []
     substitutions = {
         "dependencies": "# Installation skipped: network blocked; existing CPU dependencies used.",
         "configuration": '''
 MODE = "smoke"
 SYNTHETIC_TEST_ONLY = True
-cfg = configuration(MODE, output_dir="detailtrust_outputs/notebook_verification",
+RESUME_BUNDLE_ID = None
+cfg = configuration(MODE, output_dir=VERIFICATION_OUTPUT,
     patch=(16,16,16), precision="float32", synthetic=True, updates_a=1,
     updates_b=1, updates_c=1, validation_every=1, epoch_updates=1,
     profile_updates=1, profile_warmup=0, max_hours=1.)
@@ -60,6 +63,7 @@ assert all(c["status"] == "passed" or c["name"] == "check_nifti_adapter" and c["
     statuses = namespace["statuses"]
     assert all(statuses[f"{v}_s1729"]["status"] == "completed" for v in namespace["cfg"].variants)
     print("All notebook cells executed with documented CPU substitutions.")
+    temporary.cleanup()
 
 
 if __name__ == "__main__":

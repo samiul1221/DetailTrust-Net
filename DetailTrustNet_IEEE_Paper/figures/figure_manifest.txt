@@ -1,0 +1,41 @@
+Figure manifest -- all assets in this package reflect measured data or verified implementation.
+
+B5 source: output_dump/samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T062437Z/detailtrust
+B0 source: local_baseline_results; selected checkpoint output_dump/B0_s1729/RAW/best.pt.
+Each figure has PDF and 300-DPI-or-higher PNG; the manuscript includes PDF.
+No experimental result placeholders remain.
+
+architecture.pdf / .png
+Detailed 2x2 Draw.io architecture: masked physical-scale Gaussian split; five encoder/four decoder levels and skips; both zero-anchored refiner evaluations and separate spatial gate; detached utility supervision and foreground fusion. Shapes and layer widths checked against source.
+Sources: figures/architecture.drawio, detailtrust/model.py, detailtrust/losses.py
+PDF SHA-256: 0ec06d809fd8aa8f6126b031f0aaaf47d4eb5deeaa4cd3d5e45c8e1ccb0b4f03
+
+comparison_training.pdf / .png
+49 matched validation patients; all paired outliers retained; means and pointwise 20,000-draw percentile intervals; separate completed-stage trajectories; unchanged [0,1] Dice axes.
+Sources: baseline_vs_b5_summary.csv, baseline_vs_b5_per_patient.csv, B5 training_history.json
+PDF SHA-256: 730471e531552f54ab0757601c4189e0c9961d04b55ad3bb73caa2b4c81681d8
+
+gate_contribution_maps.pdf / .png
+Window-averaged axial maps; shared scales; image-zero and uncomputed crop fill masked; no percentile clipping.
+Sources: B5 display_source.npz
+PDF SHA-256: f64826728313d71131ab472d09de551471a58e70ad3d2e8dec37169c7bfa0a30
+
+internal_corrections.pdf / .png
+Fixed B5 base and computed proposals; 49 paired patients; all removes every correction; not separately trained ablations or B0.
+Sources: internal_comparisons.csv
+PDF SHA-256: 5238cea43a13362378c9b57398eb39c930db63783acc933cdf611cef425ad65e
+
+mri_predictions.pdf / .png
+Actual prespecified validation subject 205; axial RAS 90 selected from median reference tumour coordinates, independent of scores. Top: MRI and reference. Bottom: independent B0, B5 base, B5 final and error differences. Original complete-volume metrics are unchanged; orthogonal previews retained outside the compact upload package.
+Sources: qualitative_source.npz, qualitative_provenance.json, B0 best.pt, B5 display_source.npz
+PDF SHA-256: 556b5941c95a339d74d8c97ee189f98945f8739d2314476595d3774dbb16b399
+
+robustness_combined.pdf / .png
+All 15 modality subsets and 8 deterministic local FLAIR damage conditions; all 49 patients per condition. Corruption dots retain all paired differences and full observed ranges; diamond means; panels have different axes. No baseline corruption/subset result is inferred.
+Sources: B5 metrics_per_subject.csv
+PDF SHA-256: 06024a45643b2df5feee123695adb765552199a7bd048eaaf70e6fcc6d194b07
+
+training_pipeline.pdf / .png
+Three completed B5 training stages; validation selection and sealed internal test.
+Sources: figures/training_pipeline.drawio, detailtrust/model.py, detailtrust/losses.py
+PDF SHA-256: 40342530e244f242e36de520ef11cabb961336231d915c75fe0a6db12f27de21

@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "B5-only default",
+    "unchanged 4000/4500/1500 main updates",
+    "8.1 hour main training allowance",
+    "same validation criterion",
+    "A/B/C execution",
+    "no baseline trained",
+    "strict best checkpoint reload",
+    "clean four-modality evaluation first",
+    "patient resume without duplicates",
+    "JSON/CSV/figure export"
+  ],
+  "evidence": "CPU synthetic engineering checks only; no medical-performance result",
+  "status": "passed"
+}

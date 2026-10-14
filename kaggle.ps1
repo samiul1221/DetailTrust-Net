@@ -3,6 +3,8 @@ param(
     [string[]]$KaggleArguments
 )
 # Run this from a normal PowerShell terminal. It does not change sandbox settings.
+# --mode main --run continues saved training. Add --fresh only to restart weights.
+# --download excludes preprocessing cache before transferring output files.
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 $uvCommand = Get-Command uv -ErrorAction SilentlyContinue

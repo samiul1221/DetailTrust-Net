@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "checks": [
+    "manifest canonical hash",
+    "every required resume configuration matches B0 notebook",
+    "B0-only selected experiment",
+    "exact bundle injected",
+    "all code cells parse",
+    "test remains sealed",
+    "forbidden pickle globals rejected"
+  ],
+  "gpu_execution": "not_run"
+}

@@ -1,5 +1,49 @@
 # DetailTrust-Net implementation audit
 
+## Follow-up: 13 October 2026
+
+**Current selection: B5 only.** At the user's request, baseline/ablation execution
+is deferred. The required A/B/C stages and 4,000/4,500/1,500 main updates are
+unchanged. The default main training allowance is now 8.1 hours within a 9-hour
+sweep; preflight time is additional. Extended mode retains the 70% allowance.
+Complete-input evaluation runs first. Evaluation saves after each patient and
+resumes pending subjects without duplicate rows; a condition may remain partial
+when its session budget expires. Best B5 weights are exported before long evaluation.
+
+`verification/b5_only_checks.json` records a successful temporary CPU synthetic
+run of A/B/C, strict checkpoint reload, all 15 availability subsets plus a smoke
+corruption, report export, and interrupted/resumed evaluation equivalence. No B0
+training was launched by that test. Large temporary synthetic artifacts were
+removed. The updated source has not yet been executed on Kaggle.
+
+The metrics remain Dice, IoU, precision, recall, specificity, HD95 in millimetres,
+surface Dice at 1 mm, volume error, and ET lesion matching, with patient aggregation
+and explicit empty cases. Compute reports include measured latency, memory and
+parameter counts. Lesion matching now constructs overlap pairs only where both
+masks are positive, avoiding the former full-background sort without changing
+the matching definition. Test patients remain sealed during model development;
+final testing requires the notebook's explicit locked-protocol settings.
+
+User-supplied Kaggle logs now confirm a real T4 run with BraTS data, all 12
+then-listed checks passing, 96³ A/B/C profiling without OOM, and B0 reaching
+2,800/10,000 updates. Best reported validation macro Dice was 0.7109. This is
+an intermediate baseline result, not a completed B5 experiment or test result.
+The cloud-status statements below describe the original delivery on 12 October.
+
+Routine validation previously computed surface/lesion metrics although selection
+uses only WT/TC/ET patient macro Dice. The local revision computes the same Dice
+and loss directly, retaining the complete metrics in final evaluation. A synthetic
+regression check verifies exact score/loss equivalence and rejection of training
+subjects. Training IDs, validation subjects, checkpoint criterion, architecture
+and update budget are unchanged. Small-ET threshold setup now reuses measurements
+from the integrity audit instead of loading the training collection a second time.
+Actual T4 speedup has not been measured. These edits do not alter an already
+running Kaggle version. Existing checkpoints can be resumed with the same settings.
+
+The observed validation-heavy B0 run is not on pace to finish 10,000 updates in
+12 hours. That older version's shared training deadline is 6.3 hours after sweep start,
+with a save/pause between updates; an in-progress validation may overrun it.
+
 Audit date: 12 October 2026. Architecture authority: `arch.md`. The unrelated
 research brief was not used. `detailtrust_kaggle.ipynb` is standalone; Python
 modules are editable local source, not Kaggle dependencies. Exact cell names,
@@ -97,3 +141,39 @@ printing it, attaches the NIfTI dataset, requests a private T4 GPU run and waits
 The downloader saves to `output_dump/` only when Kaggle reports completion, then
 checks requested experiment statuses and checkpoint hash. A completed notebook
 with partial experiments is not marked as a successful experiment sweep.
+
+
+## 13 October 2026: automatic continuation, cache exclusion, and paper figures
+
+- `kaggle.ps1 --mode main --run` now resumes an existing notebook by default.
+  The uploader fetches its current report and reuses a matching downloaded copy
+  or downloads checkpoint records. It creates/reuses a content-addressed private
+  Kaggle dataset, waits for input readiness, attaches it, and injects the exact
+  bundle hash. `--fresh` is the explicit reset override.
+- Runtime verifies every payload hash and size, saved configuration and stage
+  progress before copying. Stage fingerprints are checked again when restoring
+  optimizer/scheduler/scaler/RNG state. Missing or incompatible input stops execution.
+- Real downloaded checkpoint bundle was restored locally and verified at A=4000,
+  B=3929 (11 files). This did not train or upload a cloud version.
+- A synthetic CPU interrupted-stage test proved continuation executes zero A
+  updates, only the remaining B update and the C update. Mock upload checks verify
+  the private input attachment and injected bundle ID. See continuation_checks.json
+  and downloaded_checkpoint_resume.json under verification/.
+- `--download` passes a negative cache-directory regex to the installed CLI's
+  `--file-pattern`; filtering precedes transfer. Unsupported filtering stops rather
+  than downloading the cache. New runtime cache is `/tmp/detailtrust_cache`.
+- Figure generation includes separate stage objectives, validation trajectories,
+  learning rate, WT/TC/ET overlap/boundary/detection distributions, ET size analysis,
+  missing-modality heatmap, paired corruption differences, gates versus measured
+  utility, signed contributions, detail-removal differences, conditional stability,
+  and measured multi-variant comparisons when available. Three additional
+  qualitative figures use the first validation subject: orthogonal segmentations,
+  gate maps, ET contribution maps. No new architecture or loss changes were made.
+- PNG (300 DPI), PDF, SVG and caption/source-data JSON exports are implemented.
+  Undefined cases and partial patient counts stay visible. No completed ablation
+  is implied when only B5 is run. Actual downloaded histories were replotted;
+  no held-out metrics were invented. Journal formatting remains to be checked.
+- Live dataset creation, attachment, and cloud continuation cannot be verified
+  from this network-restricted environment. The user's normal terminal performs
+  those operations. Output status still distinguishes a clean notebook exit from
+  a complete research experiment. Full robustness evaluation may span sessions.

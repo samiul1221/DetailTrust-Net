@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" compressed="false">
+  <diagram id="page1" name="Page-1">
+    <mxGraphModel page="1" pageScale="1" pageWidth="500" pageHeight="520" grid="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="A" value="Stage A: base model · 4,000 updates&lt;br&gt;Train U-Net + Gaussian-mixture logits&lt;br&gt;Objective: four-class CE + WT/TC/ET soft Dice" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=17;fontColor=#24354b;fillColor=#e8f0fa;strokeColor=#6b7c90;rounded=1;arcSize=8;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="10" y="10" width="480" height="97" as="geometry" />
+        </mxCell>
+        <mxCell id="B" value="Stage B: corrections · 4,500 updates&lt;br&gt;Train U-Net, mixture, refiner; gates = 1&lt;br&gt;Branch dropout = 0.25&lt;br&gt;Final loss + 0.3 base loss + 0.1 branch loss" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=17;fontColor=#24354b;fillColor=#f6e9ef;strokeColor=#6b7c90;rounded=1;arcSize=8;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="10" y="132" width="480" height="97" as="geometry" />
+        </mxCell>
+        <mxCell id="toB" source="A" target="B" parent="1" edge="1" style="html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#24354b;strokeWidth=1.3;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="C" value="Stage C: spatial gates · 1,500 updates&lt;br&gt;Freeze candidates; train only the spatial gate&lt;br&gt;Segmentation + 0.1 balanced utility BCE" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=17;fontColor=#24354b;fillColor=#fff3d6;strokeColor=#6b7c90;rounded=1;arcSize=8;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="10" y="254" width="480" height="97" as="geometry" />
+        </mxCell>
+        <mxCell id="toC" source="B" target="C" parent="1" edge="1" style="html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#24354b;strokeWidth=1.3;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="validation" value="Validation intervals in every stage:&lt;br&gt;patient reconstruction; mean WT/TC/ET Dice&lt;br&gt;save best/latest checkpoints and resume state" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=17;fontColor=#24354b;fillColor=#e7f2ee;strokeColor=#6b7c90;rounded=1;arcSize=8;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="10" y="376" width="480" height="79" as="geometry" />
+        </mxCell>
+        <mxCell id="toV" source="C" target="validation" parent="1" edge="1" style="html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#24354b;strokeWidth=1.3;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="final" value="Selected C checkpoint: validation analysis&lt;br&gt;Regions, modality subsets and branch removal" style="html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=16;fontColor=#24354b;fillColor=#e8f0fa;strokeColor=#6b7c90;rounded=1;arcSize=8;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="10" y="474" width="480" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="toFinal" source="validation" target="final" parent="1" edge="1" style="html=1;edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#24354b;strokeWidth=1.3;endArrow=block;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

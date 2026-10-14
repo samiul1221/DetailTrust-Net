@@ -1,0 +1,14 @@
+{
+  "subject": "BraTS20_Training_205",
+  "partition": "validation",
+  "selection": "first validation ID; not selected by score",
+  "ras_indices": [
+    83,
+    77,
+    90
+  ],
+  "slice_selection": "median reference tumour coordinates",
+  "baseline_full_volume_dice_verified_against_saved_result": true,
+  "b5_reference_and_flair_planes_match_local_data": true,
+  "labels_only_used_for_display_slice_selection": true
+}

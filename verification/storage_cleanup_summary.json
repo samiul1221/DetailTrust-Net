@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "removed_duplicate_checkpoints": 8,
+  "duplicate_payloads_replaced_with_hardlinks": 2,
+  "reclaimed_bytes": 1494923208,
+  "reclaimed_gib": 1.3922557309269905,
+  "free_gib_now": 25.73230743408203,
+  "preserved": [
+    "original B0 checkpoints",
+    "complete latest B5 output",
+    "all JSON/CSV/log/figure evidence",
+    "paper/notebooks",
+    "validation_data",
+    ".uv-cache-cpu"
+  ],
+  "mapping_file": "verification/storage_cleanup_results.json",
+  "validation_patients": 49,
+  "validation_files": 245,
+  "expected_validation_data_gib": 4.041667118668556
+}

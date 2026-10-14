@@ -11,995 +11,1079 @@
       "cell": "dependencies",
       "modified_for_cpu": true,
       "status": "passed",
-      "seconds": 6.70000008540228e-05,
+      "seconds": 0.00017020000086631626,
       "output": ""
     },
     {
       "cell": "central_imports",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 3.639410699994187,
+      "seconds": 9.718990599998506,
       "output": ""
     },
     {
       "cell": "config.constants_16",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 7.249999907799065e-05,
+      "seconds": 0.00019120000069960952,
       "output": ""
     },
     {
       "cell": "config.constants_17",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 6.969999230932444e-05,
+      "seconds": 0.00015260000509442762,
       "output": ""
     },
     {
       "cell": "config.constants_18",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 6.639999628532678e-05,
+      "seconds": 0.00017929999739862978,
       "output": ""
     },
     {
       "cell": "config.constants_19",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 6.33999879937619e-05,
+      "seconds": 0.00011889999586855993,
       "output": ""
     },
     {
       "cell": "config.constants_20",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 6.930000381544232e-05,
+      "seconds": 7.960000220919028e-05,
       "output": ""
     },
     {
       "cell": "config.constants_21",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 8.440000237897038e-05,
+      "seconds": 0.00015520000306423753,
       "output": ""
     },
     {
       "cell": "config.RunConfig",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0021567000076174736,
+      "seconds": 0.005421800000476651,
       "output": ""
     },
     {
       "cell": "config.configuration",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0003468000068096444,
+      "seconds": 0.002395300005446188,
       "output": ""
     },
     {
       "cell": "config.experiment_registry",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.000275999991572462,
+      "seconds": 0.0012063000031048432,
       "output": ""
     },
     {
       "cell": "config.seed_everything",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00011740000627469271,
+      "seconds": 0.0003904000041075051,
       "output": ""
     },
     {
       "cell": "config.safe_json",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00020020001102238894,
+      "seconds": 0.0005883999983780086,
       "output": ""
     },
     {
       "cell": "config.write_json",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0001412999990861863,
+      "seconds": 0.00042719999328255653,
       "output": ""
     },
     {
       "cell": "config.file_hash",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00011449999874457717,
+      "seconds": 0.0004244999945512973,
       "output": ""
     },
     {
       "cell": "config.environment_record",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00016530000721104443,
+      "seconds": 0.000930299996980466,
+      "output": ""
+    },
+    {
+      "cell": "resume.restore_resume_bundle",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0021624000000883825,
       "output": ""
     },
     {
       "cell": "configuration",
       "modified_for_cpu": true,
       "status": "passed",
-      "seconds": 1.563606700001401,
+      "seconds": 4.7103035999971326,
       "output": ""
     },
     {
       "cell": "gpu_detection",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0013027000095462427,
+      "seconds": 0.0023438999996869825,
       "output": "Training device: cpu\n"
     },
     {
       "cell": "output_and_resume",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.003472900003544055,
+      "seconds": 0.03501669999968726,
       "output": ""
     },
     {
       "cell": "environment_storage",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.06778389999817591,
-      "output": "{'python': '3.10.11', 'platform': 'Windows-10-10.0.26300-SP0', 'packages': {'torch': '2.10.0', 'numpy': '2.2.6', 'scipy': '1.15.3', 'nibabel': None, 'matplotlib': '3.10.8', 'nbformat': '5.10.4'}, 'cuda': None, 'gpu_name': None, 'gpu_count': 0, 'gpu_memory_bytes': None, 'free_disk_bytes': 26762231808}\n"
+      "seconds": 0.1029251999934786,
+      "output": "{'python': '3.10.11', 'platform': 'Windows-10-10.0.26300-SP0', 'packages': {'torch': '2.10.0', 'numpy': '2.2.6', 'scipy': '1.15.3', 'nibabel': None, 'matplotlib': '3.10.8', 'nbformat': '5.10.4'}, 'cuda': None, 'gpu_name': None, 'gpu_count': 0, 'gpu_memory_bytes': None, 'free_disk_bytes': 34888028160}\n"
     },
     {
       "cell": "initialize_metadata",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.010935500002233312,
+      "seconds": 0.02280109999992419,
       "output": ""
     },
     {
       "cell": "data.discover_dataset_root",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.000302100001135841,
+      "seconds": 0.0004887000031885691,
       "output": ""
     },
     {
       "cell": "data.discover_subjects",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0004822999908355996,
+      "seconds": 0.0008702000050107017,
       "output": ""
     },
     {
       "cell": "data.remap_labels",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00023580000561196357,
+      "seconds": 0.0003732000041054562,
       "output": ""
     },
     {
       "cell": "data.load_subject",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0006643999950028956,
+      "seconds": 0.0018567999941296875,
       "output": ""
     },
     {
       "cell": "data.inventory_geometry",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0003630999999586493,
+      "seconds": 0.001090099998691585,
       "output": ""
     },
     {
       "cell": "data.make_split",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002435000060359016,
+      "seconds": 0.0007144999981392175,
       "output": ""
     },
     {
       "cell": "data.assert_split",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002739000046858564,
+      "seconds": 0.0004574000049615279,
       "output": ""
     },
     {
       "cell": "data.normalize_foreground",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00032219999411609024,
+      "seconds": 0.0003690999947139062,
       "output": ""
     },
     {
       "cell": "data.image_crop",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002463999990141019,
+      "seconds": 0.0004551999954856001,
       "output": ""
     },
     {
       "cell": "data.prepare_subject",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00020199999562464654,
+      "seconds": 0.00027689999842550606,
       "output": ""
     },
     {
       "cell": "data.SubjectStore",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00040779999108053744,
+      "seconds": 0.001355899999907706,
       "output": ""
     },
     {
       "cell": "data.sample_availability",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00011399999493733048,
+      "seconds": 0.0003406000032555312,
       "output": ""
     },
     {
       "cell": "data.extract_patch",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00035689999640453607,
+      "seconds": 0.0008956000019679777,
       "output": ""
     },
     {
       "cell": "data.corrupt_image",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.000538099993718788,
+      "seconds": 0.0011984000011580065,
       "output": ""
     },
     {
       "cell": "data.training_augmentation",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002690999972401187,
+      "seconds": 0.0006194000015966594,
       "output": ""
     },
     {
       "cell": "data.PatchDataset",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002936999953817576,
+      "seconds": 0.0006776000009267591,
       "output": ""
     },
     {
       "cell": "data.make_loader",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 7.999999797903001e-05,
+      "seconds": 0.0001627000019652769,
       "output": ""
     },
     {
       "cell": "data.SyntheticStore",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00041649999911896884,
+      "seconds": 0.0008448999942629598,
       "output": ""
     },
     {
       "cell": "visuals.plot_subject",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002308000111952424,
+      "seconds": 0.0005088999969302677,
       "output": ""
     },
     {
       "cell": "visuals.plot_corrections",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00036029999318998307,
+      "seconds": 0.0008500000039930455,
+      "output": ""
+    },
+    {
+      "cell": "visuals.plot_qualitative_paper",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.001934100000653416,
       "output": ""
     },
     {
       "cell": "dataset_path",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 8.879999222699553e-05,
+      "seconds": 0.00020880000374745578,
       "output": ""
     },
     {
       "cell": "subject_inventory",
       "modified_for_cpu": true,
       "status": "passed",
-      "seconds": 0.002404200000455603,
+      "seconds": 0.0191768000004231,
       "output": "Usable labelled subjects: 12 Excluded: 0\n"
     },
     {
       "cell": "geometry_label_audit",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.002281799999764189,
+      "seconds": 0.01978409999719588,
       "output": ""
     },
     {
       "cell": "subject_split",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0028165999974589795,
+      "seconds": 0.025715199997648597,
       "output": "{'train': 7, 'validation': 1, 'test': 4} CUSTOM split\n"
     },
     {
       "cell": "preprocessing_example",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.6685236999910558,
+      "seconds": 1.0575651999970432,
       "output": "Example: synthetic_007 (4, 16, 16, 16) [0 1 2 3] [1.0, 1.0, 1.0]\n"
     },
     {
       "cell": "dataset_evidence",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.042915300000458956,
+      "seconds": 0.051051800001005176,
       "output": ""
     },
     {
       "cell": "dataloader_shape_check",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.10668880000594072,
+      "seconds": 0.026898299998720177,
       "output": "{'images': (1, 4, 24, 24, 24), 'labels': (1, 16, 16, 16), 'available': (1, 4), 'resolution': (1, 3)}\n"
     },
     {
       "cell": "model.availability_maps",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00046490000386256725,
+      "seconds": 0.00044580000394489616,
       "output": ""
     },
     {
       "cell": "model.gaussian_kernel",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0004192000051261857,
+      "seconds": 0.0004152999972575344,
       "output": ""
     },
     {
       "cell": "model.gaussian_blur",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0007876000017859042,
+      "seconds": 0.0007432999991578981,
       "output": ""
     },
     {
       "cell": "model.GaussianSplit",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.000880400009918958,
+      "seconds": 0.001190299997688271,
       "output": ""
     },
     {
       "cell": "model.HaarSplit",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0005657000001519918,
+      "seconds": 0.0007829000023775734,
       "output": ""
     },
     {
       "cell": "model.ResidualBlock",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0012475000112317502,
+      "seconds": 0.0005650999955832958,
       "output": ""
     },
     {
       "cell": "model.run_block",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0003446000046096742,
+      "seconds": 0.000299000006634742,
       "output": ""
     },
     {
       "cell": "model.ResidualUNet",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0014573999942513183,
+      "seconds": 0.001244099999894388,
       "output": ""
     },
     {
       "cell": "model.modality_identity",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0003536000003805384,
+      "seconds": 0.00041110000165645033,
       "output": ""
     },
     {
       "cell": "model.DetailCorrection",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0006578000029549003,
+      "seconds": 0.001000600001134444,
       "output": ""
     },
     {
       "cell": "model.SpatialUtilityGate",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0007392999978037551,
+      "seconds": 0.0010918999978457578,
       "output": ""
     },
     {
       "cell": "model.fuse_logits",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0004721000004792586,
+      "seconds": 0.0006518000009236857,
       "output": ""
     },
     {
       "cell": "model.DetailTrustNet",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0015029000060167164,
+      "seconds": 0.0023566000018035993,
       "output": ""
     },
     {
       "cell": "model.build_model",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.000182400006451644,
+      "seconds": 0.000378099997760728,
       "output": ""
     },
     {
       "cell": "model.parameter_counts",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0004726000042865053,
+      "seconds": 0.0005769999988842756,
       "output": ""
     },
     {
       "cell": "reference_model_shapes",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.35482259999844246,
+      "seconds": 0.5206943000011961,
       "output": "{'total': 16934644, 'trainable': 16934644, 'by_child': {'backbone': 16910468, 'splitter': 12, 'refiner': 22979, 'gate': 1185}}\n{'logits': (1, 4, 16, 16, 16), 'base': (1, 4, 16, 16, 16), 'corrections': (1, 4, 3, 16, 16, 16), 'gates': (1, 4, 1, 16, 16, 16), 'contributions': (1, 4, 4, 16, 16, 16), 'detail': (1, 4, 16, 16, 16), 'available': (1, 4)}\n"
     },
     {
       "cell": "losses.region_probabilities",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0001686000032350421,
+      "seconds": 0.0003141999986837618,
       "output": ""
     },
     {
       "cell": "losses.region_labels",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00010650001058820635,
+      "seconds": 0.0002117000040016137,
       "output": ""
     },
     {
       "cell": "losses.segmentation_loss",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00025320000713691115,
+      "seconds": 0.0003232000017305836,
       "output": ""
     },
     {
       "cell": "losses.utility_targets",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00029379999614320695,
+      "seconds": 0.0005769999988842756,
       "output": ""
     },
     {
       "cell": "losses.balanced_gate_bce",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0003296000068075955,
+      "seconds": 0.0005282999991322868,
       "output": ""
     },
     {
       "cell": "losses.resolution_occupancy_loss",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002801000082399696,
+      "seconds": 0.00031960000342223793,
       "output": ""
     },
     {
       "cell": "losses.stage_objective",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0007633999921381474,
+      "seconds": 0.0010742000013124198,
       "output": ""
     },
     {
       "cell": "metrics.binary_metrics",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0004141000099480152,
+      "seconds": 0.0010457000025780872,
       "output": ""
     },
     {
       "cell": "metrics.lesion_metrics",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00024280000070575625,
+      "seconds": 0.0006778999959351495,
       "output": ""
     },
     {
       "cell": "metrics.subject_metrics",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00017510000907350332,
+      "seconds": 0.0007936000038171187,
       "output": ""
     },
     {
       "cell": "metrics.aggregate_metrics",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00033560000883881,
+      "seconds": 0.0008075000005192123,
       "output": ""
     },
     {
       "cell": "metrics.stability_bound",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0001545999984955415,
+      "seconds": 0.00043110000115120783,
       "output": ""
     },
     {
       "cell": "metrics.verify_stability_enumeration",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00021519999427255243,
+      "seconds": 0.0004883000001427718,
       "output": ""
     },
     {
       "cell": "metrics.paired_patient_comparison",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00038579999818466604,
+      "seconds": 0.0010296000036760233,
       "output": ""
     },
     {
       "cell": "evaluation.synchronized_time",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 7.169999298639596e-05,
+      "seconds": 0.00015439999697264284,
       "output": ""
     },
     {
       "cell": "evaluation.autocast_context",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 7.729999197181314e-05,
+      "seconds": 0.00016899999900488183,
       "output": ""
     },
     {
       "cell": "evaluation.window_starts",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00010069999552797526,
+      "seconds": 0.00041590000182623044,
       "output": ""
     },
     {
       "cell": "evaluation.sliding_window",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0010426999942865223,
+      "seconds": 0.0016598000001977198,
       "output": ""
     },
     {
       "cell": "evaluation.evaluation_conditions",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002884999994421378,
+      "seconds": 0.0007804000051692128,
       "output": ""
     },
     {
       "cell": "evaluation.benchmark_inference",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00023659999715164304,
+      "seconds": 0.0009849999987636693,
       "output": ""
     },
     {
       "cell": "evaluation.apply_condition",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00019530000281520188,
+      "seconds": 0.000526699994225055,
       "output": ""
     },
     {
       "cell": "evaluation.descriptive_values",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00013559999933931977,
+      "seconds": 0.0003423000016482547,
       "output": ""
     },
     {
       "cell": "evaluation.safe_spearman",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 8.769999840296805e-05,
+      "seconds": 0.00021120000019436702,
       "output": ""
     },
     {
       "cell": "evaluation.contribution_analysis",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0008083000138867646,
+      "seconds": 0.0031377999985124916,
       "output": ""
     },
     {
       "cell": "evaluation.evaluate_condition",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00047339999582618475,
+      "seconds": 0.003399000001081731,
       "output": ""
     },
     {
       "cell": "evaluation.validation_score",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00020160000713076442,
+      "seconds": 0.0011614000031840988,
       "output": ""
     },
     {
       "cell": "training.SessionBudgetReached",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 9.669999417383224e-05,
+      "seconds": 0.00017550000484334305,
       "output": ""
     },
     {
       "cell": "training.configure_stage",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00026270000671502203,
+      "seconds": 0.0005004999984521419,
       "output": ""
     },
     {
       "cell": "training.make_optimizer",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00029260000155773014,
+      "seconds": 0.00108639999962179,
       "output": ""
     },
     {
       "cell": "training.random_states",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0001016000023810193,
+      "seconds": 0.0004721000004792586,
       "output": ""
     },
     {
       "cell": "training.restore_random_states",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00031519999902229756,
+      "seconds": 0.0006129999965196475,
       "output": ""
     },
     {
       "cell": "training.save_checkpoint",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00022279999393504113,
+      "seconds": 0.0009567999950377271,
       "output": ""
     },
     {
       "cell": "training.load_checkpoint",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0001664000010350719,
+      "seconds": 0.0006820999988121912,
       "output": ""
     },
     {
       "cell": "training.train_update",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00020090000180061907,
+      "seconds": 0.0009308999942732044,
       "output": ""
     },
     {
       "cell": "training.training_fingerprint",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00015780000831000507,
+      "seconds": 0.0007499999992433004,
       "output": ""
     },
     {
       "cell": "training.run_training_stage",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0007905000093160197,
+      "seconds": 0.0040060999963316135,
       "output": ""
     },
     {
       "cell": "training.train_stage_a",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 7.840000034775585e-05,
+      "seconds": 0.0002299999978276901,
       "output": ""
     },
     {
       "cell": "training.train_stage_b",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 7.220001134555787e-05,
+      "seconds": 0.0005174999969312921,
       "output": ""
     },
     {
       "cell": "training.train_stage_c",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 7.090000144671649e-05,
+      "seconds": 0.00027069999487139285,
       "output": ""
     },
     {
       "cell": "training.profile_training_stages",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00039590000233147293,
+      "seconds": 0.0011962999997194856,
       "output": ""
     },
     {
       "cell": "experiments.copy_candidate_weights",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00021840000408701599,
+      "seconds": 0.0004215000008116476,
       "output": ""
     },
     {
       "cell": "experiments.train_candidate",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0001472000003559515,
+      "seconds": 0.00046129999827826396,
       "output": ""
     },
     {
       "cell": "experiments.evaluate_experiment",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00033599999733269215,
+      "seconds": 0.0009265999979106709,
       "output": ""
     },
     {
       "cell": "experiments.run_experiment_sweep",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0011331999994581565,
+      "seconds": 0.0026996000015060417,
       "output": ""
     },
     {
       "cell": "experiments.export_best_detailtrust",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0003622000076575205,
+      "seconds": 0.0007188000017777085,
+      "output": ""
+    },
+    {
+      "cell": "paper_figures.constants_6",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0001514999967184849,
+      "output": ""
+    },
+    {
+      "cell": "paper_figures.save_paper_figure",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0005288999964250252,
+      "output": ""
+    },
+    {
+      "cell": "paper_figures.distribution_panel",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0008203000033972785,
+      "output": ""
+    },
+    {
+      "cell": "paper_figures.plot_training_panels",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0014907000004313886,
+      "output": ""
+    },
+    {
+      "cell": "paper_figures.plot_accuracy_panels",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0009121000039158389,
+      "output": ""
+    },
+    {
+      "cell": "paper_figures.plot_robustness_panels",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0023600999993504956,
+      "output": ""
+    },
+    {
+      "cell": "paper_figures.plot_interpretability_panels",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0016736999968998134,
+      "output": ""
+    },
+    {
+      "cell": "paper_figures.plot_detail_removal",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0009243999957107008,
+      "output": ""
+    },
+    {
+      "cell": "paper_figures.generate_paper_figures",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.0007427000018651597,
       "output": ""
     },
     {
       "cell": "reporting.constants_9",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 6.779999239370227e-05,
+      "seconds": 0.00040919999446487054,
       "output": ""
     },
     {
-      "cell": "reporting.constants_14",
+      "cell": "reporting.constants_15",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 9.610000415705144e-05,
+      "seconds": 0.0004560999950626865,
       "output": ""
     },
     {
       "cell": "reporting.implementation_decisions",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 7.720000576227903e-05,
+      "seconds": 0.0002643999978317879,
       "output": ""
     },
     {
       "cell": "reporting.write_csv",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00024760000815149397,
+      "seconds": 0.0010838999951374717,
       "output": ""
     },
     {
       "cell": "reporting.collect_results",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0009139000030700117,
+      "seconds": 0.0010123999963980168,
       "output": ""
     },
     {
       "cell": "reporting.generate_plots",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.000898600002983585,
+      "seconds": 0.00020899999799439684,
       "output": ""
     },
     {
       "cell": "reporting.build_report",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0011498999956529588,
+      "seconds": 0.0033009999970090576,
       "output": ""
     },
     {
       "cell": "reporting.export_report",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.000221800000872463,
+      "seconds": 0.0005879000018467195,
       "output": ""
     },
     {
       "cell": "reporting.verify_artifacts",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00017720001051202416,
+      "seconds": 0.0005278999960864894,
       "output": ""
     },
     {
       "cell": "checks.check_labels_and_splits",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002984999882755801,
+      "seconds": 0.0017294999997830018,
       "output": ""
     },
     {
       "cell": "checks.check_gaussian_and_haar",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002572999947005883,
+      "seconds": 0.001199799997266382,
       "output": ""
     },
     {
       "cell": "checks.check_availability_and_anchor",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002472000051056966,
+      "seconds": 0.0009376000016345643,
       "output": ""
     },
     {
       "cell": "checks.check_fusion_and_stability",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002601999876787886,
+      "seconds": 0.0008264999996754341,
       "output": ""
     },
     {
       "cell": "checks.check_utility_sign_and_detachment",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00021840000408701599,
+      "seconds": 0.0006913000033819117,
       "output": ""
     },
     {
       "cell": "checks.check_model_and_gradients",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00024839999969117343,
+      "seconds": 0.0009636000031605363,
       "output": ""
     },
     {
       "cell": "checks.check_frozen_stage_and_roundtrip",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00029379999614320695,
+      "seconds": 0.001106900002923794,
       "output": ""
     },
     {
       "cell": "checks.check_patch_stream_and_metrics",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00032279999868478626,
+      "seconds": 0.0013951999935670756,
       "output": ""
     },
     {
       "cell": "checks.check_sliding_identity_and_leakage",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00021810000180266798,
+      "seconds": 0.0008998999983305112,
       "output": ""
     },
     {
       "cell": "checks.check_json_and_registry",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002727999963099137,
+      "seconds": 0.000796499996795319,
       "output": ""
     },
     {
       "cell": "checks.check_nifti_adapter",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.000258400003076531,
+      "seconds": 0.0010970999937853776,
       "output": ""
     },
     {
       "cell": "checks.check_optimizer_resume",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0004054000019095838,
+      "seconds": 0.0015377999952761456,
+      "output": ""
+    },
+    {
+      "cell": "checks.check_validation_selection_equivalence",
+      "modified_for_cpu": false,
+      "status": "passed",
+      "seconds": 0.002327299996977672,
       "output": ""
     },
     {
       "cell": "checks.run_unit_checks",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00016959999629762024,
+      "seconds": 0.0007420999972964637,
       "output": ""
     },
     {
       "cell": "checks.tiny_overfit_check",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.0002057999954558909,
+      "seconds": 0.0006993999995756894,
       "output": ""
     },
     {
       "cell": "execute_unit_checks",
       "modified_for_cpu": true,
       "status": "passed",
-      "seconds": 4.994937000010395,
-      "output": "check_labels_and_splits: passed\ncheck_gaussian_and_haar: passed\ncheck_availability_and_anchor: passed\ncheck_fusion_and_stability: passed\ncheck_utility_sign_and_detachment: passed\ncheck_model_and_gradients: passed\ncheck_frozen_stage_and_roundtrip: passed\ncheck_patch_stream_and_metrics: passed\ncheck_sliding_identity_and_leakage: passed\ncheck_json_and_registry: passed\ncheck_optimizer_resume: passed\ncheck_nifti_adapter: blocked\n"
+      "seconds": 14.622176900003979,
+      "output": "check_labels_and_splits: passed\ncheck_gaussian_and_haar: passed\ncheck_availability_and_anchor: passed\ncheck_fusion_and_stability: passed\ncheck_utility_sign_and_detachment: passed\ncheck_model_and_gradients: passed\ncheck_frozen_stage_and_roundtrip: passed\ncheck_patch_stream_and_metrics: passed\ncheck_sliding_identity_and_leakage: passed\ncheck_json_and_registry: passed\ncheck_optimizer_resume: passed\nselection validation clean_m15: 1/1 subjects\nValidation: 1/1 subjects\ncheck_validation_selection_equivalence: passed\ncheck_nifti_adapter: blocked\n"
     },
     {
       "cell": "tiny_overfit_execution",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 1.348310200002743,
+      "seconds": 3.6206676000001607,
       "output": "Repeated patch loss decreased: True\n"
     },
     {
       "cell": "gpu_profile_execution",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 1.1440480000019306,
-      "output": "[{'stage': 'A', 'warmup': 0, 'measured_updates': 1, 'median_step_seconds': 0.22737510000297334, 'p90_step_seconds': 0.22737510000297334, 'peak_allocated_bytes': None, 'peak_reserved_bytes': None, 'device': 'cpu', 'patch': [16, 16, 16], 'includes_loading': True}, {'stage': 'B', 'warmup': 0, 'measured_updates': 1, 'median_step_seconds': 0.4761074000125518, 'p90_step_seconds': 0.4761074000125518, 'peak_allocated_bytes': None, 'peak_reserved_bytes': None, 'device': 'cpu', 'patch': [16, 16, 16], 'includes_loading': True}, {'stage': 'C', 'warmup': 0, 'measured_updates': 1, 'median_step_seconds': 0.1374264000041876, 'p90_step_seconds': 0.1374264000041876, 'peak_allocated_bytes': None, 'peak_reserved_bytes': None, 'device': 'cpu', 'patch': [16, 16, 16], 'includes_loading': True}]\nMeasured-step extrapolation for ONE B5 run, excluding validation: 0.0 hours\n"
+      "seconds": 3.07001119999768,
+      "output": "[{'stage': 'A', 'warmup': 0, 'measured_updates': 1, 'median_step_seconds': 0.6252137999981642, 'p90_step_seconds': 0.6252137999981642, 'peak_allocated_bytes': None, 'peak_reserved_bytes': None, 'device': 'cpu', 'patch': [16, 16, 16], 'includes_loading': True}, {'stage': 'B', 'warmup': 0, 'measured_updates': 1, 'median_step_seconds': 1.271213500003796, 'p90_step_seconds': 1.271213500003796, 'peak_allocated_bytes': None, 'peak_reserved_bytes': None, 'device': 'cpu', 'patch': [16, 16, 16], 'includes_loading': True}, {'stage': 'C', 'warmup': 0, 'measured_updates': 1, 'median_step_seconds': 0.3574873999968986, 'p90_step_seconds': 0.3574873999968986, 'peak_allocated_bytes': None, 'peak_reserved_bytes': None, 'device': 'cpu', 'patch': [16, 16, 16], 'includes_loading': True}]\nMeasured-step extrapolation for ONE B5 run, excluding validation: 0.0 hours\n"
     },
     {
       "cell": "run_experiments",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 25.264742699990165,
-      "output": "B0_s1729 RAW 1/3: loss=2.2901, best_val=0.0000\nB0_s1729 RAW 2/3: loss=1.8248, best_val=0.0000\nB0_s1729 RAW 3/3: loss=1.6533, best_val=0.0000\nB1_s1729 RAW 1/3: loss=2.2889, best_val=0.0000\nB1_s1729 RAW 2/3: loss=1.8232, best_val=0.0000\nB1_s1729 RAW 3/3: loss=1.6510, best_val=0.0000\nshared_candidates_s1729 A 1/1: loss=2.2738, best_val=0.0000\nshared_candidates_s1729 B 1/1: loss=2.5384, best_val=0.0000\nB2_s1729 B 1/1: loss=2.2338, best_val=0.0000\nB4_s1729 C 1/1: loss=1.5956, best_val=0.0000\nB5_s1729 C 1/1: loss=1.6654, best_val=0.0000\n{'B0_s1729': 'completed', 'B1_s1729': 'completed', 'B2_s1729': 'completed', 'B3_s1729': 'not_run', 'B4_s1729': 'completed', 'B5_s1729': 'completed', 'A1_s1729': 'not_run', 'A2_s1729': 'not_run', 'A3_s1729': 'not_run', 'A4_s1729': 'not_run', 'A5_s1729': 'not_run', 'A6_s1729': 'not_run', 'A7_s1729': 'not_run'}\n"
+      "seconds": 15.552719799998158,
+      "output": "shared_candidates_s1729 A 1/1: validating 1 subjects\nValidation: 1/1 subjects\nshared_candidates_s1729 A 1/1: loss=2.2738, best_val=0.0000\nshared_candidates_s1729 B 1/1: validating 1 subjects\nValidation: 1/1 subjects\nshared_candidates_s1729 B 1/1: loss=2.5384, best_val=0.0000\nB5_s1729 C 1/1: validating 1 subjects\nValidation: 1/1 subjects\nB5_s1729 C 1/1: loss=1.6654, best_val=0.0000\nB5_s1729 validation clean_m15: 1/1 subjects\nB5_s1729 validation clean_m01: 1/1 subjects\nB5_s1729 validation clean_m02: 1/1 subjects\nB5_s1729 validation clean_m03: 1/1 subjects\nB5_s1729 validation clean_m04: 1/1 subjects\nB5_s1729 validation clean_m05: 1/1 subjects\nB5_s1729 validation clean_m06: 1/1 subjects\nB5_s1729 validation clean_m07: 1/1 subjects\nB5_s1729 validation clean_m08: 1/1 subjects\nB5_s1729 validation clean_m09: 1/1 subjects\nB5_s1729 validation clean_m10: 1/1 subjects\nB5_s1729 validation clean_m11: 1/1 subjects\nB5_s1729 validation clean_m12: 1/1 subjects\nB5_s1729 validation clean_m13: 1/1 subjects\nB5_s1729 validation clean_m14: 1/1 subjects\nB5_s1729 validation noise1_m15_flair: 1/1 subjects\n{'B0_s1729': 'not_run', 'B1_s1729': 'not_run', 'B2_s1729': 'not_run', 'B3_s1729': 'not_run', 'B4_s1729': 'not_run', 'B5_s1729': 'completed', 'A1_s1729': 'not_run', 'A2_s1729': 'not_run', 'A3_s1729': 'not_run', 'A4_s1729': 'not_run', 'A5_s1729': 'not_run', 'A6_s1729': 'not_run', 'A7_s1729': 'not_run'}\n"
     },
     {
       "cell": "best_checkpoint_export",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.33210179999878164,
-      "output": "{'status': 'saved', 'path': 'detailtrust_outputs\\\\notebook_verification\\\\best_detailtrust_model.pt', 'sha256': '51d2987eb9d3c08b5b7c77919fcc1c7563a3b5a446f4ef3dc8f18ceac19c6dc8', 'size_bytes': 67792459, 'selected_epoch': 1, 'selected_update': 1, 'seed': 1729, 'validation_score': 0.0, 'criterion': 'mean patient Dice across WT,TC,ET on clean validation', 'architecture': {'split': 'learned', 'anchored': True, 'gate': 'spatial', 'checkpoint_blocks': True}, 'format': 'PyTorch full resume checkpoint v1', 'strict_state_dict_load': 'passed', 'source_experiment': 'B5_s1729'}\n"
+      "seconds": 0.8046732000002521,
+      "output": "{'status': 'saved', 'path': 'C:\\\\Users\\\\samiul\\\\AppData\\\\Local\\\\Temp\\\\detailtrust-notebook-test-_tctp8nj\\\\best_detailtrust_model.pt', 'sha256': '87c74be490c3da53e5630b6c460f1694abf61bbb4e3a2464484725235338560e', 'size_bytes': 67792459, 'selected_epoch': 1, 'selected_update': 1, 'seed': 1729, 'validation_score': 0.0, 'criterion': 'mean patient Dice across WT,TC,ET on clean validation', 'architecture': {'split': 'learned', 'anchored': True, 'gate': 'spatial', 'checkpoint_blocks': True}, 'format': 'PyTorch full resume checkpoint v1', 'strict_state_dict_load': 'passed', 'source_experiment': 'B5_s1729'}\n"
     },
     {
       "cell": "report_export",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 3.197510899990448,
-      "output": "notebook::reporting.generate_plots:44: MatplotlibDeprecationWarning: The 'labels' parameter of boxplot() has been renamed 'tick_labels' since Matplotlib 3.9; support for the old name will be dropped in 3.11.\nnotebook::reporting.generate_plots:44: MatplotlibDeprecationWarning: The 'labels' parameter of boxplot() has been renamed 'tick_labels' since Matplotlib 3.9; support for the old name will be dropped in 3.11.\nReport: detailtrust_outputs\\notebook_verification\\detailtrust_report.json\n"
+      "seconds": 40.012143100000685,
+      "output": "Report: C:\\Users\\samiul\\AppData\\Local\\Temp\\detailtrust-notebook-test-_tctp8nj\\detailtrust_report.json\n"
     },
     {
       "cell": "example_contribution_figure",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.5001316999987466,
+      "seconds": 32.62065929999517,
       "output": ""
     },
     {
       "cell": "save_runtime_readme",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.00049409999337513,
+      "seconds": 0.002474299995810725,
       "output": ""
     },
     {
       "cell": "verify_artifacts",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.016763699997682124,
+      "seconds": 0.04865029999928083,
       "output": "best_detailtrust_model.pt saved\nbest_detailtrust_model_config.json saved\ndetailtrust_report.json saved\ntraining_history.json saved\nablation_results.json saved\nsplit_manifest.json saved\nexperiment_config.json saved\nmetrics_per_subject.csv saved\nmetrics_summary.csv saved\ngate_analysis.csv saved\ncorrection_contributions.csv saved\nstability_analysis.json saved\nREADME.md saved\n"
     },
     {
       "cell": "read_report_example",
       "modified_for_cpu": false,
       "status": "passed",
-      "seconds": 0.10444170000846498,
-      "output": "Evidence level: smoke\nBest checkpoint: {'architecture': {'anchored': True, 'checkpoint_blocks': True, 'gate': 'spatial', 'split': 'learned'}, 'criterion': 'mean patient Dice across WT,TC,ET on clean validation', 'format': 'PyTorch full resume checkpoint v1', 'path': 'detailtrust_outputs\\\\notebook_verification\\\\best_detailtrust_model.pt', 'seed': 1729, 'selected_epoch': 1, 'selected_update': 1, 'sha256': '51d2987eb9d3c08b5b7c77919fcc1c7563a3b5a446f4ef3dc8f18ceac19c6dc8', 'size_bytes': 67792459, 'source_experiment': 'B5_s1729', 'status': 'saved', 'strict_state_dict_load': 'passed', 'validation_score': 0.0}\nFinal test: not_run\nExperiments: {'A1_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A2_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A3_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A4_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A5_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A6_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A7_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'B0_s1729': {'reason': None, 'status': 'completed'}, 'B1_s1729': {'reason': None, 'status': 'completed'}, 'B2_s1729': {'reason': None, 'status': 'completed'}, 'B3_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'B4_s1729': {'reason': None, 'status': 'completed'}, 'B5_s1729': {'reason': None, 'status': 'completed'}}\n"
+      "seconds": 0.05283249999774853,
+      "output": "Evidence level: smoke\nBest checkpoint: {'architecture': {'anchored': True, 'checkpoint_blocks': True, 'gate': 'spatial', 'split': 'learned'}, 'criterion': 'mean patient Dice across WT,TC,ET on clean validation', 'format': 'PyTorch full resume checkpoint v1', 'path': 'C:\\\\Users\\\\samiul\\\\AppData\\\\Local\\\\Temp\\\\detailtrust-notebook-test-_tctp8nj\\\\best_detailtrust_model.pt', 'seed': 1729, 'selected_epoch': 1, 'selected_update': 1, 'sha256': '87c74be490c3da53e5630b6c460f1694abf61bbb4e3a2464484725235338560e', 'size_bytes': 67792459, 'source_experiment': 'B5_s1729', 'status': 'saved', 'strict_state_dict_load': 'passed', 'validation_score': 0.0}\nFinal test: not_run\nExperiments: {'A1_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A2_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A3_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A4_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A5_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A6_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'A7_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'B0_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'B1_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'B2_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'B3_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'B4_s1729': {'reason': 'not selected in this allocation', 'status': 'not_run'}, 'B5_s1729': {'reason': None, 'status': 'completed'}}\n"
     }
   ]
 }

@@ -1,0 +1,31 @@
+{
+  "editable_source": "C:\\D\\project\\bt\\detailtrust_modules_2x2.drawio",
+  "paper_source": "C:\\D\\project\\bt\\DetailTrustNet_IEEE_Paper\\figures\\architecture.drawio",
+  "layout": "2x2",
+  "native_pdf_source": "C:\\D\\project\\bt\\detailtrust_modules_2x2.pdf",
+  "vector_pdf_width_inches": 7.1,
+  "png_dpi": 350,
+  "minimum_font_size_points": 7.0289998054504395,
+  "notation_aligned_with_manuscript": true,
+  "diagram_geometry_changed": false,
+  "text_outside_page": [],
+  "xml_cells": 49,
+  "xml_ids_and_connectors_valid": true,
+  "refiner_input_channels": 37,
+  "gate_input_channels": 44,
+  "encoder_widths": [
+    32,
+    64,
+    128,
+    256,
+    320
+  ],
+  "gaussian_sigma_mm": [
+    0.5,
+    0.8,
+    1.2
+  ],
+  "anchored_corrections": true,
+  "background_logit_preserved": true,
+  "visual_inspection": "Exact paper PDF/PNG reviewed after installation; 2x2 source reviewed before installation."
+}

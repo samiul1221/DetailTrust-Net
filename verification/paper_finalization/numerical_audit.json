@@ -1,0 +1,31 @@
+{
+  "paired_point_estimates_and_bootstrap_recomputed": true,
+  "matched_patients": 49,
+  "test_evaluation": false,
+  "patient_split_equal": true,
+  "all_canonical_mri_hashes_match": true,
+  "no_fabricated_metrics": true,
+  "baseline_selected_update": 2000,
+  "baseline_available_history_updates": 2999,
+  "b5_stages": [
+    {
+      "selected_update": 2000,
+      "stage": "A",
+      "updates_completed": 4000,
+      "validation_score": 0.7104968509513776
+    },
+    {
+      "selected_update": 4500,
+      "stage": "B",
+      "updates_completed": 4500,
+      "validation_score": 0.7403095389482739
+    },
+    {
+      "selected_update": 1500,
+      "stage": "C",
+      "updates_completed": 1500,
+      "validation_score": 0.7379039350859942
+    }
+  ],
+  "manuscript_sha256": "cfd4db40335cf55c6d2c81c6dadd2a086feee55889049bc1dd5fcfb53a86e515"
+}

@@ -1,0 +1,27 @@
+{
+  "original_source_sha256": "cfd4db40335cf55c6d2c81c6dadd2a086feee55889049bc1dd5fcfb53a86e515",
+  "compact_source_sha256": "a128d025ecc9a7be42d048a26d50d6f0071914ce3aa76f4aa0f1638e69acbf20",
+  "original_word_token_estimate": 9131,
+  "compact_word_token_estimate": 5232,
+  "reduction_percent": 42.70068995728836,
+  "old_figure_count": 10,
+  "new_figure_count": 7,
+  "old_table_count": 6,
+  "new_table_count": 2,
+  "measured_metrics_preserved": true,
+  "baseline_budget_disclosed": true,
+  "matched_training_claim": false,
+  "negative_gate_result_preserved": true,
+  "ieee_font_and_margins_unchanged": true,
+  "section_float_barriers_removed": true,
+  "natural_column_bottoms": true,
+  "top_floats_use_bang_t": true,
+  "discussion_opening_heading_merged": true,
+  "detailed_architecture_encoder_levels": 5,
+  "page_target": [
+    12,
+    14
+  ],
+  "actual_page_count": null,
+  "reason": "No local TeX engine; must confirm in Overleaf."
+}

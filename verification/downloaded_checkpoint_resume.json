@@ -1,0 +1,15 @@
+{
+  "cloud_upload_executed": false,
+  "progress": {
+    "experiments/shared_candidates_s1729/A/latest.pt": {
+      "stage": "A",
+      "update": 4000
+    },
+    "experiments/shared_candidates_s1729/B/latest.pt": {
+      "stage": "B",
+      "update": 3929
+    }
+  },
+  "status": "passed",
+  "verified_files": 11
+}

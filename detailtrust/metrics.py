@@ -45,8 +45,8 @@ def lesion_metrics(prediction, truth):
     from scipy.sparse.csgraph import maximum_bipartite_matching
     pred, npred = ndimage.label(prediction, structure=np.ones((3, 3, 3)))
     true, ntrue = ndimage.label(truth, structure=np.ones((3, 3, 3)))
-    pairs = np.unique(np.stack((pred.ravel(), true.ravel()), 1), axis=0)
-    pairs = pairs[(pairs[:, 0] > 0) & (pairs[:, 1] > 0)]
+    overlap = (pred > 0) & (true > 0)
+    pairs = np.unique(np.stack((pred[overlap], true[overlap]), 1), axis=0)
     if len(pairs):
         graph = csr_matrix((np.ones(len(pairs)), (pairs[:, 0]-1, pairs[:, 1]-1)), shape=(npred, ntrue))
         matched = int((maximum_bipartite_matching(graph, perm_type="column") >= 0).sum())

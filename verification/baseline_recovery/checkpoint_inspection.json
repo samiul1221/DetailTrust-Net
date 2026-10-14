@@ -1,0 +1,50 @@
+{
+  "actual_gpu_execution": false,
+  "checkpoints": [
+    {
+      "best_validation_score": 0.7109007894552238,
+      "bytes": 203352778,
+      "fingerprint": "8df92150b4dffc7a9af6d58a190fba296db417518980745b0e188b44c81f618c",
+      "parameter_count": 16910468,
+      "path": "C:\\D\\project\\bt\\output_dump\\B0_s1729\\RAW\\best.pt",
+      "payload_crc": "passed",
+      "sha256": "2caba443318fa9381b1a79d99af0c5e82ce62a7dc43584b6ac4ae66053ef578f",
+      "stage": "RAW",
+      "strict_pytorch_load": "not_run locally; enforced by Kaggle restore and training loader",
+      "tensor_count": 65,
+      "update": 2000,
+      "validation_score": 0.7109007894552238
+    },
+    {
+      "best_validation_score": 0.7109007894552238,
+      "bytes": 203529060,
+      "fingerprint": "8df92150b4dffc7a9af6d58a190fba296db417518980745b0e188b44c81f618c",
+      "parameter_count": 16910468,
+      "path": "C:\\D\\project\\bt\\output_dump\\B0_s1729\\RAW\\latest.pt",
+      "payload_crc": "passed",
+      "sha256": "16c9d360dbba9fc5e1913ec43854fb7be1a12704d7054f9843939bd2514e5cab",
+      "stage": "RAW",
+      "strict_pytorch_load": "not_run locally; enforced by Kaggle restore and training loader",
+      "tensor_count": 65,
+      "update": 2999,
+      "validation_score": 0.6292512791409515
+    }
+  ],
+  "original_selected_variants": [
+    "B0",
+    "B1",
+    "B2",
+    "B4",
+    "B5"
+  ],
+  "reconstruction": "Missing root config/split report recovered from checkpoint fields; no result.json or evaluation values invented.",
+  "resume_selected_variants": [
+    "B0"
+  ],
+  "selection_change": "Only B0 is scheduled; its stage/config/variant fingerprint is unchanged.",
+  "source": "original B0 checkpoint metadata and supplied history.json",
+  "split_matches_b5": true,
+  "updates_planned": 10000,
+  "updates_remaining": 7001,
+  "updates_saved": 2999
+}

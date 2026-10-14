@@ -1,0 +1,45 @@
+{
+  "balanced_environments": true,
+  "balanced_braces_and_inline_math": true,
+  "labels": 21,
+  "references_resolve": true,
+  "bibliography_entries": 18,
+  "unused_bibliography_entries": [],
+  "referenced_assets": [
+    "figures/architecture.pdf",
+    "figures/training_pipeline.pdf",
+    "figures/comparison_training.pdf",
+    "figures/internal_corrections.pdf",
+    "figures/robustness_combined.pdf",
+    "figures/mri_predictions.pdf",
+    "figures/gate_contribution_maps.pdf"
+  ],
+  "standard_ieee_class_no_body_font_or_margin_overrides": true,
+  "python_files_inside_upload_folder": 0,
+  "ascii_tex_source": true,
+  "section_float_barriers_removed": true,
+  "natural_column_bottoms_without_vertical_stretch": true,
+  "ordinary_top_float_placement": "!t",
+  "discussion_opening_heading_merged": true,
+  "drawio": {
+    "architecture": {
+      "cells": 95,
+      "valid_xml_and_connectors": true,
+      "rendered_assets_present": true
+    },
+    "training_pipeline": {
+      "cells": 11,
+      "valid_xml_and_connectors": true,
+      "rendered_assets_present": true
+    }
+  },
+  "word_token_estimate_including_references": 5228,
+  "compiler": null,
+  "latex_compilation_status": "not_run",
+  "page_count": null,
+  "limitations": [
+    "No local TeX engine; final overfull-box/page-layout checks require Overleaf.",
+    "PDF/PNG diagrams were rendered from authored Draw.io XML by the local renderer, not the Draw.io desktop export CLI.",
+    "Static checks and prose editing cannot guarantee a Turnitin score."
+  ]
+}

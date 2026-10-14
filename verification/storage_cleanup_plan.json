@@ -1,0 +1,85 @@
+{
+  "workspace": "C:\\D\\project\\bt",
+  "free_bytes_before": 23604277248,
+  "actions": [
+    {
+      "action": "remove_duplicate_file",
+      "target": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T004555Z\\detailtrust\\best_detailtrust_model.pt",
+      "retained_source": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T062437Z\\detailtrust\\best_detailtrust_model.pt",
+      "bytes": 68094847,
+      "sha256": "c3e3cbeeef00104695546777d1f4033bb4f9694d4412f7adeeb6dc112e957aa5"
+    },
+    {
+      "action": "remove_duplicate_file",
+      "target": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T004555Z\\detailtrust\\experiments\\B5_s1729\\refinement\\best.pt",
+      "retained_source": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T062437Z\\detailtrust\\experiments\\B5_s1729\\refinement\\best.pt",
+      "bytes": 68094847,
+      "sha256": "c3e3cbeeef00104695546777d1f4033bb4f9694d4412f7adeeb6dc112e957aa5"
+    },
+    {
+      "action": "remove_duplicate_file",
+      "target": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T004555Z\\detailtrust\\experiments\\B5_s1729\\refinement\\latest.pt",
+      "retained_source": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T062437Z\\detailtrust\\experiments\\B5_s1729\\refinement\\latest.pt",
+      "bytes": 68095057,
+      "sha256": "62c3820fe1f85261bf1a41488f7bd3faa291669c7d5539109c8a0ca75c2279d1"
+    },
+    {
+      "action": "remove_duplicate_file",
+      "target": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T004555Z\\detailtrust\\experiments\\shared_candidates_s1729\\A\\best.pt",
+      "retained_source": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T062437Z\\detailtrust\\experiments\\shared_candidates_s1729\\A\\best.pt",
+      "bytes": 203454266,
+      "sha256": "e7eac10593dd21d94e14de8fbda75be76558f4d7f512ed982fadce45cf2f0a6d"
+    },
+    {
+      "action": "remove_duplicate_file",
+      "target": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T004555Z\\detailtrust\\experiments\\shared_candidates_s1729\\A\\latest.pt",
+      "retained_source": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T062437Z\\detailtrust\\experiments\\shared_candidates_s1729\\A\\latest.pt",
+      "bytes": 203801268,
+      "sha256": "716f00017283ba6cb39dfc936a464fc69d6775159c99887d75fdcace61075a4e"
+    },
+    {
+      "action": "remove_duplicate_file",
+      "target": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T004555Z\\detailtrust\\experiments\\shared_candidates_s1729\\B\\best.pt",
+      "retained_source": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T062437Z\\detailtrust\\experiments\\shared_candidates_s1729\\B\\best.pt",
+      "bytes": 204198816,
+      "sha256": "bcc1bbc0c6a7fff375ca31807a46d7c920f322f0309369ad72ba137d068798f8"
+    },
+    {
+      "action": "remove_duplicate_file",
+      "target": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T004555Z\\detailtrust\\experiments\\shared_candidates_s1729\\B\\latest.pt",
+      "retained_source": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T062437Z\\detailtrust\\experiments\\shared_candidates_s1729\\B\\latest.pt",
+      "bytes": 204207422,
+      "sha256": "21c88c8a169cb9015c95e90f5f888c63749343f019381a676e0b07a4df2dde5a"
+    },
+    {
+      "action": "remove_duplicate_file",
+      "target": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T004513Z\\detailtrust\\best_detailtrust_model.pt",
+      "retained_source": "C:\\D\\project\\bt\\output_dump\\samseikhnsut--detailtrust-net-reproducible-brats-experiments--20261014T062437Z\\detailtrust\\best_detailtrust_model.pt",
+      "bytes": 68094847,
+      "sha256": "c3e3cbeeef00104695546777d1f4033bb4f9694d4412f7adeeb6dc112e957aa5"
+    },
+    {
+      "action": "replace_duplicate_with_hardlink",
+      "target": "C:\\D\\project\\bt\\baseline_resume_input\\payload_0003.pt",
+      "retained_source": "C:\\D\\project\\bt\\output_dump\\B0_s1729\\RAW\\best.pt",
+      "bytes": 203352778,
+      "sha256": "2caba443318fa9381b1a79d99af0c5e82ce62a7dc43584b6ac4ae66053ef578f"
+    },
+    {
+      "action": "replace_duplicate_with_hardlink",
+      "target": "C:\\D\\project\\bt\\baseline_resume_input\\payload_0005.pt",
+      "retained_source": "C:\\D\\project\\bt\\output_dump\\B0_s1729\\RAW\\latest.pt",
+      "bytes": 203529060,
+      "sha256": "16c9d360dbba9fc5e1913ec43854fb7be1a12704d7054f9843939bd2514e5cab"
+    }
+  ],
+  "expected_reclaimed_bytes": 1494923208,
+  "preserved": [
+    "original B0 checkpoints",
+    "complete latest B5 output",
+    "all JSON/CSV/log/figure evidence",
+    "paper/notebooks",
+    "validation_data",
+    ".uv-cache-cpu"
+  ]
+}

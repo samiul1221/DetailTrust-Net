@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "paired multi-variant plot fixture",
+    "PNG/PDF/SVG with caption/source sidecars",
+    "real training trajectory rendered and inspected",
+    "300 DPI PNG metadata"
+  ],
+  "evidence": "Actual logged training curves plus explicitly synthetic figure fixtures; no new medical evaluation",
+  "status": "passed"
+}

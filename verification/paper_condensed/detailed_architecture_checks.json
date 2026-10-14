@@ -1,0 +1,38 @@
+{
+  "layout": "Detailed 2x2",
+  "encoder_levels": 5,
+  "decoder_levels": 4,
+  "encoder_widths": [
+    32,
+    64,
+    128,
+    256,
+    320
+  ],
+  "encoder_grids": [
+    96,
+    48,
+    24,
+    12,
+    6
+  ],
+  "skip_connections": 4,
+  "feature_channels": 32,
+  "logit_channels": 4,
+  "refiner_input_channels": 37,
+  "refiner_outputs": 3,
+  "gate_input_channels": 44,
+  "gate_hidden_channels": 16,
+  "zero_anchor_explicit": true,
+  "availability_fusion_explicit": true,
+  "background_preserved": true,
+  "shared_weights": true,
+  "utility_target_detached": true,
+  "reference_training_only": true,
+  "width_inches": 7.1,
+  "height_inches": 5.325,
+  "minimum_font_points": 7.18874979019165,
+  "xml_cells": 95,
+  "text_outside_page": [],
+  "text_exceeds_node_width": []
+}

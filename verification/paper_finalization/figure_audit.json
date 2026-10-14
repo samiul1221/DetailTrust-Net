@@ -1,0 +1,185 @@
+[
+  {
+    "name": "architecture",
+    "source": {
+      "source_artifacts": [
+        "figures/architecture.drawio",
+        "detailtrust/model.py",
+        "detailtrust/losses.py"
+      ],
+      "meaning": "Detailed 2x2 Draw.io architecture: masked physical-scale Gaussian split; five encoder/four decoder levels and skips; both zero-anchored refiner evaluations and separate spatial gate; detached utility supervision and foreground fusion. Shapes and layer widths checked against source.",
+      "fabricated_values": false
+    },
+    "sha256": "0ec06d809fd8aa8f6126b031f0aaaf47d4eb5deeaa4cd3d5e45c8e1ccb0b4f03",
+    "preview_sha256": "f5f089c22801de3a747c64f5b6f02734119037ff4d90792cb8c189264d09c2da",
+    "pdf_size_points": [
+      511.20001220703125,
+      383.3999938964844
+    ],
+    "pdf_text_within_page": true,
+    "embedded_font_types": [
+      "Type0"
+    ],
+    "minimum_text_size_points": 7.18874979019165,
+    "pdf_pages": 1
+  },
+  {
+    "name": "comparison_training",
+    "source": {
+      "source_artifacts": [
+        "baseline_vs_b5_summary.csv",
+        "baseline_vs_b5_per_patient.csv",
+        "B5 training_history.json"
+      ],
+      "meaning": "49 matched validation patients; all paired outliers retained; means and pointwise 20,000-draw percentile intervals; separate completed-stage trajectories; unchanged [0,1] Dice axes.",
+      "figure_size_inches": [
+        7.0,
+        4.6
+      ],
+      "fabricated_values": false
+    },
+    "sha256": "730471e531552f54ab0757601c4189e0c9961d04b55ad3bb73caa2b4c81681d8",
+    "preview_sha256": "29e12f8d58f878dd8b831fe1a355611c9cba13b41e3bcd9081a599bb05bb29e3",
+    "pdf_size_points": [
+      504.0,
+      331.20001220703125
+    ],
+    "pdf_text_within_page": true,
+    "embedded_font_types": [
+      "Type0"
+    ],
+    "minimum_text_size_points": 7.5,
+    "pdf_pages": 1
+  },
+  {
+    "name": "gate_contribution_maps",
+    "source": {
+      "source_artifacts": [
+        "B5 display_source.npz"
+      ],
+      "meaning": "Window-averaged axial maps; shared scales; image-zero and uncomputed crop fill masked; no percentile clipping.",
+      "figure_size_inches": [
+        7.0,
+        4.1
+      ],
+      "fabricated_values": false
+    },
+    "sha256": "f64826728313d71131ab472d09de551471a58e70ad3d2e8dec37169c7bfa0a30",
+    "preview_sha256": "ffef61be4eedcaff47dddbae9ecfdd52d5a90039bfa5e6fa32cb92255975832a",
+    "pdf_size_points": [
+      504.0,
+      295.20001220703125
+    ],
+    "pdf_text_within_page": true,
+    "embedded_font_types": [
+      "Type0"
+    ],
+    "minimum_text_size_points": 7.5,
+    "pdf_pages": 1
+  },
+  {
+    "name": "internal_corrections",
+    "source": {
+      "source_artifacts": [
+        "internal_comparisons.csv"
+      ],
+      "meaning": "Fixed B5 base and computed proposals; 49 paired patients; all removes every correction; not separately trained ablations or B0.",
+      "figure_size_inches": [
+        7.0,
+        2.7
+      ],
+      "fabricated_values": false
+    },
+    "sha256": "5238cea43a13362378c9b57398eb39c930db63783acc933cdf611cef425ad65e",
+    "preview_sha256": "b22d65dad6ef343bd718c458c277f446b8ea9698a5a317500a3a77da5c5eb2ad",
+    "pdf_size_points": [
+      504.0,
+      194.39999389648438
+    ],
+    "pdf_text_within_page": true,
+    "embedded_font_types": [
+      "Type0"
+    ],
+    "minimum_text_size_points": 7.5,
+    "pdf_pages": 1
+  },
+  {
+    "name": "mri_predictions",
+    "source": {
+      "source_artifacts": [
+        "qualitative_source.npz",
+        "qualitative_provenance.json",
+        "B0 best.pt",
+        "B5 display_source.npz"
+      ],
+      "meaning": "Actual prespecified validation subject 205; axial RAS 90 selected from median reference tumour coordinates, independent of scores. Top: MRI and reference. Bottom: independent B0, B5 base, B5 final and error differences. Original complete-volume metrics are unchanged; orthogonal previews retained outside the compact upload package.",
+      "figure_size_inches": [
+        7.0,
+        3.5
+      ],
+      "fabricated_values": false
+    },
+    "sha256": "556b5941c95a339d74d8c97ee189f98945f8739d2314476595d3774dbb16b399",
+    "preview_sha256": "78fedb2e6a7afab438bbdd14280c94e75ad1b9010a2a08812644a6f77be08c4e",
+    "pdf_size_points": [
+      504.0,
+      252.0
+    ],
+    "pdf_text_within_page": true,
+    "embedded_font_types": [
+      "Type0"
+    ],
+    "minimum_text_size_points": 7.5,
+    "pdf_pages": 1
+  },
+  {
+    "name": "robustness_combined",
+    "source": {
+      "source_artifacts": [
+        "B5 metrics_per_subject.csv"
+      ],
+      "meaning": "All 15 modality subsets and 8 deterministic local FLAIR damage conditions; all 49 patients per condition. Corruption dots retain all paired differences and full observed ranges; diamond means; panels have different axes. No baseline corruption/subset result is inferred.",
+      "figure_size_inches": [
+        7.0,
+        4.9
+      ],
+      "fabricated_values": false
+    },
+    "sha256": "06024a45643b2df5feee123695adb765552199a7bd048eaaf70e6fcc6d194b07",
+    "preview_sha256": "0b8a6356396568dbbb37bf5e5769a50aa079ab58a656a4b7fbc6467c2d5d3ce6",
+    "pdf_size_points": [
+      504.0,
+      352.79998779296875
+    ],
+    "pdf_text_within_page": true,
+    "embedded_font_types": [
+      "Type0"
+    ],
+    "minimum_text_size_points": 7.0,
+    "pdf_pages": 1
+  },
+  {
+    "name": "training_pipeline",
+    "source": {
+      "source_artifacts": [
+        "figures/training_pipeline.drawio",
+        "detailtrust/model.py",
+        "detailtrust/losses.py"
+      ],
+      "meaning": "Three completed B5 training stages; validation selection and sealed internal test.",
+      "fabricated_values": false
+    },
+    "sha256": "40342530e244f242e36de520ef11cabb961336231d915c75fe0a6db12f27de21",
+    "preview_sha256": "b489c5d03a2b281a8642af957f9c9f8fd022b40e05933299d5c5c6244e23b808",
+    "pdf_size_points": [
+      248.39999389648438,
+      258.33599853515625
+    ],
+    "pdf_text_within_page": true,
+    "embedded_font_types": [
+      "Type0"
+    ],
+    "minimum_text_size_points": 7.948800086975098,
+    "pdf_pages": 1
+  }
+]

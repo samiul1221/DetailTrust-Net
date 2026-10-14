@@ -1,0 +1,33 @@
+{
+  "zip_path": "C:\\D\\project\\bt\\DetailTrustNet_IEEE_Paper_Overleaf.zip",
+  "zip_sha256": "a6810ce2cc272ce62150796ca736261a84ee57f6468ab32aff2bcec38a7913b9",
+  "files": [
+    "main.tex",
+    "README.md",
+    "build_check.txt",
+    "figures\\architecture.drawio",
+    "figures\\architecture.pdf",
+    "figures\\architecture.png",
+    "figures\\comparison_training.pdf",
+    "figures\\comparison_training.png",
+    "figures\\figure_manifest.txt",
+    "figures\\gate_contribution_maps.pdf",
+    "figures\\gate_contribution_maps.png",
+    "figures\\internal_corrections.pdf",
+    "figures\\internal_corrections.png",
+    "figures\\mri_predictions.pdf",
+    "figures\\mri_predictions.png",
+    "figures\\robustness_combined.pdf",
+    "figures\\robustness_combined.png",
+    "figures\\training_pipeline.drawio",
+    "figures\\training_pipeline.pdf",
+    "figures\\training_pipeline.png"
+  ],
+  "file_count": 20,
+  "figure_count": 7,
+  "numerical_ledger_rows": 92,
+  "zip_crc_verified": true,
+  "main_tex_at_zip_root": true,
+  "python_or_data_or_checkpoints_in_package": false,
+  "compilation_status": "not_run_no_local_tex_engine"
+}

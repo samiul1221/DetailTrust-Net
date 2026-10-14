@@ -256,11 +256,36 @@ def check_optimizer_resume():
             torch.testing.assert_close(value, restored.state_dict()[name], rtol=0, atol=0)
 
 
+def check_validation_selection_equivalence():
+    """Fast checkpoint selection matches full evaluation and avoids costly metrics."""
+    from .evaluation import validation_score
+    from unittest.mock import patch
+    store = SyntheticStore(size=16)
+    split = make_split([dict(id=s) for s in store.records], 5)
+    cfg = configuration("smoke", patch=(16, 16, 16), synthetic=True, precision="float32")
+    model = DetailTrustNet(checkpoint_blocks=False)
+    subjects = split["validation"][:1]
+    clean = dict(id="clean_m15", available=[1, 1, 1, 1], corruption=None)
+    reference = evaluate_condition(model, store, subjects, split, "validation", clean,
+                                   "selection", cfg, torch.device("cpu"))
+    expected = np.mean([r["dice"] for r in reference["rows"] if r["region"] in ("WT", "TC", "ET")])
+    # Also works in the standalone notebook, where functions share one namespace.
+    with patch.dict(validation_score.__globals__, subject_metrics=lambda *a, **k: (_ for _ in ()).throw(AssertionError("Unused full metrics called"))):
+        score, loss = validation_score(model, store, subjects, split, cfg, torch.device("cpu"), "C")
+    assert score == expected and loss == reference["mean_loss"]
+    try:
+        validation_score(model, store, split["train"][:1], split, cfg, torch.device("cpu"), "C")
+        raise RuntimeError("Training subject entered validation")
+    except AssertionError:
+        pass
+
+
 def run_unit_checks():
     checks = [check_labels_and_splits, check_gaussian_and_haar, check_availability_and_anchor,
               check_fusion_and_stability, check_utility_sign_and_detachment, check_model_and_gradients,
               check_frozen_stage_and_roundtrip, check_patch_stream_and_metrics,
-              check_sliding_identity_and_leakage, check_json_and_registry, check_optimizer_resume, check_nifti_adapter]
+              check_sliding_identity_and_leakage, check_json_and_registry, check_optimizer_resume,
+              check_validation_selection_equivalence, check_nifti_adapter]
     results = []
     seed_everything(7)
     for check in checks:

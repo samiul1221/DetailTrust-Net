@@ -1,0 +1,571 @@
+\documentclass[conference]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage[final]{graphicx}
+\usepackage{booktabs}
+\usepackage{array,tabularx}
+\usepackage[section]{placeins}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{microtype}
+\usepackage{xcolor}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\AtBeginDocument{\setkeys{Gin}{draft=false}}
+
+\title{DetailTrust-Net: Utility-Supervised Detail Correction for Robust 3D Brain Tumour MRI Segmentation}
+
+\author{\IEEEauthorblockN{Samiul Seikh, Vikash Kumar Vivek, Krish Garg, Lakshay Pal, Shena}
+\IEEEauthorblockA{Netaji Subhas University of Technology (NSUT), New Delhi, India}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Brain-tumour segmentation from multimodal magnetic resonance imaging (MRI) can be sensitive to unavailable sequences and degraded image detail. We introduce DetailTrust-Net, a five-level 3D residual U-Net augmented with modality-conditioned, zero-anchored detail corrections. A learned Gaussian mixture separates smooth images from residual detail; shared spatial gates scale signed foreground-logit proposals while preserving the base background logit. A third training stage freezes the candidate networks and supervises gates using detached, spatially pooled cross-entropy changes from removing individual corrections. We evaluate the selected model on a custom, patient-disjoint BraTS 2020 validation cohort of 49 subjects. Clean-input WT, TC, and ET Dice are 0.8526, 0.6876, and 0.6736, respectively, compared with 0.8328, 0.6324, and 0.6675 for the recovered raw-input baseline checkpoint. The mean region Dice difference is 2.70 percentage points, with a paired patient bootstrap interval of 0.33--4.99 points. The ET interval includes zero, and mean HD95 does not improve. The comparison uses different training budgets and corruption augmentation, so it does not isolate an architectural effect. Within B5, removing all detail contributions reduces mean Dice by 0.84 points, whereas the final learned gates score 0.24 points below the selected unit-gate candidate stage. All 15 nonempty modality subsets and eight local FLAIR-corruption conditions are evaluated. These results establish an executable correction-analysis framework and a validation comparison, but do not establish superiority of utility supervision, held-out test performance, or clinical robustness.
+\end{abstract}
+
+\begin{IEEEkeywords}
+brain tumour segmentation, multimodal MRI, missing modalities, 3D U-Net, detail correction, utility supervision, BraTS
+\end{IEEEkeywords}
+
+\section{Introduction}
+Glioma segmentation from MRI is commonly formulated as voxelwise classification of several related tumour subregions. The BraTS benchmark made this task comparable across methods by supplying registered, skull-stripped scans and expert-reviewed labels \cite{menze2015,bakas2017}. In routine analysis, a model must distinguish enhancing tumour, non-enhancing or necrotic tumour core, and surrounding oedema. The task remains difficult because boundaries can be diffuse, lesion sizes vary, and the four image contrasts are not interchangeable.
+
+The four input sequences considered here are T1-weighted, post-contrast T1-weighted (T1ce), T2-weighted, and T2-FLAIR. They provide complementary observations of anatomy, enhancement, and fluid-related signal. Their information may be incomplete: acquisition protocols vary, a sequence may be unusable, or image quality may be reduced. A system trained only on intact four-sequence inputs can therefore be brittle when evaluated under altered inputs. Missing-modality segmentation has been studied through feature disentanglement, image synthesis and hypernetworks, modality-masked transformers, and expert routing \cite{yang2022d2,yang2023hyper,shi2024m2f,zhang2025mome}.
+
+DetailTrust-Net studies whether a model can learn where image detail helps its segmentation. The backbone first predicts from the low-frequency content of available sequences. Each sequence then proposes a signed foreground-logit correction from its residual detail, and a spatial gate controls that contribution at each voxel. A separate training stage supervises the gate with the local cross-entropy change caused by removing one candidate in the all-candidates-present context. Labels are required to construct this training target; inference uses image-derived features and availability flags alone. The additive output interface makes each branch's signed logit effect directly measurable.
+
+This mechanism is a research hypothesis. Frequency decomposition and missing-modality handling have already appeared together in prior work, including D$^2$-Net and the more recent HFF-Net \cite{yang2022d2,shao2025hff}. Spatial and modality-aware fusion are also established. Our proposed distinction is the combination of zero-anchored detail-only branch outputs, an explicitly additive correction interface, and a frozen-stage gate objective based on measured correction utility. Whether this combination is meaningfully different from prior reliability or attention formulations, and whether it improves held-out performance, require close comparison and controlled ablations. The present study reports a completed B5 validation evaluation and an exploratory comparison with an available raw-input baseline. It does not claim priority, state-of-the-art performance, or a controlled benefit from utility supervision.
+
+The contributions are therefore framed as testable design and analysis elements:
+\begin{itemize}
+\item We define a full-width 3D residual U-Net with modality-wise smooth/detail decomposition and zero-anchored detail-correction branches.
+\item We specify a detached, spatially pooled correction-removal target for training spatial gates while candidate networks remain frozen.
+\item We provide an additive logit accounting interface that supports branch-removal analyses and a conditional label-stability calculation, without treating either as clinical explanation or calibrated uncertainty.
+\item We evaluate 49 matched validation patients, report paired baseline differences, and examine all nonempty modality subsets, local degradation, correction removal, and conditional stability. We distinguish these measurements from the unexecuted controlled ablations and internal test.
+\end{itemize}
+
+\section{Related Work}
+\subsection{Volumetric segmentation and brain MRI}
+U-Net-style encoder--decoders combine contextual representations with higher-resolution skip features. The 3D U-Net formulation extends this design to volumetric inputs and sparse annotations \cite{cicek2016}. Residual learning introduces an additive shortcut through a feature block \cite{he2016resnet}. Here this principle is applied to 3D feature stacks with projected channel alignment. nnU-Net showed that a carefully configured U-Net pipeline remains a strong medical-imaging reference and emphasized the importance of data handling and evaluation choices alongside architecture \cite{isensee2021}. DetailTrust-Net uses a residual 3D encoder--decoder; it is not presented as a replacement for nnU-Net or as a benchmark winner.
+
+Medical-imaging architectures explore attention, multiscale aggregation, and pretrained encoders. SwinPA-Net uses a Swin-transformer-based pyramid for general medical-image segmentation, with reported tasks outside brain MRI. Medical Transformer pretrains an encoder for 3D brain MRI analysis \cite{du2024swinpa,jun2024medtrans}. MBUNeXt uses parallel modality encoders and layer-fusion aggregation for multimodal BraTS segmentation \cite{liu2025mbunext}. These approaches motivate strong comparisons but address broader representation and fusion choices than the specific correction-utility hypothesis studied here.
+
+\subsection{Incomplete modalities and reliability-aware fusion}
+HeMIS established a strategy for representing sets of available modalities through modality-wise feature statistics \cite{havaei2016hemis}. Later brain-tumour methods directly target incomplete sequences. D$^2$-Net disentangles modality and tumour-region information; a unified hypernetwork jointly addresses MR synthesis and segmentation; M$^2$FTrans uses modality-masked fusion transformers; and MoME+ uses a mixture of modality experts in a foundation-model setting \cite{yang2022d2,yang2023hyper,shi2024m2f,zhang2025mome}. Additional recent approaches use Mamba or feature distillation for incomplete multimodal settings \cite{zhang2026m2seg,kang2026mamba}.
+
+Modality dropout, availability masks, and spatial weighting are established parts of this literature. Our empirical question is whether measured branch-removal utility provides useful supervision beyond the segmentation objective when candidate branches remain fixed. The B4/B5 comparison, shuffled-target control, and matched modality-subset tests are required to answer it. These comparisons have not completed.
+
+\subsection{Frequency and detail-based methods}
+Frequency decomposition has been applied to multimodal brain-tumour segmentation. D$^2$-Net uses spatial-frequency information in its disentanglement design; HFF-Net explicitly decomposes frequency components and combines them with adaptive filtering and cross-attention \cite{yang2022d2,shao2025hff}. Thus, separating low and high spatial frequencies is not itself our novelty. DetailTrust-Net instead uses a simple Gaussian low-pass mixture to define a residual that a shared branch can use to propose an explicit foreground-logit correction. A zero-anchor removes the branch response at zero detail for fixed context and modality identity. Utility supervision then asks where retaining the branch lowers local cross-entropy in a defined all-branches-present context.
+
+\subsection{Positioning and open questions}
+Additive logit contributions permit explicit branch-removal tests, but their practical value depends on how well those tests account for segmentation errors. The supervision comparison must establish whether spatially aligned utility targets affect held-out performance beyond ordinary spatial gating. An external cohort is needed to investigate scanner variation and clinical missingness. The present BraTS evaluation measures the selected correction model and an available baseline checkpoint. Unequal training budgets and augmentation prevent attribution of their difference to utility supervision; the matched gating controls remain necessary.
+
+\section{Problem Formulation}
+Let $X\in\mathbb{R}^{M\times D\times H\times W}$ denote a registered four-modality volume, with modality index $m\in\{1,\ldots,M\}$ and $M=4$. An availability vector $a\in\{0,1\}^M$ indicates which sequences are present, with $\sum_m a_m>0$. At inference the observed input is $\tilde X_m=a_m X_m$. The target $Y\in\{0,1,2,3\}^{D\times H\times W}$ uses mutually exclusive classes: background, NCR/NET, oedema, and enhancing tumour. The supplied BraTS labels $0,1,2,4$ are remapped to $0,1,2,3$ respectively. Evaluation also derives nested regions $\mathrm{WT}=\{1,2,3\}$, $\mathrm{TC}=\{1,3\}$, and $\mathrm{ET}=\{3\}$.
+
+The goal is a mapping $f(\tilde X,a)\to Z\in\mathbb{R}^{4\times D\times H\times W}$ whose voxelwise argmax produces an exclusive segmentation. Robustness is assessed under specified modality subsets and input-space corruptions. This definition does not imply that simulated perturbations reproduce clinical failure mechanisms.
+
+\section{Proposed Method: DetailTrust-Net}
+\subsection{Overview}
+Fig.~\ref{fig:architecture} summarizes the implemented model. Each available image is decomposed into a smooth component and a detail residual. Eight channels (four smooth images and four availability maps) enter the residual U-Net. A shared detail network is applied separately to each modality, conditioned on the full-resolution U-Net feature and a modality one-hot map. A shared spatial gate weighs each branch. Only foreground logits are corrected; the background logit remains equal to the base prediction.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[draft=false,width=\textwidth]{figures/architecture.pdf}
+\caption{Detailed implementation of DetailTrust-Net. (a) Modality masking and physical-scale Gaussian decomposition. (b) Five-level residual U-Net, including encoder widths, decoder concatenations, skip connections, and separate feature/logit outputs. (c) One shared correction network evaluated twice per available modality for zero anchoring. (d) Shared spatial gate, availability-masked foreground fusion, and unchanged background logit. The correction and gate panels are repeated for each modality with shared weights.}
+\label{fig:architecture}
+\end{figure*}
+
+\subsection{Input decomposition}
+For each modality, three separable Gaussian filters are applied at standard deviations $\sigma_j\in\{0.5,0.8,1.2\}$ mm. The filtering helper converts physical scale to voxel units using spacing. The integrated model invokes the verified $1$-mm spacing convention; using another acquisition grid would require passing its spacing or resampling before model input. Let $G_{\sigma_j}$ denote convolution with the normalized filter and $\alpha_{mj}$ be learned scalar logits shared across subjects. The modality-specific mixture is
+\begin{align}
+\pi_{mj}&=\frac{\exp(\alpha_{mj})}{\sum_{l=1}^{3}\exp(\alpha_{ml})},\\
+L_m&=\sum_{j=1}^{3}\pi_{mj}G_{\sigma_j}(\tilde X_m),\\
+H_m&=\tilde X_m-L_m.
+\label{eq:split}
+\end{align}
+The implementation initializes $\alpha_m=(-1,1,-1)$ for each modality, favoring the middle scale at initialization. The identity $\tilde X_m=L_m+H_m$ follows from the residual definition up to floating-point arithmetic. The mixture weights are global learned parameters, not spatially varying filters. For the fixed-filter ablation, the low-pass is the $0.8$-mm Gaussian. An additional Haar ablation uses pairwise average pooling and repeated low-pass reconstruction.
+
+Missing modalities are zeroed before filtering and represented by replicated binary availability maps. Input normalization is foreground nonzero z-scoring per modality; the foreground crop is based on available MRI intensities, not the tumour labels. The code assumes the provided BraTS geometry and checks the NIfTI volumes; it canonicalizes orientation to RAS but does not resample the checked 1-mm data. Training patches are $96^3$ voxels with a four-voxel halo, of which the central $96^3$ target region is predicted. The halo supports filtering and mitigates patch-edge effects.
+
+\subsection{Base segmentation network}
+The baseline network is a five-level residual 3D U-Net with widths $(32,64,128,256,320)$. Each residual block applies two $3\times3\times3$ convolutions with eight-group GroupNorm and leaky ReLU; a $1\times1\times1$ projected skip aligns channels. Average pooling downsamples features, and trilinear interpolation restores spatial size in the decoder. The input has eight channels. A four-channel $1\times1\times1$ head returns base logits $z_0$. The full-resolution context $F$ has 32 channels on the central patch grid.
+
+\subsection{Anchored, modality-conditioned corrections}
+Table~\ref{tab:backbone} gives the tensor sizes for a central $96^3$ training patch. Decoder interpolation targets the corresponding encoder size, so rounding does not determine the skip alignment. Each decoder concatenates the upsampled deeper feature with its encoder skip before the residual block. The final 32-channel feature map supplies both the segmentation head and the correction branches. Availability channels therefore influence the common context as well as the output masking.
+
+\begin{table}[!htbp]
+\caption{Backbone tensor sizes for a central $96^3$ patch. Channel counts exclude the batch dimension.}
+\label{tab:backbone}
+\centering
+\begin{tabularx}{\columnwidth}{@{}l r L@{}}
+\toprule
+Operation & Channels & Spatial grid / concatenation \\
+\midrule
+Input & 8 & $96^3$; smooth images and flags \\
+Encoder 1 & 32 & $96^3$ \\
+Encoder 2 & 64 & $48^3$ \\
+Encoder 3 & 128 & $24^3$ \\
+Encoder 4 & 256 & $12^3$ \\
+Encoder 5 & 320 & $6^3$ \\
+Decoder 4 & 256 & $12^3$; $320+256$ inputs \\
+Decoder 3 & 128 & $24^3$; $256+128$ inputs \\
+Decoder 2 & 64 & $48^3$; $128+64$ inputs \\
+Decoder 1 & 32 & $96^3$; $64+32$ inputs \\
+Logit head & 4 & $96^3$; $1\times1\times1$ convolution \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The same correction network $R_\theta$ is reused for all four modalities. Its input concatenates the 32-channel feature $F$, one residual channel $H_m$, and a four-channel one-hot modality identity $e_m$, giving $32+1+4=37$ input channels. Two $3\times3\times3$ convolutional layers with 16 channels and ReLU are followed by a three-channel $1\times1\times1$ output layer. The output channels correspond to NCR/NET, oedema, and ET foreground logits.
+
+The correction for modality $m$ is
+\begin{equation}
+r_m=R_\theta(F,H_m,e_m)-R_\theta(F,0,e_m).
+\label{eq:anchor}
+\end{equation}
+Here $r_m$ has three channels on the same spatial grid as $F$. The refiner contains no normalization or dropout. Its two anchored evaluations therefore use the same deterministic mapping, including the same image context and modality identity. Only the detail channel changes. The final convolution is initialized with weight standard deviation $0.001$ and zero bias, making its initial proposals small without imposing a bound on their later magnitude. Zero anchoring constrains the response at zero detail; it does not force a beneficial response when detail is present.
+
+For fixed $F,e_m$, the implemented subtraction gives zero correction when $H_m=0$, subject to deterministic evaluation. The shared spatial gate receives $F$, $H_m$, $r_m$, $e_m$, and four replicated availability maps. Its channel count is $32+1+3+4+4=44$. A $1\times1\times1$ convolution maps 44 to 16 channels; a depthwise $3\times3\times3$ convolution, pointwise output, and sigmoid produce a scalar $q_m(v)\in(0,1)$ at each voxel. This coefficient controls a proposal's contribution and requires empirical utility analysis.
+
+The four gates are independent sigmoids, not a softmax over modalities. Several modalities may contribute at one voxel, and all may receive small weights. The depthwise layer exchanges information within each hidden channel's local neighbourhood; the surrounding pointwise convolutions mix channels. One-hot identity maps let shared weights distinguish modality roles without introducing four separate refiners or gates. The availability map identifies which other sequences contributed to the common feature. Nevertheless, missing evidence is not reconstructed by this mechanism: removing T1ce can remove information needed to delineate enhancing tissue.
+
+\subsection{Additive fusion and interpretability scope}
+For foreground class $k\in\{1,2,3\}$, the contribution is $c_{m,k}=a_m q_m r_{m,k}$. The fused logits are
+\begin{equation}
+\begin{aligned}
+z_k&=z_{0,k}+\sum_{m=1}^{4}c_{m,k},\\
+z_{\mathrm{bg}}&=z_{0,\mathrm{bg}}.
+\end{aligned}
+\label{eq:fusion}
+\end{equation}
+The exclusive prediction is
+\begin{equation}
+\hat Y(v)=\underset{k\in\{0,1,2,3\}}{\operatorname{arg\,max}}\;z_k(v).
+\label{eq:prediction}
+\end{equation}
+WT, TC, and ET masks follow from the class sets defined above. Since fusion adds corrections directly to logits, $c_{m,k}$ is the branch's conditional additive effect on the foreground score. A different input can also change the backbone and every proposal, so this accounting cannot establish causal clinical relevance. A gate can retain a harmful proposal; held-out branch-removal experiments must determine whether its contribution improves segmentation.
+
+\subsection{Training objective and three-stage protocol}
+For class probabilities $p=\operatorname{softmax}(z)$, region probabilities are formed as $p_{\mathrm{WT}}=1-p_0$, $p_{\mathrm{TC}}=p_1+p_3$, and $p_{\mathrm{ET}}=p_3$. The implemented objective is four-class cross-entropy plus the mean soft Dice loss for these three regions:
+\begin{equation}
+D_R(p,Y)=\frac{2\sum_v p_R(v)y_R(v)+\epsilon}
+{\sum_v p_R(v)+\sum_v y_R(v)+\epsilon}.
+\label{eq:softdice}
+\end{equation}
+Let $\mathcal R=\{\mathrm{WT},\mathrm{TC},\mathrm{ET}\}$. Then
+\begin{equation}
+\mathcal L_{\mathrm{seg}}=\mathcal L_{\mathrm{CE}}(z,Y)
++\frac{1}{3}\sum_{R\in\mathcal R}\bigl(1-D_R(p,Y)\bigr).
+\label{eq:seg}
+\end{equation}
+where $\epsilon=10^{-5}$ in the implementation. Dice and cross-entropy computations are promoted to float32.
+
+\textbf{Stage A (base model).} The U-Net and Gaussian mixture are trained using $\mathcal L_{\mathrm{seg}}(z_0,Y)$. Corrections are inactive. Stage A completed its configured 4,000 updates.
+
+\textbf{Stage B (correction learning).} Candidate corrections are activated, gates are fixed to one, and the U-Net, smoothing parameters, and correction network are trained. The objective combines final, base, and branch predictions:
+\begin{equation}
+\mathcal L_B=\mathcal L_{\mathrm{final}}
++0.3\mathcal L_{\mathrm{base}}+0.1\mathcal L_{\mathrm{branch}}.
+\label{eq:stageb}
+\end{equation}
+Modality branch dropout independently removes each available correction with probability 0.25 for the final objective; each auxiliary term evaluates the base logits plus one available modality's correction. Stage B completed its configured 4,500 updates.
+
+More explicitly, for independently sampled retention indicators $\rho_m\sim\operatorname{Bernoulli}(0.75)$, the final Stage B logits are
+\begin{equation}
+z_{\rho}=z_0+\sum_m\rho_m\tilde c_m,
+\label{eq:dropout}
+\end{equation}
+where $\tilde c_m=(0,a_mr_m)$. The base auxiliary objective uses $z_0$, while the branch objective averages $\mathcal L_{\mathrm{seg}}(z_0+\tilde c_m,Y)$ over available subject--modality pairs. These auxiliary terms train individual proposals even when a sampled retention indicator removes them from the final fusion. Branch dropout differs from input-modality dropout: it suppresses an output contribution without rerunning the backbone on a different modality set. Both distinctions are preserved in the experiment registry and evaluation.
+
+\textbf{Stage C (utility-supervised gate learning).} Candidate networks are frozen and evaluated without gradients; only gate parameters are updated. For each available modality, the target uses the all-corrections-present logits $z_{\mathrm{all}}$ and the logits after removing its correction:
+Writing $\ell(z(v),Y(v))$ for voxelwise cross-entropy, define
+\begin{align}
+\tilde c_m&=(0,a_mr_m),\nonumber\\
+z_{\mathrm{all}}&=z_0+\sum_m\tilde c_m,
+\label{eq:candidates}\\
+\delta_m(v)&=\ell(z_{\mathrm{all}}(v)-\tilde c_m(v),Y(v))\nonumber\\
+&\quad-\ell(z_{\mathrm{all}}(v),Y(v)),
+\label{eq:delta}\\
+t_m&=\operatorname{stopgrad}\!\left[
+\sigma\!\left(\frac{\operatorname{AvgPool}_{3}(\delta_m)}{\tau}\right)\right].
+\label{eq:utility}
+\end{align}
+Here $(0,a_mr_m)$ is the four-class vector with zero background and the available modality's three foreground corrections. $\operatorname{AvgPool}_{3}$ is the code's $3\times3\times3$ spatial averaging operation and $\tau=0.1$. Positive $\delta_m$ means removal worsens cross-entropy, so the candidate helped in this context. The target is detached. Gate BCE is balanced as half tumour and half background means when both exist, and averaged over available modalities. The Stage C loss adds this term with weight $0.1$ to the segmentation objective. This target is context-dependent and is neither a Shapley attribution nor a calibrated utility probability. The recorded B5 experiment completed all 1,500 Stage C updates.
+
+The target is computed from ungated available candidates. It is not recomputed by scaling the candidate with its current learned gate: otherwise the gate could alter its own supervision by first suppressing the branch. Spatial pooling uses stride one, padding one, and excludes padded positions from the average. Thus boundary voxels use the existing portion of the neighbourhood. Pooling acts on each modality's scalar CE-difference volume, without averaging across modalities or class channels. A zero CE difference gives target $0.5$; a positive target offset indicates improvement in this particular candidate context. A1 preserves the marginal target values while permuting their spatial positions, testing whether their location contributes useful supervision.
+
+Let $\mathcal S(Y)$ contain the nonempty tumour and background voxel sets, and define binary cross-entropy by
+\begin{equation}
+b(q,t)=-t\log q-(1-t)\log(1-q).
+\end{equation}
+The balanced branch loss averages the within-set means:
+\begin{align}
+\mathcal B_{m,S}&=\frac{1}{|S|}\sum_{v\in S}b(q_m(v),t_m(v)),\nonumber\\
+\mathcal B_m&=\frac{1}{|\mathcal S(Y)|}\sum_{S\in\mathcal S(Y)}\mathcal B_{m,S}.
+\label{eq:balancedbce}
+\end{align}
+Only available branches enter its mean; in batches containing several subjects the code averages over their available subject--branch pairs. For the actual batch size of one,
+\begin{equation}
+\mathcal L_C=\mathcal L_{\mathrm{seg}}(z,Y)
++\frac{0.1}{\sum_m a_m}\sum_m a_m\mathcal B_m.
+\label{eq:stagec}
+\end{equation}
+If a patch contains tumour and background, each set receives half the BCE weight regardless of its voxel count. If one set is empty, the nonempty set receives the full weight. The gate is still constrained by the segmentation objective: a target favouring one candidate does not independently establish that retaining it improves Dice after all gates act together.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[draft=false,width=\columnwidth]{figures/training_pipeline.pdf}
+\caption{Implemented three-stage optimization and validation selection. Stage A fits the base network and smoothing mixture; Stage B jointly fits the candidates with unit gates and branch dropout; Stage C freezes candidate networks and trains the spatial gates from both segmentation and detached utility targets. All three B5 stages completed across resumable Kaggle sessions. Validation chooses weights within each stage; the reported final B5 checkpoint is the selected Stage C model.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Conditional stability analysis}
+The code also computes an exact conditional bound for the winner of the current additive logits when any subset of the four already-computed detail contributions is removed. For current winner $w=\arg\max_k z_k$, define the margin against a rival $j\ne w$ as $M_j=z_w-z_j$ and the branch margin terms $d_{m,j}=c_{m,w}-c_{m,j}$. A sufficient worst-case bound under independent binary retention of each fixed contribution is
+\begin{equation}
+B=\min_{j\ne w}\left[M_j-\sum_m\max(d_{m,j},0)\right].
+\label{eq:stability}
+\end{equation}
+If $B>\eta$ for tolerance $\eta$, the predicted winner is unchanged for every one of the $2^4=16$ contribution-retention subsets. The implementation numerically checks the analytical calculation against enumeration. This is conditional on the computed base and corrections; it does not certify correctness, robustness to changed images, or stability after nonlinear post-processing. Patient-level summaries were recorded for all 49 validation subjects, with numerical subset checks on sampled brain voxels.
+
+To see the scope of the calculation, let $S$ be a set of branches removed from the current fusion. Against rival $j$, the retained margin is
+\begin{equation}
+M_j(S)=M_j-\sum_{m\in S}d_{m,j}.
+\label{eq:subsetmargin}
+\end{equation}
+For this rival, removing a positive $d_{m,j}$ reduces the winner's margin and removing a negative term increases it. The worst subset therefore removes precisely the positive terms, yielding the expression in \eqref{eq:stability}. The minimizing subset may differ across rivals, which the outer minimum handles. An unchanged background score is included in this class comparison. Zero or near-zero bounds are left uncertified by the implementation's numerical tolerance.
+
+This analysis holds the already-computed feature, proposals, and gates fixed. Removing an MRI sequence and rerunning the model changes those quantities and is a separate experiment. A useful report should present both the certified voxel fraction and error rates within certified and uncertified voxels. A high stable fraction can otherwise reflect confidently wrong predictions or detail branches with negligible contributions. The numerical subset check verifies the algebra; it provides no clinical accuracy guarantee.
+
+\section{Experimental Setup}
+\subsection{Dataset provenance and cohort}
+The local output record identifies the mounted input as the Kaggle dataset \path{awsaf49/brats20-dataset-training-validation}. The exact Kaggle dataset version was not recorded, so provenance is limited to this identifier and the NIfTI inventory. Discovery found 494 subjects, of which 368 had all four expected modalities and a distributed label. The other 126 were excluded because no label was distributed; this includes the challenge validation images and one training case. The BraTS 2020 documentation states that challenge validation labels are not publicly released and gives the four modality and raw label conventions \cite{brats2020data}. The official BraTS guidance permits research use with attribution to the benchmark, annotation collection, and challenge overview \cite{menze2015,bakas2017,bakas2018challenge}. The exact mounted mirror version and its additional reuse terms were not captured by the run.
+
+\subsection{Patient-level split and leakage controls}
+The implementation created a deterministic custom split from the 368 eligible labelled subjects using seed 20261012: 218 training, 49 validation, and 101 internal test subjects. The manifest marks the split as custom and reports that the benchmark ID lists discussed in the architecture specification were not recovered. Programmatic checks verified disjoint patient IDs. The internal test patients come from the publicly labelled collection, independently of the original BraTS hidden challenge test cohort. The recorded runs did not enable internal test evaluation; the reported results are validation measurements. Validation patients were used for checkpoint selection by mean patient-level Dice over WT, TC, and ET.
+
+\subsection{Preprocessing and patch sampling}
+The adapter loads the exact BraTS 2020 NIfTI names, canonicalizes orientation to RAS, verifies modality shapes and geometry, and maps labels $0,1,2,4$ to internal classes $0,1,2,3$. Inspected images have dimensions $240\times240\times155$, 1-mm spacing, and RAS orientation. No resampling was applied in the run. Each available modality is z-scored using its nonzero foreground. Label information is not used for intensity normalization or cropping. Training samples $96^3$ patches with a four-voxel image halo; half of patch centres are drawn from tumour classes and half from image foreground. The model uses batch size one and mixed-precision FP16 with activation checkpointing on the recorded T4 GPU. Geometric augmentations are spatially consistent across modalities and labels; missing modality and simulated spatial corruption are applied as input perturbations.
+
+At inference, the adapter crops from available-image foreground, pads the crop to at least the configured patch size, and uses overlapping $96^3$ windows with a 50\% stride. Each window receives a four-voxel reflected halo. Base logits and each modality's gated contribution are accumulated separately with the same uniform overlap counts on CPU, then cropped back to the original volume grid and summed. Argmax is applied to reconstructed logits; applying softmax first gives the same exclusive prediction. This preserves the additive logit identity across windows; the implementation does not blend window probabilities or apply nonlinear postprocessing.
+
+Fig.~\ref{fig:data} shows the four aligned sequences and released segmentation for the first validation ID, BraTS20\_Training\_205. The axial slice is selected at the median reference tumour coordinate (RAS index 90), independently of model performance. All images share a normalized display range. Reference labels select the display plane only; they do not enter model inputs or inference cropping. The complete cohort metrics are reported separately from this single-subject illustration.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/dataset_examples.pdf}
+\caption{Real, aligned validation inputs and reference for subject 205, axial RAS slice 90. NCR/NET, oedema, and ET colours are shared with Fig.~\ref{fig:qual}. Grayscale uses the common normalized range $[-1,3]$; no synthetic patient data are shown.}
+\label{fig:data}
+\end{figure*}
+
+
+\subsection{Training configuration and status}
+The recorded main configuration uses seed 1729, AdamW, learning rate $2\times10^{-4}$ for the candidate model and $10^{-3}$ for gate parameters, weight decay $10^{-5}$, a 9-hour orchestration deadline per continuation, and configured updates of 4,000/4,500/1,500 for Stages A/B/C. The scheduler applies a 100-update linear warmup followed by cosine decay within each stage. The dataset split contains 218 training patients despite a configured cap of 219; the data loader uses only available split IDs. Hardware metadata records a Tesla T4, 15.6 GB reported device memory, two visible CUDA devices, Python 3.13.15, PyTorch 2.11.0+cu128, and CUDA 12.8. These values describe the downloaded run and may differ in later Kaggle sessions.
+
+Optimizer stages and model-selection checkpoints serve separate purposes. The latest checkpoint stores training progress, including the update counter, optimizer, scheduler, and mixed-precision scaler. Resume verifies a configuration fingerprint and restores these states before taking the next indexed patch sample. A validation-selected checkpoint records the best region-mean Dice observed in that stage. When a stage finishes, the implementation reloads these selected weights before returning to the experiment orchestrator. Consequently, continuing Stage B should use its latest compatible progress state, whereas starting gate training uses the selected completed candidate state. Resetting an optimizer while claiming uninterrupted continuation would change the protocol.
+
+Validation is triggered every 500 configured updates and at the stage's final update. Optimizer update counts exclude validation, while session wall time includes its reconstruction and scoring cost. Deadline-aware saving leaves an incomplete stage resumable and reports its status explicitly. Stage completion and evaluation coverage are tracked separately from a successful notebook exit. A final publication should retain stage histories and the selected-checkpoint hash so the reported predictions can be traced to the evaluated weights.
+
+The measured profiler used 100 updates per stage after five warmup updates on $96^3$ patches, including loading. Median step times in the final recorded profiling pass were 3.99, 1.74, and 0.62 s for A, B, and C. The largest allocated memory peak in that pass was 3.38 GiB. These disposable-model measurements exclude cohort validation and are not whole-session durations. Both CUDA devices were visible, but the implementation used only \texttt{cuda:0}; it did not train with distributed parallelism. The model has 16,934,644 parameters: 16,910,468 in the backbone, 12 in the Gaussian mixture, 22,979 in the shared correction network, and 1,185 in the spatial gate.
+
+\subsection{Baselines and ablations}
+The experiment registry defines B0 as raw-input U-Net with availability and modality dropout but without the matched corruption training, B1 as the corresponding raw U-Net with corruption training, B2 as anchored corrections with gates fixed to one, B3 as four global learned gates, B4 as spatial gates trained only through segmentation, and B5 as the full utility-supervised spatial-gate model. A1 shuffles utility targets spatially, A2 replaces the learned mixture with a fixed 0.8-mm Gaussian, A3 uses raw image context for refinement, A4 uses a Haar decomposition, A5 removes zero anchoring, A6 trains gates jointly with candidate networks, and A7 adds a resolution-matched occupancy objective. These are registry configurations; appearance in the registry does not mean an experiment ran.
+
+Table~\ref{tab:ablationdesign} maps each comparison to its question. B4 versus B5 isolates supervision more directly than raw U-Net versus B5, because the architecture is unchanged. For the planned frozen-candidate comparison, the same selected Stage B checkpoint should initialize both gate runs. Any experiment that changes decomposition or the refiner must train its candidates under that variant's configuration. Reusing B5 candidates for such a variant would confound the ablation. Every comparison should report its update budget, checkpoint rule, and parameter count; equal numbers of optimizer updates do not imply equal runtime.
+
+\begin{table*}[!t]
+\caption{Implemented experiment registry and the comparison each variant enables. B5 and the available B0 checkpoint have measured clean validation outcomes. B1--B4 and A1--A7 are implemented controls without completed independent evaluations.}
+\label{tab:ablationdesign}
+\centering
+\begin{tabularx}{\textwidth}{@{}l L L@{}}
+\toprule
+ID & Specified implementation & Question addressed \\
+\midrule
+B0 & Raw-input residual U-Net; modality dropout; no corruption augmentation & Raw multimodal backbone reference \\
+B1 & B0 with matched corruption augmentation & Effect of input corruption training \\
+B2 & Detail candidates; anchored corrections; gates fixed to one & Effect of accepting every available proposal \\
+B3 & Four learned global sigmoid coefficients & Global versus spatial control \\
+B4 & Spatial gates; segmentation objective only & Reference for the utility-supervision hypothesis \\
+B5 & Spatial gates; frozen candidates; segmentation plus utility BCE & Proposed utility-supervised model \\
+A1 & B5 with spatially permuted utility targets & Whether target location conveys useful information \\
+A2 & Fixed $0.8$-mm Gaussian low-pass & Learned mixture versus a fixed scale \\
+A3 & Raw backbone context and raw anchored refinement input & Whether decomposition contributes beyond refinement \\
+A4 & Haar low-pass reconstruction and residual & Sensitivity to the decomposition family \\
+A5 & Refiner output without zero-anchor subtraction & Role of the zero-detail constraint \\
+A6 & Candidate networks unfrozen during Stage C & Frozen versus changing candidate context \\
+A7 & Added known-resolution occupancy objective, weight $0.1$ & Auxiliary supervision under global simulated resolution loss \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+The B5 experiment completed 4,000, 4,500, and 1,500 optimizer updates in A, B, and C. Its selected checkpoints were at updates 2,000, 4,500, and 1,500, with validation scores 0.7105, 0.7403, and 0.7379. B0 uses a recovered raw-input checkpoint selected at update 2,000; the available raw training history contains 2,999 updates against a configured 10,000-update budget. No additional B0 training was performed during local evaluation. These facts are retained to make the comparison interpretable, rather than equating the two training exposures.
+
+B0 and B5 have the same patient split, backbone widths, patch geometry, label mapping, and validation reconstruction. B0 uses modality dropout without corruption augmentation; B5 uses both. B0 predictions were recomputed in CPU float32, whereas B5 used GPU FP16 inference. All 49 canonical MRI input hashes match the saved B5 integrity records. The reference geometry, label mapping, and ET volumes also match; full original label-array hashes were not recorded, so exact historical label-byte identity cannot be established from those hashes. The clean comparison is consequently an exploratory comparison of the available checkpoints, not an equal-budget estimate of architectural improvement. B1--B4 and A1--A7 remain unexecuted comparative controls.
+
+\subsection{Metrics and evaluation protocol}
+Evaluated patient-level metrics include Dice, IoU, precision, recall, specificity, HD95 in millimetres, and surface Dice at 1-mm tolerance for WT, TC, ET, and the exclusive classes. Empty-mask cases have explicit handling in the code: both-empty Dice/IoU are one, one-empty surface overlap is zero, and undefined precision/recall or HD95 are reported as null. Aggregates use patient-macro means and preserve valid and undefined counts. The planned robustness protocol evaluates all 15 nonempty modality subsets and prespecified spatial corruptions. The code also records gate summaries, correction magnitude and signed contributions, branch-removal metrics, and conditional stability checks. B5 completed these validation evaluations; B0 was evaluated only for clean, complete-input validation. No model was evaluated on the internal test partition.
+
+For each patient and region, define voxel counts TP, FP, FN, and TN. The overlap measures are
+\begin{align}
+\operatorname{Dice}&=\frac{2\mathrm{TP}}{2\mathrm{TP}+\mathrm{FP}+\mathrm{FN}},\\
+\operatorname{IoU}&=\frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}+\mathrm{FN}}.
+\end{align}
+Precision uses $\mathrm{TP}/(\mathrm{TP}+\mathrm{FP})$, sensitivity uses $\mathrm{TP}/(\mathrm{TP}+\mathrm{FN})$, and specificity uses $\mathrm{TN}/(\mathrm{TN}+\mathrm{FP})$. Since tumour foreground can occupy a small portion of a volume, specificity should accompany, rather than substitute for, foreground overlap and sensitivity. The implementation also retains FP volume and absolute volume error in cubic millimetres.
+
+Surface metrics use boundary voxel centres from six-connected binary erosion. Physical spacing enters the distance transform. The implemented HD95 is the 95th percentile of the concatenated directed boundary distances, not the maximum of two separately computed percentiles. Surface Dice counts boundary points within the physical tolerance in either direction, divided by the combined number of boundary points. This implementation is unweighted by surface area; it should not be silently equated with an area-weighted surface metric from another evaluation package. Both-empty surfaces give HD95 zero and surface Dice one; one-empty surfaces give undefined HD95 and surface Dice zero. The undefined counts must remain visible in the final tables.
+
+Enhancing-tumour lesion counts provide an additional diagnostic. The code identifies 26-connected components in reference and predicted ET masks and uses maximum-cardinality one-to-one overlap matching. Lesion precision and recall use matched components divided by predicted and reference component counts, respectively, with null values for an empty denominator. Any-voxel overlap is the matching criterion; this measure describes component detection and does not establish clinically meaningful lesion delineation.
+
+\subsection{Defined missing-modality and corruption tests}
+Each of the 15 nonempty modality subsets is evaluated by masking its unavailable image channels and rerunning the complete model with matching flags. These tests alter both base context and branch proposals. They differ from correction removal, which retains the original input and holds the computed contributions fixed. The complete-input condition is processed first, but incomplete session coverage must be reported instead of averaging a convenient subset of conditions.
+
+For non-smoke evaluation, the validation corruption suite uses local noise and resolution degradation; the final suite uses local ghosting and ringing, which are absent from training augmentation. Each uses two severities and both the complete-input mask and mask 13, where T1ce is absent. The corrupted sequence is FLAIR and the specified corruption axis is axis 2 of the canonical volume array. Table~\ref{tab:corruptions} gives the configured levels. The different validation and final corruption families should be retained when results are reported; calling them the same test would conceal a protocol difference.
+
+\begin{table}[!htbp]
+\caption{Non-smoke corruption suite. Each row corrupts FLAIR locally, with all modalities present or T1ce absent. Values are configured, not measured robustness outcomes.}
+\label{tab:corruptions}
+\centering
+\begin{tabularx}{\columnwidth}{@{}l l L@{}}
+\toprule
+Partition & Family & Two configured levels \\
+\midrule
+Validation & Noise & Standard deviation $0.075$, $0.15$ after normalization \\
+Validation & Resolution & Coarsening factor $2.5$, $3.5$ on axis 2 \\
+Final test & Ghost & Shifted-image amplitude $0.15$, $0.30$ \\
+Final test & Ringing & Frequency-removal parameter $0.20$, $0.40$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Noise adds an independent Gaussian perturbation. Resolution degradation applies an axis-specific Gaussian blur, adaptive-average coarsening, and trilinear reconstruction. Ghosting adds a copy shifted by one quarter of the selected axis length. Ringing truncates the Fourier spectrum on that axis at $0.5(1-s)$, where $s$ is the configured removal parameter, then takes the real inverse transform. Local corruption blends the changed and original images with a Gaussian spatial mask whose centre is sampled between $20\%$ and $80\%$ of each dimension and whose scale is $22\%$ of that dimension. Original zero-background voxels remain zero. These are reproducible image-space simulations; no scanner acquisition model or measured artifact severity is implied.
+
+Training corruption is applied with probability $0.5$ to one randomly selected available modality. The family is resolution, noise, or bias, with a randomly selected axis and local or global application. Resolution factors range from $1.5$ to $3$; noise and bias parameters range from $0.05$ to $0.15$. The bias field interpolates a random $4^3$ grid and clips its multiplicative factor to $[0.8,1.2]$. A7's occupancy objective is eligible only for global resolution damage with a known coarse lattice. It averages class probabilities and one-hot labels onto that lattice before cross-entropy. This is supervision tied to the declared simulation, not a general MRI-physics constraint.
+
+\subsection{Branch analysis and paired comparisons}
+For each available modality, the evaluation records gate distributions, signed logit contributions, absolute correction magnitude, and outcomes after removing its gated correction. Candidate utility uses the ungated all-candidates context defined in \eqref{eq:delta}; deployed contribution utility removes the already-gated contribution from the final logits. They answer different questions and may disagree. The recorded clean-input analysis relates gates to each using within-patient Spearman association, separately for tumour regions, brain foreground, and background. A correlation with correction energy alone would not establish usefulness, since high-amplitude proposals can introduce errors.
+
+The patient is the independent unit in the present paired analysis. For each clean-input region, B5 and B0 Dice are joined by subject ID before computing their difference. The overall endpoint first averages WT, TC, and ET Dice within a patient and then averages across patients. We resample the 49 paired patient vectors with replacement 20,000 times, using seed 20261014. Pointwise 95\% percentile intervals use the 2.5th and 97.5th percentiles of the resampled mean differences. Internal branch-removal comparisons use the same patient-level approach. These intervals condition on the selected weights and do not estimate training-seed uncertainty. Because validation selected the checkpoints, intervals describe exploratory validation differences; they are not independent confirmatory test evidence. No multiplicity-adjusted inference or p-value is reported.
+
+\section{Results}
+\subsection{Completed evaluation and implementation checks}
+The final downloaded B5 record and the local B0 evaluation contain complete results for their requested validation conditions. B5 completed its three optimizer stages and all 23 validation input conditions: 15 nonempty modality subsets and eight local corruption conditions. Each condition contains the same 49 validation patients. Five additional clean-input correction-removal conditions also cover all 49 patients. The clean B0 evaluation contains 49 patients and seven region/class rows per patient. The B0 and B5 comparison uses only WT, TC, and ET from the common clean-input condition; it does not treat repeated condition observations as independent patients.
+
+The recorded checks cover NIfTI adaptation, label mapping, split disjointness, Gaussian normalization and physical scales, low-pass/detail reconstruction, availability masking, zero anchoring, gate dimensions, additive fusion, background preservation, utility-target sign and detachment, gradient flow, checkpoint reload, optimizer resume, sliding-window reconstruction, and report serialization. A repeated-patch check reduced its loss. The recovered B0 model also loaded with strict state-dictionary matching, and its full-volume predictions were evaluated without optimization. These checks support consistency of the tested implementation; segmentation accuracy is assessed by the separate patient-level measurements below.
+
+\subsection{Clean-input baseline comparison}
+Table~\ref{tab:results} reports the available B0 baseline and selected B5 model. WT Dice increases from 0.8328 to 0.8526, TC from 0.6324 to 0.6876, and ET from 0.6675 to 0.6736. The patient-macro three-region mean is 0.7109 for B0 and 0.7379 for B5. The largest absolute difference is in TC. Exclusive-class Dice also rises from 0.2450 to 0.3770 for NCR/NET and from 0.6794 to 0.7166 for oedema, although these class endpoints were not the checkpoint-selection criterion.
+
+\begin{table}[t]
+\caption{Clean validation on the same 49 patients. Dice and SD$_1$ use patient-macro means. HD95 is the valid-case mean in mm, with valid count in parentheses; counts differ for ET. Training exposure is specified in the text.}
+\label{tab:results}
+\centering
+\begin{tabularx}{\columnwidth}{@{}l l L L L@{}}
+\toprule
+Model & Region & Dice & HD95 ($n$) & SD$_1$ \\
+\midrule
+B0 & WT & 0.8328 & 17.06 (49) & 0.5764 \\
+B0 & TC & 0.6324 & 15.94 (49) & 0.4877 \\
+B0 & ET & 0.6675 & 12.14 (46) & 0.6340 \\
+B5 & WT & 0.8526 & 17.51 (49) & 0.6408 \\
+B5 & TC & 0.6876 & 16.14 (49) & 0.5011 \\
+B5 & ET & 0.6736 & 14.06 (45) & 0.6510 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\begin{table}[t]
+\caption{B5 minus B0 Dice in percentage points. Pointwise paired patient bootstrap intervals use 20,000 resamples; they condition on selected weights and validation reuse.}
+\label{tab:paired}
+\centering
+\begin{tabularx}{\columnwidth}{@{}l L L@{}}
+\toprule
+Endpoint & Difference (pp) & 95\% interval (pp) \\
+\midrule
+WT & +1.98 & $[+0.87, +3.07]$ \\
+TC & +5.51 & $[+1.40, +9.63]$ \\
+ET & +0.61 & $[-4.64, +4.26]$ \\
+Mean & +2.70 & $[+0.33, +4.99]$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/baseline_comparison.pdf}
+\caption{Clean validation comparison of the selected B0 and B5 checkpoints on 49 matched patients. (a) Patient-macro Dice, with a full $[0,1]$ scale. (b) Patient differences, their means, and pointwise 95\% paired bootstrap intervals; all patient outliers are retained. Unequal training exposure, augmentation, and inference precision prevent interpreting these differences as an isolated architectural effect.}
+\label{fig:comparison}
+\end{figure*}
+
+
+Table~\ref{tab:paired} and Fig.~\ref{fig:comparison} quantify the paired differences. Mean region Dice increases by 2.70 percentage points, with a pointwise interval of 0.33--4.99 points. The WT and TC intervals are positive under this fixed-checkpoint patient resampling. The ET interval spans $-4.64$ to $+4.26$ points, so the small mean ET difference is uncertain. These intervals do not remedy validation-selection bias, different training exposure, or the absence of multiple training seeds. In particular, they cannot show that utility supervision caused the observed gain.
+
+\subsection{Boundary and detection behaviour}
+The overlap improvement is not uniform across evaluation measures. B5 has higher mean 1-mm surface-point Dice in all three regions, but mean HD95 is numerically higher: 17.51 versus 17.06 mm for WT, 16.14 versus 15.94 mm for TC, and 14.06 versus 12.14 mm for ET. ET HD95 is defined for 45 B5 cases and 46 B0 cases. Its valid-case means therefore also differ in included subjects. These values do not support a claim of uniformly improved boundary accuracy; distant false-positive components can increase HD95 while Dice remains high.
+
+\begin{table}[t]
+\caption{Patient-macro precision and sensitivity for clean validation. Parentheses indicate valid denominators; empty ET references account for reduced sensitivity counts.}
+\label{tab:detection}
+\centering
+\begin{tabularx}{\columnwidth}{@{}l l L L@{}}
+\toprule
+Model & Region & Precision ($n$) & Sensitivity ($n$) \\
+\midrule
+B0 & WT & 0.9021 (49) & 0.7970 (49) \\
+B0 & TC & 0.8441 (49) & 0.5717 (49) \\
+B0 & ET & 0.7229 (48) & 0.7035 (45) \\
+B5 & WT & 0.8817 (49) & 0.8483 (49) \\
+B5 & TC & 0.7814 (49) & 0.6950 (49) \\
+B5 & ET & 0.6737 (49) & 0.7899 (45) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Table~\ref{tab:detection} shows the accompanying precision--sensitivity trade-off. B5 is more sensitive in WT, TC, and ET but has lower macro precision. The additional foreground coverage therefore includes both recovered lesion voxels and additional false positives. Four validation references contain no ET. The B5 model predicts some ET in all four, giving Dice zero under the declared one-empty rule. B0 predicts an empty ET mask in one of these cases, giving Dice one for that both-empty case. Such cases materially affect an ET average and should be retained, rather than removed after observing results. Undefined surface distances are counted separately instead of converted to apparently favourable distances.
+
+\subsection{Training stages and the gating hypothesis}
+Fig.~\ref{fig:curves} shows validation scores at the recorded selection intervals, using separate update counters for each stage. Stage A completes 4,000 updates and selects update 2,000 at 0.7105. Stage B completes 4,500 updates and selects its final update at 0.7403. Stage C completes 1,500 updates and selects its final update at 0.7379. The lower score after gate learning is an observed negative result for clean-input selection: the final learned-gate model is 0.24 percentage points below the selected unit-gate candidate model. Stage C changes the output control while holding those candidate weights fixed; its training objective and selected operating point differ from Stage B.
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/training_curves.pdf}
+\caption{Actual checkpoint-selection trajectories for the completed A, B, and C stages. Each panel uses its own stage update count and the same validation Dice scale. Stage B uses unit gates; Stage C uses learned gates with frozen candidates. Connecting points within a stage does not imply that intermediate updates were evaluated or that these are independent test measurements.}
+\label{fig:curves}
+\end{figure*}
+
+
+The contrast between the B0/B5 comparison and the B-to-C change is important. A positive difference from a raw baseline does not establish that the utility term benefits spatial gates. Candidate learning, corruption exposure, and the longer B5 training history can all contribute. B4 initialized from the same Stage B checkpoint would test segmentation-only versus utility-supervised gates without changing their architecture. A1 would test whether the spatial placement of utility targets matters. Neither comparison has a completed result in the present evidence.
+
+\subsection{Real qualitative predictions}
+Fig.~\ref{fig:qual} compares the actual recovered baseline and B5 outputs in three orthogonal planes of subject 205. The patient is the first ID in the saved validation manifest, not a case selected for a large improvement. Display indices are the median reference tumour coordinates $(83,77,90)$ in canonical RAS. The same slices, class colours, and image intensity range are used throughout. Local CPU baseline inference reproduces its saved whole-volume Dice, and the displayed reference and FLAIR planes match the B5 export.
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/qualitative_results.pdf}
+\caption{Real validation predictions for BraTS20\_Training\_205. Rows are axial, coronal, and sagittal views at RAS indices 90, 77, and 83. Blue error-change voxels are wrong only in B0; orange are wrong only in B5; grey are wrong in both. The maps include foreground/background and class errors and retain remote false positives. Slice choice uses the reference solely for display. This single case does not establish representative cohort performance.}
+\label{fig:qual}
+\end{figure*}
+
+
+The error panel distinguishes corrections of baseline errors from newly introduced errors. This makes the trade-off visible without suggesting that every change is beneficial. A distant false-positive component remains visible in the B5 views, consistent with this patient's relatively large surface distance despite substantial tumour overlap. The images provide spatial examples of the measured predictions; inference conclusions continue to rest on the full-volume cohort metrics rather than a favourable central slice.
+
+\subsection{Conditional detail-branch removal}
+Removing all gated corrections from the fixed B5 model gives WT, TC, and ET Dice of 0.8522, 0.6827, and 0.6535. The three-region mean is 0.7295, compared with 0.7379 for the complete output. The mean difference is 0.84 percentage points; the largest region difference is ET, at 2.01 points. This comparison retains the B5 backbone and its smooth inputs. It is distinct from B0, which is a separately trained raw-input model.
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/internal_corrections.pdf}
+\caption{Conditional contribution-removal analysis on 49 clean validation patients. Positive values favour the complete B5 output over the indicated removal; bars are pointwise paired patient bootstrap intervals. ``All suppresses every correction while retaining the B5 base logits. Individual rows remove a computed modality contribution, without masking the MRI or rerunning the backbone. These are inference interventions within B5, not independently trained ablations.}
+\label{fig:internal}
+\end{figure*}
+
+
+T1ce dominates the observed detail benefit: removing only its contribution reduces mean Dice to 0.7301, a 0.78-point decrease. The T1 and FLAIR branch effects are much smaller. Removing T2 slightly raises the mean to 0.737918, a difference of approximately 0.0014 points, whose patient interval spans zero. Thus neither branch availability nor a nonzero correction implies a useful contribution. These interventions describe the current additive output at fixed input; they do not assign causal modality importance or account for a backbone that adapts when a sequence is removed.
+
+\subsection{Missing-modality validation}
+Fig.~\ref{fig:missing} summarizes all 15 nonempty MRI subsets, rerunning B5 with the corresponding availability flags. With T1, T2, and FLAIR but no T1ce, ET Dice falls from 0.6736 to 0.2915. T1ce alone gives ET Dice 0.4258, while FLAIR alone gives WT Dice 0.7920. These region-specific differences are consistent with unequal reliance on the available contrasts in this trained model, but they do not imply that the individual images encode only one region.
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/missing_modalities.pdf}
+\caption{B5 patient-macro validation Dice across all 15 nonempty modality subsets, each evaluated on all 49 patients. C denotes T1ce and F denotes FLAIR. Inputs and flags are masked together, then the complete model is rerun. Colours share the full $[0,1]$ scale; numbers are rounded to two decimals for display. B0 has no measured subset suite, so this figure is not a comparative robustness result.}
+\label{fig:missing}
+\end{figure*}
+
+
+The three-input subset T1+T1ce+FLAIR achieves mean region Dice 0.7346, close to the complete-input mean of 0.7379. Other subsets have much lower scores. Averaging all subsets uniformly gives 0.5538, but this statistic weights rare and common missingness patterns equally and does not represent any clinical frequency distribution. The measured subset coverage demonstrates that the availability mechanism executes across all nonempty masks; it does not show that missingness has become harmless or that B5 is more robust than B0.
+
+\subsection{Local spatial-corruption validation}
+The eight validation perturbations damage FLAIR locally using normalized noise standard deviations 0.075 and 0.15 or axis-2 resolution factors 2.5 and 3.5. Each is evaluated with all modalities present and with T1ce absent. Fig.~\ref{fig:corruption} subtracts the matching clean condition per patient, avoiding comparisons between different availability masks. Mean three-region Dice changes remain small in this implemented suite. The largest mean reduction is approximately 0.094 percentage points for the stronger resolution degradation with all four inputs. Some noise conditions have very small positive means; these fluctuations do not establish a benefit from adding noise.
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/corruption_robustness.pdf}
+\caption{B5 corrupted-minus-matching-clean validation differences. Dots are all 49 patient differences; diamonds are means. N1/N2 denote local FLAIR noise at 0.075/0.15; R1/R2 denote resolution factors 2.5/3.5 on canonical axis 2. The suffix /4 retains all inputs and /3 removes T1ce. Each panel retains its full observed patient range, so vertical scales differ. No B0 corruption evaluation or scanner-level perturbation is represented.}
+\label{fig:corruption}
+\end{figure*}
+
+
+The perturbations preserve zero-background voxels, use a deterministic spatial mask, and affect only one sequence. Other modalities can supply redundant evidence, and the low-pass backbone may reduce sensitivity to residual perturbation. These are plausible explanations for the small changes, not causal conclusions: the present measurements cannot separate the effect of smoothing, corruption training, and spatial gates. Gate analyses were exported for clean inputs only, so no measured gate response to the corruption conditions can be inferred from the segmentation curves.
+
+\subsection{Gates, contributions, and conditional stability}
+Clean-input analysis contains 980 subject--modality--scope rows for gates and the same number for contributions, corresponding to 49 patients, four modalities, and five spatial scopes. Patient-averaged brain gate means are near 0.5 for every modality. For T1ce, mean coefficients within WT, TC, and ET are approximately 0.58, 0.63, and 0.64. The corresponding within-patient gate--removal-utility Spearman associations are weak and vary by scope. A larger average tumour-region gate therefore cannot be read as a calibrated probability of usefulness or as a proven reliability estimate.
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/gate_contribution_maps.pdf}
+\caption{Actual axial B5 spatial gates and signed ET-logit contributions for validation subject 205. Gates share a $[0,1]$ scale; ET contributions share a symmetric scale determined by the largest absolute contribution across modalities, with no percentile clipping. Values are window-averaged. Zero image background and uncomputed crop-fill positions are hidden for display and do not represent low-confidence decisions. The largest visible signed detail effects arise from T1ce in this example.}
+\label{fig:gates}
+\end{figure*}
+
+
+Fig.~\ref{fig:gates} keeps a common scale across modalities so that visually strong maps cannot be created by independently stretching tiny contributions. Positive and negative ET terms are both retained. The sign refers to the ET logit, not directly to whether the final argmax is correct: a positive ET contribution can help on enhancing tissue and create false positives elsewhere. Ground-truth-derived utility is available during training and evaluation analysis, but is not an inference feature.
+
+The conditional stability calculation was numerically checked against all 16 contribution-retention subsets for sampled brain voxels in each of the 49 patients. Every check passed; the largest margin discrepancy was $1.91\times10^{-6}$. Patient summaries also include tumour and background scopes. These checks establish consistency of the fixed-contribution formula with enumeration on the sampled locations. They do not certify predictions under missing MRI inputs, and a stable voxel may have the wrong label. Background-dominated stable fractions cannot substitute for region-wise accuracy.
+
+\subsection{Model cost and reproducibility artifacts}
+B5 contains 16,934,644 parameters versus 16,910,468 in B0. The additional 24,176 parameters increase the count by approximately 0.143\%. This small count difference does not imply equal computational cost: Gaussian filtering, two refiner evaluations per modality for anchoring, gate computation, and staged training add operations beyond the raw backbone. No validated whole-model FLOP estimate or same-hardware B0/B5 latency comparison is available.
+
+A separate GPU inference benchmark uses the prespecified subject 205, one warmup reconstruction and two timed reconstructions. The median is 11.98 s for 27 windows and the allocated-memory peak is about 3.22 GiB. B0 local CPU inference has a 49-patient median of 73.63 s with four CPU threads and float32. These values come from different hardware, precision, and sampling protocols and must not be interpreted as a model speed ratio. Both evaluations reconstruct the original $240\times240\times155$ grid before scoring.
+
+The saved evidence includes the patient split manifest, stage histories, selected checkpoint configurations and hashes, patient-level CSVs, condition summaries, gate/contribution records, stability checks, and figure provenance. The baseline checkpoint SHA-256 begins \texttt{2caba443318f}, and the portable B5 model hash begins \texttt{c3e3cbeeef00}. Full hashes remain in the source reports. The Overleaf package contains only manuscript and figure assets; code, weights, and MRI volumes remain outside it. Reproducing the present tables requires the selected weights and exact split, not merely the same architecture name.
+
+\section{Discussion}
+\subsection{What the current comparison supports}
+On the selected clean validation cohort, B5 has higher patient-macro Dice than the recovered B0 checkpoint, most clearly in TC. The paired analysis preserves subject correspondence and shows how much patient variation remains around each mean. The measured surface-point overlap and increased sensitivity offer additional context, while lower precision and numerically larger mean HD95 expose the associated false-positive and boundary trade-offs. A single aggregate score would conceal these differences.
+
+The evidence is narrower than an architectural superiority claim. B0's selected weights come from update 2,000 of a raw-input history containing 2,999 updates; B5 completed all three configured stages. B0 lacks the corruption augmentation used for B5. Validation selected both weights, and B0 and B5 inference used different numeric precision. The observed advantage can reflect these choices as well as decomposition and correction learning. An equal-budget B1 comparison would address the augmentation confound, and repeated seeds would assess optimization variability. This study reports the available checkpoints rather than presenting them as a completed controlled ablation.
+
+\subsection{Utility supervision remains an open hypothesis}
+The internal removal analysis shows that the deployed detail terms affect the output and, collectively, improve the fixed B5 base's mean validation Dice. It also reveals that most of the benefit comes from T1ce, while some very small contributions are neutral or harmful. This resolves one engineering concern: the model did not simply ignore every detail branch. It does not resolve whether utility supervision is the best way to retain those branches.
+
+Indeed, the selected Stage C score is below the selected unit-gate Stage B score. This negative observation limits the central hypothesis. The utility target evaluates an ungated candidate's local cross-entropy contribution in one all-candidates context, whereas the deployed gates act jointly and the reported segmentation endpoint is region Dice. Candidate interactions, the scale of CE changes relative to $\tau$, and the balanced tumour/background objective can make the target imperfectly aligned with the final metric. The observed near-0.5 brain gate means are compatible with small pooled CE changes, but a causal explanation would require inspecting target distributions and matched controls.
+
+Training B4 from the same frozen candidate checkpoint and running A1 are the most direct next experiments. They would distinguish the additional utility objective from ordinary spatial control and test whether its spatial targets matter. A6 could examine the cost of allowing candidates to change during gate fitting, but would answer a different question. No conclusion about utility-supervised robustness should precede these comparisons.
+
+\subsection{Interpretability and robustness limits}
+The additive interface exposes signed branch contributions to foreground scores and makes fixed-output interventions inexpensive. It provides an accounting of this implementation, not a clinical explanation of a lesion. Changing an input sequence changes the low-frequency backbone context, correction proposals, and gates; removing one already-computed contribution leaves those quantities fixed. Confusing these interventions would overstate modality attribution. Similarly, a stability certificate states that the computed winner survives contribution removal, not that the diagnosis is correct or that the input is reliable.
+
+All modality masks execute successfully, but the ET decline without T1ce is large. The system consequently remains dependent on informative contrasts despite explicit availability handling. The small local-corruption changes are restricted to one corrupted sequence, two families, and the implemented severities. No external hospital, scanner, acquisition protocol, motion artifact, or real missingness process was evaluated. The ghosting and ringing suite is implemented for the locked internal test protocol but has not been executed. Robustness to those conditions remains unmeasured.
+
+\subsection{Threats to validity and reporting scope}
+The custom split is patient-disjoint and reproducible, but it is not the official BraTS challenge split. The 101 internal test subjects remain untouched; every performance table in this paper uses the 49-patient validation partition. Repeated checkpoint selection and exploratory analyses can bias validation conclusions. The patient bootstrap conditions on one split and one training seed, and its pointwise intervals do not account for multiple endpoints or model-selection uncertainty. These limits preclude a confirmatory generalization claim.
+
+The downloaded Kaggle mirror's exact release version and reuse terms were not recorded by the experiment. MRI hashes improve input traceability, but do not recover missing licensing evidence or establish full historical mask-byte identity. Before public redistribution or submission, the authors must confirm the applicable BraTS/mirror terms and any institution or venue requirements for use of this secondary dataset. No new patient recruitment, prospective clinical study, institutional approval number, or funding statement is asserted here.
+
+Four empty ET references and very small enhancing lesions show the importance of explicit metric conventions. Both-empty overlap scores, one-empty undefined distances, and valid-case boundary averages affect model comparisons. The unweighted surface-point Dice and concatenated-distance HD95 used here are implementation-specific and should not be compared directly to published scores calculated under other conventions or splits. Published methods in Related Work provide context rather than leaderboard baselines for this custom experiment.
+
+\subsection{Next validation steps}
+The first empirical priority is a matched B1/B5 comparison and a frozen-candidate B4/B5 study, followed by A1 and repeated seeds. After the configuration and selection protocol are fixed, the existing internal test manifest should be evaluated once with the prespecified unseen corruption families. Qualitative inspection should include additional patients chosen by a declared sampling rule, including absent and small ET cases and distant false positives. Independent external data and a same-hardware resource comparison are needed before deployment or computational-efficiency claims. These are remaining research tasks, not missing software implementations in the present pipeline.
+
+\section{Conclusion and Future Work}
+DetailTrust-Net implements modality-wise Gaussian decomposition, a full-width residual 3D U-Net, zero-anchored detail corrections, and utility-supervised spatial foreground-logit fusion. Its completed validation evaluation gives mean WT/TC/ET Dice 0.7379, compared with 0.7109 for the available raw-input B0 checkpoint on the same 49 patients. The 2.70-point difference is exploratory because training exposure, augmentation, and inference precision are not matched. Detail removal shows a measurable contribution within B5, primarily from T1ce, but the final learned gates score below the selected unit-gate candidates on clean validation. The present results therefore support further controlled study of the correction interface, while leaving the benefit of utility supervision, held-out test performance, and clinical robustness unresolved.
+
+\begin{thebibliography}{99}
+\bibitem{menze2015} B. H. Menze \emph{et al.}, ``The multimodal brain tumor image segmentation benchmark (BRATS),'' \emph{IEEE Trans. Med. Imag.}, vol. 34, no. 10, pp. 1993--2024, Oct. 2015, doi: \url{10.1109/TMI.2014.2377694}.
+\bibitem{bakas2017} S. Bakas \emph{et al.}, ``Advancing The Cancer Genome Atlas glioma MRI collections with expert segmentation labels and radiomic features,'' \emph{Sci. Data}, vol. 4, Art. no. 170117, 2017, doi: \url{10.1038/sdata.2017.117}.
+\bibitem{yang2022d2} Q. Yang, X. Guo, Z. Chen, P. Y. M. Woo, and Y. Yuan, ``D$^2$-Net: Dual disentanglement network for brain tumor segmentation with missing modalities,'' \emph{IEEE Trans. Med. Imag.}, vol. 41, no. 10, pp. 2953--2964, Oct. 2022, doi: \url{10.1109/TMI.2022.3175478}.
+\bibitem{yang2023hyper} H. Yang, J. Sun, and Z. Xu, ``Learning unified hyper-network for multi-modal MR image synthesis and tumor segmentation with missing modalities,'' \emph{IEEE Trans. Med. Imag.}, vol. 42, no. 12, pp. 3678--3689, Dec. 2023, doi: \url{10.1109/TMI.2023.3301934}.
+\bibitem{shi2024m2f} J. Shi, L. Yu, Q. Cheng, X. Yang, K.-T. Cheng, and Z. Yan, ``M$^2$FTrans: Modality-masked fusion transformer for incomplete multi-modality brain tumor segmentation,'' \emph{IEEE J. Biomed. Health Inform.}, vol. 28, no. 1, pp. 379--390, Jan. 2024, doi: \url{10.1109/JBHI.2023.3326151}.
+\bibitem{zhang2025mome} X. Zhang \emph{et al.}, ``A foundation model for lesion segmentation on brain MRI with mixture of modality experts,'' \emph{IEEE Trans. Med. Imag.}, vol. 44, no. 6, pp. 2594--2604, Jun. 2025, doi: \url{10.1109/TMI.2025.3540809}.
+\bibitem{shao2025hff} M. Shao \emph{et al.}, ``Rethinking brain tumor segmentation from the frequency domain perspective,'' \emph{IEEE Trans. Med. Imag.}, vol. 44, no. 11, pp. 4536--4553, Nov. 2025, doi: \url{10.1109/TMI.2025.3579213}.
+\bibitem{cicek2016} \"O. \c{C}i\c{c}ek, A. Abdulkadir, S. S. Lienkamp, T. Brox, and O. Ronneberger, ``3D U-Net: Learning dense volumetric segmentation from sparse annotation,'' in \emph{Proc. MICCAI}, 2016, pp. 424--432, doi: \url{10.1007/978-3-319-46723-8_49}.
+\bibitem{he2016resnet} K. He, X. Zhang, S. Ren, and J. Sun, ``Deep residual learning for image recognition,'' in \emph{Proc. IEEE Conf. Comput. Vis. Pattern Recognit.}, 2016, pp. 770--778, doi: \url{10.1109/CVPR.2016.90}.
+\bibitem{isensee2021} F. Isensee, P. F. Jaeger, S. A. A. Kohl, J. Petersen, and K. H. Maier-Hein, ``nnU-Net: a self-configuring method for deep learning-based biomedical image segmentation,'' \emph{Nature Methods}, vol. 18, pp. 203--211, 2021, doi: \url{10.1038/s41592-020-01008-z}.
+\bibitem{du2024swinpa} H. Du, J. Wang, M. Liu, Y. Wang, and E. Meijering, ``SwinPA-Net: Swin transformer-based multiscale feature pyramid aggregation network for medical image segmentation,'' \emph{IEEE Trans. Neural Netw. Learn. Syst.}, vol. 35, no. 4, pp. 5355--5366, Apr. 2024, doi: \url{10.1109/TNNLS.2022.3204090}.
+\bibitem{jun2024medtrans} E. Jun, S. Jeong, D.-W. Heo, and H.-I. Suk, ``Medical Transformer: Universal encoder for 3-D brain MRI analysis,'' \emph{IEEE Trans. Neural Netw. Learn. Syst.}, vol. 35, no. 12, pp. 17779--17789, Dec. 2024, doi: \url{10.1109/TNNLS.2023.3308712}.
+\bibitem{liu2025mbunext} Q. Liu, Y. Zhu, M. Liu, Z. Yao, Y. Wang, and E. Meijering, ``MBUNeXt: Multibranch encoder aggregation network based on layer-fusion strategy for multimodal brain tumor segmentation,'' \emph{IEEE Trans. Neural Netw. Learn. Syst.}, vol. 36, no. 12, pp. 19996--20008, Dec. 2025, doi: \url{10.1109/TNNLS.2025.3593297}.
+\bibitem{havaei2016hemis} M. Havaei \emph{et al.}, ``HeMIS: Hetero-modal image segmentation,'' in \emph{Proc. MICCAI}, 2016, pp. 469--477, doi: \url{10.1007/978-3-319-46723-8_54}.
+\bibitem{zhang2026m2seg} X. Zhang, A. Bahri, C. Desrosiers, H. Liu, and F. Bao, ``M2SegMamba: Mamba-based incomplete multimodal learning for brain tumor segmentation with few samples,'' \emph{IEEE J. Biomed. Health Inform.}, vol. 30, no. 3, pp. 2455--2465, Mar. 2026, doi: \url{10.1109/JBHI.2025.3600652}.
+\bibitem{kang2026mamba} M. Kang, F. F. Ting, S. N. Saw, R. C.-W. Phan, Z. Ge, and C.-M. Ting, ``A multimodal feature distillation with Mamba-Transformer network for brain tumor segmentation with incomplete modalities,'' \emph{IEEE Trans. Artificial Intell.}, vol. 7, no. 9, pp. 5076--5090, Sep. 2026, doi: \url{10.1109/TAI.2026.3678550}.
+\bibitem{brats2020data} Center for Biomedical Image Computing and Analytics, ``Multimodal Brain Tumor Segmentation Challenge 2020: Data,'' University of Pennsylvania. [Online]. Available: \url{https://www.med.upenn.edu/cbica/brats2020/data.html}. Accessed: Oct. 14, 2026.
+\bibitem{bakas2018challenge} S. Bakas \emph{et al.}, ``Identifying the best machine learning algorithms for brain tumor segmentation, progression assessment, and overall survival prediction in the BRATS challenge,'' arXiv:1811.02629, 2018. [Online]. Available: \url{https://arxiv.org/abs/1811.02629}.
+\end{thebibliography}
+\end{document}
+

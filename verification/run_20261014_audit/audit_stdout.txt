@@ -1,0 +1,478 @@
+{
+  "json_files": 56,
+  "json_failures": [],
+  "csv": [
+    [
+      "detailtrust\\correction_contributions.csv",
+      980
+    ],
+    [
+      "detailtrust\\gate_analysis.csv",
+      980
+    ],
+    [
+      "detailtrust\\metrics_per_subject.csv",
+      6034
+    ],
+    [
+      "detailtrust\\metrics_summary.csv",
+      126
+    ]
+  ],
+  "figure_failures": [],
+  "metrics": {
+    "per_subject_rows": 6034,
+    "report_groups": 126,
+    "summary_csv_rows": 126,
+    "recomputed_means": 1170,
+    "max_mean_discrepancy": 0.0,
+    "recomputed_other_statistics": 5544,
+    "max_other_statistics_discrepancy": 0.0,
+    "issues": [],
+    "partitions": {
+      "validation": 6034
+    },
+    "conditions": {
+      "clean_m15": 343,
+      "clean_m15_remove_detail_t1": 343,
+      "clean_m15_remove_detail_t1ce": 343,
+      "clean_m15_remove_detail_t2": 343,
+      "clean_m15_remove_detail_flair": 343,
+      "clean_m15_base_only": 343,
+      "clean_m01": 343,
+      "clean_m02": 343,
+      "clean_m03": 343,
+      "clean_m04": 343,
+      "clean_m05": 343,
+      "clean_m06": 343,
+      "clean_m07": 343,
+      "clean_m08": 343,
+      "clean_m09": 343,
+      "clean_m10": 343,
+      "clean_m11": 343,
+      "clean_m12": 203
+    },
+    "empty_ET_clean": [
+      {
+        "subject": "BraTS20_Training_278",
+        "truth_voxels": 0,
+        "prediction_voxels": 18966,
+        "dice": 0.0
+      },
+      {
+        "subject": "BraTS20_Training_306",
+        "truth_voxels": 0,
+        "prediction_voxels": 2492,
+        "dice": 0.0
+      },
+      {
+        "subject": "BraTS20_Training_263",
+        "truth_voxels": 0,
+        "prediction_voxels": 3178,
+        "dice": 0.0
+      },
+      {
+        "subject": "BraTS20_Training_286",
+        "truth_voxels": 0,
+        "prediction_voxels": 151,
+        "dice": 0.0
+      }
+    ],
+    "worst_ET_clean": [
+      {
+        "subject": "BraTS20_Training_278",
+        "dice": 0.0,
+        "truth_voxels": 0
+      },
+      {
+        "subject": "BraTS20_Training_306",
+        "dice": 0.0,
+        "truth_voxels": 0
+      },
+      {
+        "subject": "BraTS20_Training_263",
+        "dice": 0.0,
+        "truth_voxels": 0
+      },
+      {
+        "subject": "BraTS20_Training_286",
+        "dice": 0.0,
+        "truth_voxels": 0
+      },
+      {
+        "subject": "BraTS20_Training_086",
+        "dice": 0.0761904761904762,
+        "truth_voxels": 106
+      },
+      {
+        "subject": "BraTS20_Training_074",
+        "dice": 0.09375660257764631,
+        "truth_voxels": 22496
+      },
+      {
+        "subject": "BraTS20_Training_232",
+        "dice": 0.35540430274444246,
+        "truth_voxels": 9523
+      },
+      {
+        "subject": "BraTS20_Training_318",
+        "dice": 0.41750607849947896,
+        "truth_voxels": 1855
+      }
+    ]
+  },
+  "training": [
+    {
+      "stage": "A",
+      "status": "completed",
+      "updates_completed": 4000,
+      "updates_planned": 4000,
+      "selected_update": 2000,
+      "validation_score": 0.7104968509513776,
+      "training_seconds": 14128.414365493001,
+      "history_rows": 4000,
+      "contiguous_updates": true,
+      "nonfinite_loss_rows": 0,
+      "first_100_mean_loss": 1.2249467170238495,
+      "last_100_mean_loss": 0.6467484168708324
+    },
+    {
+      "stage": "B",
+      "status": "completed",
+      "updates_completed": 4500,
+      "updates_planned": 4500,
+      "selected_update": 4500,
+      "validation_score": 0.7403095389482739,
+      "training_seconds": 19679.439088513,
+      "history_rows": 4500,
+      "contiguous_updates": true,
+      "nonfinite_loss_rows": 0,
+      "first_100_mean_loss": 0.9455452443659306,
+      "last_100_mean_loss": 0.8708951684832573
+    },
+    {
+      "stage": "C",
+      "status": "completed",
+      "updates_completed": 1500,
+      "updates_planned": 1500,
+      "selected_update": 1500,
+      "validation_score": 0.7379039350859942,
+      "training_seconds": 4624.549728477001,
+      "history_rows": 1500,
+      "contiguous_updates": true,
+      "nonfinite_loss_rows": 0,
+      "first_100_mean_loss": 0.6641933764517307,
+      "last_100_mean_loss": 0.6779447214305401
+    }
+  ],
+  "gates": [
+    {
+      "modality": "t1",
+      "region": "brain",
+      "patients": 49,
+      "mean_patient_mean": 0.5018377193254606,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5003338267608565,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 1.2759989101828161e-05,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.04524828825617595,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.054317449281689446,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1",
+      "region": "background",
+      "patients": 49,
+      "mean_patient_mean": 0.5006357137279038,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5002651768071311,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 7.237813341862188e-07,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.056524353835095735,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.06695017106063002,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1",
+      "region": "WT",
+      "patients": 49,
+      "mean_patient_mean": 0.519458874221984,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5123108309142443,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 0.00046220651994394293,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.03378619235367705,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.03267437439739877,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1",
+      "region": "TC",
+      "patients": 49,
+      "mean_patient_mean": 0.5367751970345395,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.531636787920582,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 0.0044181637118638215,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.07751010218307999,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.07304163434843695,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1",
+      "region": "ET",
+      "patients": 49,
+      "mean_patient_mean": 0.536920494977858,
+      "mean_valid_patients": 45,
+      "median_patient_mean": 0.5326132280959024,
+      "median_valid_patients": 45,
+      "measured_gated_utility_mean_patient_mean": 0.003943850932975895,
+      "measured_gated_utility_mean_valid_patients": 45,
+      "gate_utility_spearman_patient_mean": 0.03149508857875276,
+      "gate_utility_spearman_valid_patients": 45,
+      "candidate_utility_spearman_patient_mean": 0.03019844612386541,
+      "candidate_utility_spearman_valid_patients": 45
+    },
+    {
+      "modality": "t1ce",
+      "region": "brain",
+      "patients": 49,
+      "mean_patient_mean": 0.5099867315295137,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5041870693771207,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 0.0013690406199109893,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.037033006370503996,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.04626706820946622,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1ce",
+      "region": "background",
+      "patients": 49,
+      "mean_patient_mean": 0.5053987253664467,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5040204756113947,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -0.000288044475897847,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.06338780997293116,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.07093452228815794,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1ce",
+      "region": "WT",
+      "patients": 49,
+      "mean_patient_mean": 0.5831029781554765,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5681841124077233,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 0.0367628958608423,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.12419819899161534,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.10946362487640816,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1ce",
+      "region": "TC",
+      "patients": 49,
+      "mean_patient_mean": 0.6294075057814175,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.6210054457187653,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": 0.09338643293701854,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.16823516972758104,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.15178505586522315,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t1ce",
+      "region": "ET",
+      "patients": 49,
+      "mean_patient_mean": 0.6382664803441258,
+      "mean_valid_patients": 45,
+      "median_patient_mean": 0.6315754201677111,
+      "median_valid_patients": 45,
+      "measured_gated_utility_mean_patient_mean": 0.059204347351462475,
+      "measured_gated_utility_mean_valid_patients": 45,
+      "gate_utility_spearman_patient_mean": 0.00648856626027912,
+      "gate_utility_spearman_valid_patients": 45,
+      "candidate_utility_spearman_patient_mean": -0.008187225718495384,
+      "candidate_utility_spearman_valid_patients": 45
+    },
+    {
+      "modality": "t2",
+      "region": "brain",
+      "patients": 49,
+      "mean_patient_mean": 0.49896964840725905,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.4985552947131955,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -3.2319668982418825e-05,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.05265736400113073,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.060508744356871,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t2",
+      "region": "background",
+      "patients": 49,
+      "mean_patient_mean": 0.4987406210697718,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.4985643132608764,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -3.4034212369176914e-06,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.06787490448551108,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.07655652511766305,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t2",
+      "region": "WT",
+      "patients": 49,
+      "mean_patient_mean": 0.5010627149780146,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.49737014697522536,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -0.001172867245147746,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.020427948560692827,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.020963511421791113,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t2",
+      "region": "TC",
+      "patients": 49,
+      "mean_patient_mean": 0.5114475991955293,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.507083536106713,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -0.0030972214410249594,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": -0.020717335566938968,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": -0.017007979871361913,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "t2",
+      "region": "ET",
+      "patients": 49,
+      "mean_patient_mean": 0.512798985998811,
+      "mean_valid_patients": 45,
+      "median_patient_mean": 0.5089188946617974,
+      "median_valid_patients": 45,
+      "measured_gated_utility_mean_patient_mean": -0.0010113088244300646,
+      "measured_gated_utility_mean_valid_patients": 45,
+      "gate_utility_spearman_patient_mean": -0.04504181747977316,
+      "gate_utility_spearman_valid_patients": 45,
+      "candidate_utility_spearman_patient_mean": -0.04345887474176937,
+      "candidate_utility_spearman_valid_patients": 45
+    },
+    {
+      "modality": "flair",
+      "region": "brain",
+      "patients": 49,
+      "mean_patient_mean": 0.49881606241382287,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.4976925442413408,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -7.434769661683407e-05,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.03603327786963134,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.036077692478119226,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "flair",
+      "region": "background",
+      "patients": 49,
+      "mean_patient_mean": 0.49809214013630143,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.49764391597436397,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -2.8606807010261517e-05,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.03138356286423198,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.03209371872506404,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "flair",
+      "region": "WT",
+      "patients": 49,
+      "mean_patient_mean": 0.5089361871321088,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5048285935606275,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -0.0018269264817657744,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.028756785587771803,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.026285626968261856,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "flair",
+      "region": "TC",
+      "patients": 49,
+      "mean_patient_mean": 0.5164327927561799,
+      "mean_valid_patients": 49,
+      "median_patient_mean": 0.5118629433670823,
+      "median_valid_patients": 49,
+      "measured_gated_utility_mean_patient_mean": -0.002414072185460174,
+      "measured_gated_utility_mean_valid_patients": 49,
+      "gate_utility_spearman_patient_mean": 0.07095755190767727,
+      "gate_utility_spearman_valid_patients": 49,
+      "candidate_utility_spearman_patient_mean": 0.06840059552295735,
+      "candidate_utility_spearman_valid_patients": 49
+    },
+    {
+      "modality": "flair",
+      "region": "ET",
+      "patients": 49,
+      "mean_patient_mean": 0.5129888974580151,
+      "mean_valid_patients": 45,
+      "median_patient_mean": 0.5087390138043297,
+      "median_valid_patients": 45,
+      "measured_gated_utility_mean_patient_mean": 0.0007836441877669939,
+      "measured_gated_utility_mean_valid_patients": 45,
+      "gate_utility_spearman_patient_mean": 0.059036958821683534,
+      "gate_utility_spearman_valid_patients": 45,
+      "candidate_utility_spearman_patient_mean": 0.05552302529423895,
+      "candidate_utility_spearman_valid_patients": 45
+    }
+  ],
+  "checkpoint_hash_matches": true,
+  "contact_sheets": [
+    "C:\\D\\project\\bt\\verification\\run_20261014_audit\\figures_1.png",
+    "C:\\D\\project\\bt\\verification\\run_20261014_audit\\figures_2.png",
+    "C:\\D\\project\\bt\\verification\\run_20261014_audit\\figures_3.png",
+    "C:\\D\\project\\bt\\verification\\run_20261014_audit\\figures_4.png",
+    "C:\\D\\project\\bt\\verification\\run_20261014_audit\\figures_5.png"
+  ]
+}

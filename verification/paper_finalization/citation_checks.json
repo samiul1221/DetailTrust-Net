@@ -1,0 +1,165 @@
+{
+  "checked_date": "2026-10-14",
+  "reference_count": 18,
+  "sources": [
+    {
+      "key": "menze2015",
+      "supporting_sources": [
+        "https://pubmed.ncbi.nlm.nih.gov/25494501/",
+        "https://www.mauricioreyes.me/Publications/MenzeTMI2015.pdf"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "bakas2017",
+      "supporting_sources": [
+        "https://pubmed.ncbi.nlm.nih.gov/28872634/"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "yang2022d2",
+      "supporting_sources": [
+        "https://scholars.hkbu.edu.hk/en/publications/dsup2sup-net-dual-disentanglement-network-for-brain-tumor-segment/"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "yang2023hyper",
+      "supporting_sources": [
+        "https://pubmed.ncbi.nlm.nih.gov/37540616/",
+        "https://github.com/HeranYang/hyper-GAE"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "shi2024m2f",
+      "supporting_sources": [
+        "https://researchportal.hkust.edu.hk/en/publications/mftrans-modality-masked-fusion-transformer-for-incomplete-multi-m/",
+        "https://github.com/Jun-Jie-Shi/M2FTrans"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "zhang2025mome",
+      "supporting_sources": [
+        "https://spiral.imperial.ac.uk/entities/publication/61eb47d5-869e-42a1-a0e6-4a89b3ed1c3e"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "shao2025hff",
+      "supporting_sources": [
+        "https://ieeexplore.ieee.org/document/11032150/",
+        "https://researchportal.northumbria.ac.uk/files/197088715/Rethinking_Brain_Tumor_Segmentation_from_the_Frequency_Domain_Perspective.pdf"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "cicek2016",
+      "supporting_sources": [
+        "https://link.springer.com/chapter/10.1007/978-3-319-46723-8_49"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "he2016resnet",
+      "supporting_sources": [
+        "https://arxiv.org/abs/1512.03385",
+        "https://cir.nii.ac.jp/crid/1360855567865740544"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "isensee2021",
+      "supporting_sources": [
+        "https://github.com/MIC-DKFZ/nnUNet",
+        "https://www.nature.com/articles/s41592-020-01008-z"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "du2024swinpa",
+      "supporting_sources": [
+        "https://pubmed.ncbi.nlm.nih.gov/36121961/"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "jun2024medtrans",
+      "supporting_sources": [
+        "https://pubmed.ncbi.nlm.nih.gov/37738193/",
+        "https://arxiv.org/abs/2104.13633"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "liu2025mbunext",
+      "supporting_sources": [
+        "https://pubmed.ncbi.nlm.nih.gov/40758513/"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "havaei2016hemis",
+      "supporting_sources": [
+        "https://link.springer.com/chapter/10.1007/978-3-319-46723-8_54"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "zhang2026m2seg",
+      "supporting_sources": [
+        "https://pubmed.ncbi.nlm.nih.gov/40833907/",
+        "https://ieeexplore.ieee.org/abstract/document/11130893"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "kang2026mamba",
+      "supporting_sources": [
+        "https://research.monash.edu/en/publications/a-multimodal-feature-distillation-with-mamba-transformer-network-/"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "brats2020data",
+      "supporting_sources": [
+        "https://www.med.upenn.edu/cbica/brats2020/data.html"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    },
+    {
+      "key": "bakas2018challenge",
+      "supporting_sources": [
+        "https://arxiv.org/abs/1811.02629"
+      ],
+      "metadata_checked": true,
+      "claim_scope": "method description; no imported leaderboard scores"
+    }
+  ],
+  "notes": [
+    "Bibliographic verification uses publisher, proceedings, author, university, or indexed original-abstract records; not every full text was read.",
+    "Some direct publisher pages returned errors; alternate supporting records are listed.",
+    "Kang et al. refreshed to volume 7 issue 9 pages 5076-5090 September 2026.",
+    "SwinPA-Net contextualized as general medical image segmentation rather than a brain MRI experiment.",
+    "Official BraTS three requested reference manuscripts included."
+  ]
+}

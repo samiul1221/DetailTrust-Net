@@ -41,26 +41,33 @@ def evaluate_experiment(model, store, subjects, split, partition, experiment, cf
         expected = dict(subjects=subjects, condition=condition, checkpoint_hash=checkpoint_hash,
                         split_hash=split["sha256"], patch=list(cfg.patch), surface_tolerance=cfg.surface_tolerance_mm,
                         small_et_threshold_mm3=cfg.small_et_threshold_mm3)
+        result = None
         if path.exists():
             saved = json.loads(path.read_text())
             if saved["identity"] != expected:
                 raise ValueError("Existing evaluation belongs to a different configuration/checkpoint.")
             result = saved["result"]
-        elif time.perf_counter() < deadline:
+        needs_evaluation = result is None or result.get("status", "completed") != "completed"
+        if needs_evaluation and time.perf_counter() < deadline:
+            def save_progress(partial_result):
+                write_json(path, dict(identity=expected, result=partial_result))
             result = evaluate_condition(model, store, subjects, split, partition, condition, experiment,
-                                        cfg, device, analysis=condition["id"] == "clean_m15")
+                                        cfg, device, analysis=condition["id"] == "clean_m15",
+                                        deadline=deadline, previous=result, save_progress=save_progress)
             write_json(path, dict(identity=expected, result=result))
-        else:
+        elif result is None:
             condition_status.append(dict(condition=condition, status="not_run", reason="session time cap; resume evaluation"))
             continue
         condition_results.append(result)
-        condition_status.append(dict(condition=condition, status="completed"))
+        condition_status.append(dict(condition=condition, status=result.get("status", "completed"),
+            completed_subjects=result.get("completed_subjects", subjects),
+            reason=None if result.get("status", "completed") == "completed" else "time cap; resume remaining patients"))
     return dict(status="completed" if all(c["status"] == "completed" for c in condition_status) else "partial",
                 conditions=condition_status, results=condition_results)
 
 
 def run_experiment_sweep(store, split, cfg, device):
-    """Core order B0/B1/B2/B4/B5; all secondary variants use the same pipeline."""
+    """Run only selected variants; default B5 still trains all three required stages."""
     registry = experiment_registry()
     root = Path(cfg.output_dir)/"experiments"
     root.mkdir(parents=True, exist_ok=True)
@@ -69,7 +76,7 @@ def run_experiment_sweep(store, split, cfg, device):
                 for seed in cfg.seeds for variant, definition in registry.items()}
     started = time.perf_counter()
     deadline = started + cfg.max_hours * 3600
-    training_deadline = started + cfg.max_hours * 3600 * .7
+    training_deadline = started + cfg.max_hours * 3600 * cfg.training_budget_fraction
     train_ids = split["train"][:min(cfg.train_subjects, len(split["train"]))]
     val_ids = split["validation"][:cfg.val_subjects]
     for seed in cfg.seeds:
@@ -128,6 +135,9 @@ def run_experiment_sweep(store, split, cfg, device):
                               training_seconds=sum(s["training_seconds"] for s in stages),
                               incremental_training_seconds=sum(s["training_seconds"] for s in stages if not s.get("shared")))
                 write_json(status_path, record)
+                if variant_id == "B5":
+                    # Retain the usable trained model even if evaluation spans sessions.
+                    export_best_detailtrust(statuses, cfg.output_dir, device)
                 benchmark_path = folder/"inference_benchmark.json"
                 benchmark_identity = dict(checkpoint_sha256=selected["checkpoint_sha256"],
                     subject=val_ids[0], patch=list(cfg.patch), precision=cfg.precision,
@@ -174,7 +184,7 @@ def export_best_detailtrust(statuses, output_dir, device):
     """Choose B5 seed by validation only. No untrained checkpoint placeholders."""
     candidates = [r for r in statuses.values() if r["variant_id"] == "B5" and r.get("checkpoint")]
     if not candidates:
-        return dict(status="not_produced", reason="No B5 training stage completed")
+        return dict(status="not_produced", reason="B5 has not completed its full A/B/C training sequence; inspect saved stage checkpoints")
     selected = max(candidates, key=lambda r: r["validation_selection_score"])
     source = selected["checkpoint"]
     destination = Path(output_dir)/"best_detailtrust_model.pt"

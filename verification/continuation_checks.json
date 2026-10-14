@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "paused B checkpoint packaged/restored",
+    "no A optimizer updates on continuation",
+    "only remaining B/C updates executed",
+    "evaluation completed on synthetic fixture",
+    "missing/mismatched/corrupted bundle rejected",
+    "rerun cannot overwrite session progress",
+    "default upload attaches resume dataset and injects bundle ID"
+  ],
+  "live_api_executed": false,
+  "status": "passed"
+}

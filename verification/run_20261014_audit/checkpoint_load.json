@@ -1,0 +1,6 @@
+{
+  "local_strict_load": "not_run",
+  "reason": "PyTorch is not installed in either local Python environment checked",
+  "kaggle_strict_state_dict_load": "passed",
+  "checkpoint_hash_matches": true
+}

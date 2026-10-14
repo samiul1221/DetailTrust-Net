@@ -1,0 +1,62 @@
+{
+  "gate_contribution_maps": {
+    "source_artifacts": [
+      "B5 display_source.npz"
+    ],
+    "meaning": "Window-averaged axial maps; shared scales; image-zero and uncomputed crop fill masked; no percentile clipping.",
+    "figure_size_inches": [
+      7.0,
+      4.1
+    ],
+    "fabricated_values": false
+  },
+  "internal_corrections": {
+    "source_artifacts": [
+      "internal_comparisons.csv"
+    ],
+    "meaning": "Fixed B5 base and computed proposals; 49 paired patients; all removes every correction; not separately trained ablations or B0.",
+    "figure_size_inches": [
+      7.0,
+      2.7
+    ],
+    "fabricated_values": false
+  },
+  "comparison_training": {
+    "source_artifacts": [
+      "baseline_vs_b5_summary.csv",
+      "baseline_vs_b5_per_patient.csv",
+      "B5 training_history.json"
+    ],
+    "meaning": "49 matched validation patients; all paired outliers retained; means and pointwise 20,000-draw percentile intervals; separate completed-stage trajectories; unchanged [0,1] Dice axes.",
+    "figure_size_inches": [
+      7.0,
+      4.6
+    ],
+    "fabricated_values": false
+  },
+  "mri_predictions": {
+    "source_artifacts": [
+      "qualitative_source.npz",
+      "qualitative_provenance.json",
+      "B0 best.pt",
+      "B5 display_source.npz"
+    ],
+    "meaning": "Actual prespecified validation subject 205; axial RAS 90 selected from median reference tumour coordinates, independent of scores. Top: MRI and reference. Bottom: independent B0, B5 base, B5 final and error differences. Original complete-volume metrics are unchanged; orthogonal previews retained outside the compact upload package.",
+    "figure_size_inches": [
+      7.0,
+      3.5
+    ],
+    "fabricated_values": false
+  },
+  "robustness_combined": {
+    "source_artifacts": [
+      "B5 metrics_per_subject.csv"
+    ],
+    "meaning": "All 15 modality subsets and 8 deterministic local FLAIR damage conditions; all 49 patients per condition. Corruption dots retain all paired differences and full observed ranges; diamond means; panels have different axes. No baseline corruption/subset result is inferred.",
+    "figure_size_inches": [
+      7.0,
+      4.9
+    ],
+    "fabricated_values": false
+  }
+}

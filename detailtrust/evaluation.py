@@ -84,7 +84,8 @@ def sliding_window(model, images, available, cfg, device, stage="C", analysis=Fa
 def evaluation_conditions(cfg, final=False):
     """Freeze this suite before testing. Ghost/ringing are held out from training."""
     conditions = []
-    for bits in range(1, 16):
+    # Measure the complete-input model first if the session cannot finish the suite.
+    for bits in (15, *range(1, 15)):
         flags = [(bits >> i) & 1 for i in range(4)]
         conditions.append(dict(id=f"clean_m{bits:02}", available=flags, corruption=None))
     families = ("noise",) if cfg.robustness == "smoke" else (("ghost", "ringing") if final else ("noise", "resolution"))
@@ -214,15 +215,30 @@ def contribution_analysis(output, truth, images, flags, subject, experiment, con
     return gate_rows, correction_rows, stability, check
 
 
-def evaluate_condition(model, store, subjects, split_manifest, split, condition, experiment, cfg, device, stage="C", analysis=False):
+def evaluate_condition(model, store, subjects, split_manifest, split, condition, experiment, cfg, device,
+                       stage="C", analysis=False, deadline=None, previous=None, save_progress=None):
     """Evaluate only an explicitly permitted held-out subject list."""
     assert split in ("validation", "test")
     assert set(subjects) <= set(split_manifest[split])
     assert not set(subjects) & set(split_manifest["train"])
     if split == "test":
         assert cfg.run_final_test and cfg.protocol_locked
-    rows, gates, corrections, stability, checks, timings, losses = [], [], [], [], [], [], []
+    previous = previous or {}
+    rows, gates, corrections = [list(previous.get(k, [])) for k in ("rows", "gates", "corrections")]
+    stability, checks, timings, losses = [list(previous.get(k, [])) for k in ("stability", "stability_checks", "timings", "losses")]
+    completed = list(previous.get("completed_subjects", []))
+    assert set(completed) <= set(subjects) and len(completed) == len(set(completed))
+    def snapshot():
+        return dict(status="completed" if len(completed) == len(subjects) else "partial",
+                    completed_subjects=completed, requested_subjects=list(subjects),
+                    rows=rows, gates=gates, corrections=corrections, stability=stability,
+                    stability_checks=checks, timings=timings, losses=losses,
+                    mean_loss=float(np.mean(losses)) if losses else None)
     for subject in subjects:
+        if subject in completed:
+            continue
+        if deadline is not None and time.perf_counter() >= deadline:
+            break
         images, truth, metadata = store.load(subject)
         damaged, flags = apply_condition(images, subject, condition, cfg.split_seed)
         output = sliding_window(model, damaged, flags, cfg, device, stage, analysis)
@@ -247,12 +263,30 @@ def evaluate_condition(model, store, subjects, split_manifest, split, condition,
                                             condition["id"] + f"_remove_detail_{MODALITIES[modality]}", split, cfg.surface_tolerance_mm)
             rows += subject_metrics(output["base"].argmax(0).numpy(), truth, metadata["spacing"], subject, experiment,
                                     condition["id"] + "_base_only", split, cfg.surface_tolerance_mm)
-    return dict(rows=rows, gates=gates, corrections=corrections, stability=stability,
-                stability_checks=checks, timings=timings, mean_loss=float(np.mean(losses)))
+        completed.append(subject)
+        if save_progress:
+            save_progress(snapshot())
+        print(f"{experiment} {split} {condition['id']}: {len(completed)}/{len(subjects)} subjects", flush=True)
+        del output
+    return snapshot()
 
 
 def validation_score(model, store, subjects, split, cfg, device, stage):
-    clean = dict(id="clean_m15", available=[1, 1, 1, 1], corruption=None)
-    result = evaluate_condition(model, store, subjects, split, "validation", clean, "selection", cfg, device, stage)
-    score = np.mean([r["dice"] for r in result["rows"] if r["region"] in REGIONS])
-    return float(score), result["mean_loss"]
+    """Same patient/region Dice selection, without unused surface or lesion metrics."""
+    assert subjects and set(subjects) <= set(split["validation"])
+    assert not set(subjects) & set(split["train"])
+    scores, losses = [], []
+    for index, subject in enumerate(subjects, start=1):
+        images, truth, _ = store.load(subject)
+        output = sliding_window(model, images, np.ones(4, np.float32), cfg, device, stage)
+        prediction = output["logits"].argmax(0).numpy()
+        for classes in REGIONS.values():
+            predicted_region, true_region = np.isin(prediction, classes), np.isin(truth, classes)
+            denominator = int(predicted_region.sum()) + int(true_region.sum())
+            scores.append(2 * int((predicted_region & true_region).sum()) / denominator if denominator else 1.)
+        labels = torch.from_numpy(np.asarray(truth).astype(np.int64))[None]
+        losses.append(float(segmentation_loss(output["logits"][None], labels)))
+        del output
+        if index % 10 == 0 or index == len(subjects):
+            print(f"Validation: {index}/{len(subjects)} subjects", flush=True)
+    return float(np.mean(scores)), float(np.mean(losses))

@@ -4,6 +4,11 @@ Upload **`detailtrust_kaggle.ipynb`** to Kaggle. All implementation code is alre
 inside it. You do **not** need the local `detailtrust/` Python package on Kaggle.
 The Python modules are the tested editable source used to build the notebook.
 
+The default experiment selection is now **B5 only**, per the user's revised
+priority: train and evaluate the complete DetailTrust-Net first. All A/B/C stages
+remain enabled. Baselines/ablations are implemented but recorded as `not_run`
+unless added to `EXPERIMENTS`. B5-only results do not establish comparative gains.
+
 ## Run on Kaggle
 
 1. Attach `awsaf49/brats20-dataset-training-validation`, the BraTS 2020 **NIfTI**
@@ -50,8 +55,10 @@ have no medical interpretation. The backbone widths do not change.
 The profile measures each stage before the sweep; OOM never silently shrinks the
 model. If needed, explicitly set `cfg.patch=(80,80,80)` using `replace`, use a new
 output directory and apply the same change to every comparator. Keep this deviation
-in the report. The sweep uses 70% of its configurable time allowance for training
-and reserves the remainder for evaluation. Preflight/profile time is additional.
+in the report. The default sweep uses 90% of its configurable time allowance for
+training (8.1 hours in main) and reserves the remainder for evaluation. Extended
+mode uses 70%. Preflight/profile time is additional. Complete-input evaluation
+runs first; unfinished robustness conditions remain explicitly pending.
 The full research study can require multiple Kaggle sessions and weekly quotas.
 
 ## Resume
@@ -116,32 +123,38 @@ terminal, use the launcher to obtain Python 3.11 and the current sync dependenci
 
 ```powershell
 cd C:\D\project\bt
-.\kaggle.ps1 --kernel YOUR_USERNAME/detailtrust-net --run --download --wait 43200
+.\kaggle.ps1 --mode main --run
 ```
 
-This command requests a GPU run and then waits for completion before downloading
-outputs into `output_dump/`. It does not modify Codex permissions or `.env`.
+This command resumes the existing notebook from saved checkpoints, uploads a new version, requests a GPU run,
+and exits after acknowledgment. It does not wait for training to finish.
+It does not modify Codex permissions or `.env`.
 For a later output download alone: `.\kaggle.ps1 --download`.
 The cloud launch depends on valid credentials, dataset access and available GPU quota.
 
 Edit `detailtrust/*.py` and the teaching/runtime cells in `build_notebook.py`. Then:
 
 ```powershell
-python build_notebook.py
-python sync_kaggle.py --kernel YOUR_USERNAME/detailtrust-net
+.\kaggle.ps1 --mode main --run
 ```
 
-The first sync saves the notebook ID in `kaggle-sync.json`. Subsequent syncs need
-only `python sync_kaggle.py`. Each sync rebuilds and uploads a new version of the
-same notebook, without executing it. Add `--run` to execute or `--status` to check.
+Use `--fresh` only for an intentional restart. By default the script verifies the current cloud report,
+reuses matching downloaded checkpoints, and attaches a private resume dataset. Missing or incompatible
+checkpoints stop the upload/run rather than silently starting new weights. The cache is excluded before
+download; runtime cache lives in `/tmp/detailtrust_cache`. See `KAGGLE_COMMANDS.md`.
+
+The notebook ID is saved in `kaggle-sync.json`. Each upload checks the account's
+notebook inventory, preserves the existing title, and records Kaggle's returned
+URL. Local edits only reach Kaggle after a successful upload. Use `--status` to
+check a run without uploading, or `--download` to retrieve completed outputs.
 For rebuilding alone: `python sync_kaggle.py --build-only`.
 
 Sync needs Python 3.11+ and a current official CLI:
 `python -m pip install --upgrade kaggle python-dotenv nbformat`.
 It reads `KAGGLE_API_TOKEN` from your local `.env` or environment without printing
 it. The staging folder includes only the generated notebook and metadata. `.env`
-is never uploaded. API output/errors are suppressed; failures tell you what to
-check without displaying credentials. GPU uploads work with Kaggle CLI 2.2.4.
+is never uploaded. API error diagnostics are credential-redacted before display
+and saved to `kaggle_last_error.json`. GPU uploads work with Kaggle CLI 2.2.4.
 Save-only uploads require the newer `--no-run` option; if absent, the script stops
 that operation rather than starting unwanted training. Do not edit the generated notebook locally and then rebuild:
 source changes belong in the builder/modules, or a rebuild will replace them.
@@ -152,3 +165,15 @@ No Kaggle upload, GPU measurement or real BraTS training is claimed in this sour
 delivery. Consult `IMPLEMENTATION_AUDIT.md` and `verification/` for actually executed
 local tests. Synthetic runs test engineering only. Close published comparators are
 not reproduced here; internal controls cannot justify a state-of-the-art claim.
+
+## Paper figures
+
+Measured figure candidates are saved in PNG (300 DPI), PDF, and SVG with captions and source-data JSON.
+See `figures/paper_figures_manifest.json` for produced and unavailable plots. Validation and test are separate,
+patient distributions retain missing/empty-case counts, and partial evaluations show their sample sizes.
+No figures imply completed ablations or clinical validation. Target-journal formatting still needs review.
+
+Figure preparation used the Scientific Agent Skills visualization workflow:
+Kassis, T., Agarwal, V., He, Y., Patel, D., & Brueckner, A. M. (2026).
+[Scientific Agent Skills: A Library of Procedural Knowledge for Research Agents](https://doi.org/10.48550/arXiv.2609.00065).
+This is tooling attribution, not evidence for DetailTrust-Net performance.

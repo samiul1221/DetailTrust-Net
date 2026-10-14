@@ -1,0 +1,26 @@
+DetailTrust-Net IEEE paper build check -- 2026-10-14
+
+Manuscript: main.tex; class: IEEEtran conference; default 10-point conference body.
+Actual compilation status: not_run_no_local_tex_engine
+Compiler: None
+Actual command executed: None
+Compiled page count: None
+Suggested Overleaf settings: main.tex / pdfLaTeX / Normal / Recompile from scratch.
+Local command if pdfLaTeX is installed: pdflatex -interaction=nonstopmode -halt-on-error main.tex (twice).
+
+Passed: balanced environments/braces/math; unique/resolved labels; all citations have bibliography entries;
+IEEE references ordered by first citation; all referenced figure paths exist; ASCII-safe LaTeX;
+no body-font/margin/page-count overrides; no distributed manuscript includes; no Python files in upload folder;
+Draw.io XML parses with valid unique IDs/connectors; PDF/PNG assets open;
+Detailed 2x2 architecture has five encoder/four decoder levels; box text widths checked;
+Section float barriers removed; ordinary [!t] floats; natural column bottoms via raggedbottom;
+Redundant Discussion opening subsection merged into its parent section;
+figure PDF text lies inside page bounds; embedded non-Type-3 fonts;
+49-patient pairing, point estimates, and 20,000-draw bootstrap independently recomputed;
+one baseline qualitative volume reproduced and checked against saved full-volume Dice.
+
+Unverified without TeX: final page layout, TeX overfull/underfull boxes, rendered equation/table widths,
+compiled reference numbering, and final page count. Static checks do not replace compiling.
+No local TeX download succeeded; the release endpoint was inaccessible in this environment.
+Compact revision: seven figures, two tables; target 12-14 pages, actual count unverified.
+No fabricated result image or pending-result table remains. Test/controlled-ablation results are unmeasured.
